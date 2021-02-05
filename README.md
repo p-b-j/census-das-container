@@ -36,9 +36,9 @@ census-das-container
 $ wget https://homes.cs.washington.edu/~pbjones/census_das.img
 ```
 
-You can also verify the sha256sum and/or md5sum of the downloaded image:
+You can also verify the `sha256sum` and/or `md5sum` of the downloaded image:
 ```bash
-# Expected sha256 output:
+# Expected sha256sum output:
 # 9bc14a6817eedf3ed4ffef6dd833d5efc2f218ecfc7e711bc3c004f0e048b849  census_das.img
 $ sha256sum census_das.img
 ```
