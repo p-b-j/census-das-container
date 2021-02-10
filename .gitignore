@@ -1,0 +1,15 @@
+.pytest_cache/
+certificate.pdf
+*.log
+*.lp
+*.dfxml
+__pycache__/
+das_framework/__pycache__/
+das_framework/ctools/__pycache__/
+das_framework/dfxml/python/dfxml/__pycache__/
+optimization/__pycache__/
+programs/__pycache__/
+programs/engine/__pycache__/
+programs/reader/__pycache__/
+programs/writer/__pycache__/
+tests/__pycache__/
