@@ -80,7 +80,15 @@ Run the Singularity image, specifying the home directory to use:
 $ singularity run --home $HOME census_das.img
 ```
 
-It will assume your input IPUMS file is in `~/das_files` and will output logging info to `~/das-log`.
+Depending on the permissions set on `/tmp` on your system, the run may fail with a `java.io.IOException` stating it could not create a temp directory. You can resolve this by creating a new directory to use as temporary storage for the container:
+```bash
+# Create folder to use as temporary storage
+$ mkdir singularity_tmp
+# bind the container's temporary directory to the new directory
+$ singularity run --home $HOME --bind singularity_tmp:/tmp census_das.img
+```
+
+The DAS will assume your input IPUMS file is in `~/das_files` and will output logging info to `~/das-log`.
 When the system finishes, your output files will be in `~/das_files/output`.
 
 ## Notes
