@@ -86,7 +86,7 @@ def make_runtime():
     tt.set_col_alignment(0, ttable.LEFT)
     tt.set_col_alignment(1, ttable.LEFT)
     tt.add_data(ttable.HR)
-    for (k,v) in [[ "hostname", socket.gethostname()], 
+    for (k,v) in [[ "hostname", socket.gethostname()],
                   [ "uptime"  , shell("uptime")],
                   [ "time"    , datetime.datetime.now().isoformat()[0:19]]]:
         tt.add_data([ k, v ])
@@ -136,4 +136,4 @@ class CertificatePrinter:
             shutil.copy(self.background, os.path.dirname(out.name))
             run_latex(out.name, delete_tempfiles=False, repeat=2)
             shutil.move(out.name.replace(".tex",".pdf"), pdf_name)
-            shutil.rmtree(outdir)
+            os.system("rm -rf {}".format(outdir))
