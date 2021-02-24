@@ -80,7 +80,7 @@ echo You can follow the progress with '"tail -f /var/log/local1.log"'
 echo ""
 
 spark-submit --py-files $ZIPFILE \
-    --master $1
+    --master $1 \
     --files $ZIPFILE \
     --conf spark.eventLog.enabled=true \
     --conf spark.eventLog.dir=$LOGDIR \
