@@ -74,7 +74,7 @@ $ singularity build census_das.img docker-daemon:census:latest
 The container currently runs `census2020-das-e2e/run_1940_standalone.sh`, which uses the config file `census2020-das-e2e/E2E_1940_STANDALONE_CONFIG.ini`.
 You should be able to modify these files in order to tweak DAS parameters, though we haven't rigorously tested this.
 
-## Execution
+## Execution on a single host
 Run the Singularity image, specifying the home directory to use:
 ```bash
 $ singularity run --home $HOME census_das.img
@@ -90,6 +90,9 @@ $ singularity run --home $HOME --bind singularity_tmp:/tmp census_das.img
 
 The DAS will assume your input IPUMS file is in `~/das_files` and will output logging info to `~/das-log`.
 When the system finishes, your output files will be in `~/das_files/output`.
+
+## Execution on a cluster
+See `CLUSTER.md` for instructions for running the code on a cluster of nodes.
 
 ## Notes
 This code currently relies on the Census' [census2020-das-e2e repo](https://github.com/uscensusbureau/census2020-das-e2e) which does not include the most updated code from the DAS framework. Syncing this repo with the latest Census code will be explored soon.
