@@ -85,7 +85,6 @@ spark-submit --py-files $ZIPFILE \
     --conf spark.eventLog.enabled=true \
     --conf spark.eventLog.dir=$LOGDIR \
     --conf spark.driver.maxResultSize=$DRIVER_MAXRESULTS_SIZE \
-    --conf spark.dynamicAllocation.enabled=true \
     --num-executors $NUM_EXECUTORS \
     --executor-cores $EXECUTOR_CORES \
     --conf spark.network.timeout=3000 das_framework/driver.py $CONFIG \
