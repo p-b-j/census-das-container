@@ -91,3 +91,12 @@ Update it to the following:
 ```bash
 ./run_1940_cluster.sh spark://<hostname>:7077
 ```
+
+Then you should be able to run the Singularity container using the instructions from README.md:
+```bash
+$ singularity run --home $HOME census_das.img
+```
+or if you're using a specific temp directory:
+```bash
+$ singularity run --home $HOME --bind singularity_tmp:/tmp census_das.img
+```
