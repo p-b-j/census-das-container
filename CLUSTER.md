@@ -100,3 +100,10 @@ or if you're using a specific temp directory:
 ```bash
 $ singularity run --home $HOME --bind singularity_tmp:/tmp census_das.img
 ```
+
+## Teardown
+The worker nodes will run forever waiting for more jobs, so you'll need to explicitly kill each of those (using ^C or another way of killing the process).
+You'll then need to run the following command on the coordinator node to stop it's spark process:
+```bash
+$ stop-master.sh
+```
