@@ -59,7 +59,7 @@ cd $DIR
 export PATH=$PATH:$DIR
 
 # Logdir is required for Spark, but it is not created by default using AWS...
-LOGDIR=/home/$USER/das-log
+LOGDIR=$HOME/das-log
 mkdir -p $LOGDIR || exit 1
 
 # Create the ZIP file to get the code to CORE nodes.
