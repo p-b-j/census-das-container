@@ -6,7 +6,7 @@ This is very much a WIP; we do not know how Singularity will play w/Spark at the
 `Spark`, like many computing areas, unfortunately made use of the terms "master" and "slave" to describe their system. These words reinforce computing as a space has been unwelcome and hostile for Black people and others who have faced systemic oppression. In our documentation, we will opt for the terms "coordinator" and "worker", but there are some `Spark` commands that unfortunately still make use of the prior terminology and it may appear in some commands and scripts cited in our documentation.
 
 ## Spinning up a cluster
-We've provided a few wrapper scripts in `cluster_scripts` that are meant to be executed inside of `census_das.img`.
+We've provided a few wrapper scripts in `cluster_scripts` that are meant to be executed inside of `census_das.img`. All of these should be run from the top-level of the repository.
 
 Note that for the following commands, we've omitted the `--home $HOME` and `--bind singularity_tmp:/tmp` options that we've used in the instructions for running the DAS. If you run into permissions issues with `/tmp`, you may have to use `--bind singularity_tmp:/tmp` for all of your cluster setup scripts (see README.md for more info). Singularity options can be added after the `exec` portion of the following commands, for example:
 ```bash
