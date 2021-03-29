@@ -1,0 +1,490 @@
+\documentclass{amsart}
+\input{headers} %all preamble stuff goes here
+\begin{document}
+\title{Census 2020 Problem Statement and Development Plan}
+\maketitle
+
+\noindent\textbf{Organization:} This document described the problem statements and solution approaches for the 2020-Census problem. \cref{sec:data} describes the input data, and \cref{sec:constraints} described the known invariants that must hold either synthetic data or query answers generated from these data. \cref{sec:problem} outlines alternate problem statements, and \cref{sec:approaches} details approaches to solve the different problems.
+ 
+
+
+\section{Data Description} \label{sec:data}
+\subsection{hh-person table}
+The hh-person table has demographic characteristics of each person in the population. Variables include 
+\begin{itemize}
+\item Sex (M/F)
+\item Age (from 0 to predetermined max)
+\item Multiple race variables. A person can select from among k races (e.g., white black, asian, aian, nhopi, other).  There are also subcategories for race (e.g., Scottish for ``white'') and in the case of aian and nhopi, tribes and sub-tribes. A person can select multiple subcategories for the same race, for example several tribes. In most cases we can treat race as k binary variables with at least one of them having a ``1'' value.
+\item A binary ethnicity variable: hispanic or not.
+\item Relation to householder (householder, roommate, etc.)
+\item hh-id: foreign key that groups people into households, the join with the household table gives the geography.
+\end{itemize}
+\mh{The encoding of race/ethnicity is likely to change for 2020.}
+
+\subsection{gq-person table}
+This is a table of individuals who live in group quarters rather than households. The schema for this table is the same as the hh-person-table except that ``relation'' is not present and ``hh-id'' is replaced with a group-quarters identifer, ``gq-id''.
+
+There is a virtual field that can be obtained by joining with the group quarters table: whether the person is institutionalized or not. This redundant information is sometimes coded as part of the ``relation'' attribute (if the person is not in a household, their ``relation'' is either ``institutionalized'' or ``non-institutionalized'').
+\am{Should we create a ``person-1" for a GQ, which would be equivalent to a householder for households?}
+\subsection{household table}
+The household table contains data about household characteristics. It include the following variables:
+\begin{itemize}
+\item geoid: a foreign key to the geography table that specifies the block, block group, tract, county, state (+ \{Puerto Rico and other US territories\} and Washington DC) that the household belongs to.
+\item tenure (rented, owned with mortgage, etc)
+\item hh-id (primary key)
+\end{itemize}
+\subsection{group quarters table}
+The group quarters table contains data about group quarters. It has the following variables:
+\begin{itemize}
+\item geoid
+\item gqtype. This is a hierarchical variable height at most 3 (not necessarily balanced). Level 1 is "institutional" vs. "non-institutional". Level 2 is subcategory (e.g., "correctional facility"). Level 3 (when it exists) is detailed type (e.g., "juvenile detention facility")
+\item gq-id (primary key)
+\end{itemize}
+\subsection{Geography table}
+The geography table specifies the geographic hierarchy. 
+\begin{itemize}
+\item State: 52 values because it includes Puerto Rico and Washington DC.
+\item County $\approx 3,144$
+\item Tract $\approx 74,000$
+\item Block group: this is often considered unimportant and merged with block. $\approx 220,000$
+\item Block $\approx 11,000,000$
+\item geoid - the geoid is the concatenation of state code, county code, tract, block group, block
+\end{itemize}
+
+\section{Constraints} \label{sec:constraints}
+
+There are certain constraints and invariants that any  released microdata or query answers must satisfy to agree with \emph{public knowledge}. Public knowledge is divided into structural zeros and public counts.
+
+\subsection{Public counts}
+
+\begin{itemize}
+	\item Number of persons of voting age in each block.
+	\item Number of persons in each block
+	\item Number of group quarters facilities in each block (this is then a maximum on the number of distinct group quarters types in a block). 
+	\item Number of households in each block ($=$ number of people with relation="householder")
+	\item \am{Do we need this ...?} Number of total housing units in each block and number of occupied housing units in each block (hence number of vacants as well). This means we don't need to protect vacancy status. Each household corresponds to 1 housing unit.  \mh{can you rephrase this constraint in terms of the schema described in Sec.2?  e.g., where is vacancy status?} \pl{I think vacancy was excluded from the previously provided schemas (although it could in principle be folded into tenure). this may have been intentional; there are a very small number of reasonably low-dimensional vacant tables. most of the tabular detail \& complexity in our problems comes from variables like family type (or from variables that only have meaning in the join of the households \& family tables, like ``presence of multigenerational households"), which are absent for vacant households, so the vacant table(s) are not likely to pose any major technical issues. for completeness we may want to add them to the schemas/problem statements though. i believe table H3 is the only one (in SF1) that includes both occupied and vacant housing units, and the only thing it records is how many of each of these counts there are.} These constraints have been used to simplify the schema - we can ignore vacant housing units (hence they are not in the schema) and we can ignore the distinction between housing unit and household (they have different names but have been treated the same in many Censuses). Hence we don't need a separate housing unit table.  \mh{okay.  I think it would be useful to distinguish between constraints on the algorithm design vs. constraints that were used in formulating the main problem described in this document.  perhaps this public count could be moved into the data description section as part of the background on how you arrived at the 5 tables described there.}
+\end{itemize}
+
+\subsection{Structural zeros}
+These are the ones we know so far. \am{Phil: Please add or cite the document on structural zeros you got permission to publicly release here.}
+\begin{itemize}
+\item Householders cannot be 0-14 years old
+\item Any "relation" variable that implies marriage or unmarried partner or ability to enter into contracts means that age cannot be 0-14. This includes child-in-law, parent, housemate/roommate.
+\item For each group quarters type, there is a minimum and maximum age.
+\item There is an overall maximum age that is predetermined.
+\item There are many household constraints and we are waiting for them. Mostly they include relation and age. For example, there can be at most 1 spouse of householder, 2 parents, 4 grandparents. There is a maximum household size. There are age gaps between generations. All of these are considered quality control specs. \mh{Based on Jerry's talk at the Sloan workshop, households have structural characteristics that are often implicit yet greatly constrain the space of feasible households.  Example: minimum age gap between and grandparent and child.  I got the impression he and his students have expended effort enumerating these constraints but Jerry also acknowledged that he is likely missing some.}
+\end{itemize}
+
+\am{Q: Which constraints are \emph{hard} must be absolutely satisfy? Which constraints are \emph{soft} and can be violated with the result of poorer utility?} 
+
+
+\section{Utility Requirements}
+\am{State the 3 different types of tabulations that need to be produced -- counting queries on persons, counting queries on households/GQs, counting queries on persons with conditions on households/GQs}
+
+\am{Did John and Simson suggest that (a) there is no use case justifying the need for releasing anything other than PL-94, and (b) we can possibly suggest some tables to be removed from the utility requirement.}
+
+\section{Privacy Requirements}
+All algorithms must satisfy $(\epsilon, 0)$-differnetial privacy. \am{What does this mean? What are the neighboring databases? Should we really be satisfying $(\epsilon, 0, Q)$-Blowfish privacy, where $Q$ is the set of known constraints that we should satisfy? Need a formal definition here.}
+
+
+
+\section{Problem Statement} \label{sec:problem}
+There are at least two problem statements we can come up with:
+
+\subsection{Single Microdata File for people and households}
+The goal of this first problem is to generate synthetic microdata that match the same schema as input so that the table specified in the utility requirement can be tabulated from the synthetic data (with high accuracy).
+\begin{enumerate}
+	\item Input: relational microdata consisting of four tables that require protection: a hh-person table, a gq-person table, a household characteristics table, and a group quarters table. There is a fifth table, geography, that needs no protection.  The schema is described further in \cref{sec:data}.
+	\item Output: synthetic microdata \emph{matching the same schema as the input.}
+	\item Privacy criterion: the algorithm that produces the synthetic data must satisfy $(\epsilon, 0)$-differential privacy.
+	\item Additional constraints: The release microdata must satisfy all publicly known constraints including ``as enumerated'' counts and structural zeros.  Constraints are described in \cref{sec:constraints}.
+	\item Utility: the quality of the released microdata will be judged on its similarity to the input for certain statistical queries of interest.  Precise evaluation criteria have not been established.  Evaluation is described in more detail in \cref{sec:evaluation}.
+	\item ``Knobs'': the algorithm should have tunable knobs that allow the end user to express accuracy preferences.  This aspect of the problem is currently under-specified.  It is also worth noting that there may be fundamental tradeoffs (one cannot increase knob A without lowering B).
+\end{enumerate}
+
+One of the key challenges with this  problem forumation is that we have to synthesize household-ids. Since household ids are associated with very small numbers of records, this can be very challenging to do correctly. In the next alternate problem statement, we only generate data needed to answer aggregate queries over the people and households, and never need to create actual households. 
+
+\subsection{Multiple Unlinked Microdata Files}
+In this version of the problem, we can generate multiple tables that can be used to create tabulations from the utility requirement, and the tables \emph{do not need to be linked.} In particular, this means that the output of the mechanism does need to satisfy the same schema as the input
+
+
+\am{Need to flesh out this problem}
+
+
+
+
+\subsection{Questions} \label{sec:questions}
+
+This section should list unresolved questions about the problem definition.  \mh{Questions about the solution should be moved elsewhere.}
+\begin{enumerate}
+\item Error bounds.  Is releasing error bounds part of the problem definition?  (At Sloan workshop, there was some indication that a portion of the budget was going to be used to measure error.)
+\item Does the problem definition include a workload, possibly with weights emphasizing importance?  If so, is it a fixed aspect of the problem (i.e., we can do algorithm design manually-tailored to a workload) or is it an input to the problem (i.e., we ultimately want algorithms that take workload as input and adapt to it).  \mh{See ``knobs'' in problem definition.}
+\item Evaluation.  What are the right metrics for evaluation?  (Note: Jerry Reiter’s team is also generating synthetic data yet his evaluation methodology seemed quite different.)  \mh{It appears as though we are expected to develop our own measures.}
+\item Privacy impact of exact counts.  With each of the tasks above, some counts must be released exactly (no noise).  How does the inclusion of exact counts affect the privacy guarantee?
+\item Output mismatch.  It's worth noting that the output (synthetic data) is a post-processing of the DP measurements taken (such as linear queries) and therefore information is potentially lost.  Might some sophisticated analysts want to work with the ``raw'' DP measurements to preserve info?
+\end{enumerate}
+
+Questions related to development/solution.
+\begin{enumerate}
+\item What are the software/environment constraints?
+\item Establishing simple baselines.  What is the simplest baseline solution for this problem from the DP literature?  It would be instructive to articulate an end-to-end ``solution'' using existing techniques to (a) have a yardstick for comparison, and (b) identify any missing gaps in the literature. \pl{I don't think there exists a simple baseline because of the exact constraints and integrality requirements; these do not seem to be issues the current DP literature has addressed at all (when considered together). Ignoring exact constraints, geometric mechanism could be used at the block level and then aggregated to get a really bad baseline US solution. Ignoring integrality contraints, laplace mechanism could be used at the block level and then aggregated to get a really bad, non-integer national solution. Suitable baselines for exact constraints and integrality (and nonnegativity) combined are unclear.}
+\item Accuracy impact of exact counts.  How can exact counts be used in algorithm design (e.g., lowering the sensitivity of household queries)?
+\item Structural zeros: How can structural zeros be captured and incorporated into the algorithm design?
+\item Using public information in algorithm design.  For example, rather than estimate 2020 data, estimate the difference between 2010 and 2020 (possibly adjusting for age, different block boundaries, etc.).  
+\end{enumerate}
+
+
+\section{Approaches}\label{sec:approaches}
+
+
+
+\section{Utility Evaluation} \label{sec:evaluation}
+
+The utility of the released microdata will be judged by comparing the similarity of query answers.  A precise formulation of the evaluation criteria needs to be developed.  Here is some discussion.
+
+The most important queries are the PL94 queries which list counts for all combinations of voting-age/non-voting-age, ethnicity, combinations of major race cateogries (in practice, they only consider combinations of up to 3 races. For example, "white alone", "white alone or in combination with another race", "white and black alone", etc.).
+
+The rest of the queries are in SF1. They consist of individual demographics queries (e.g., sex by age), household characteristics (e.g., tenure), queries derived from the join of households and persons (e.g., number of households with someone 65+, average number of children in a household with an asian hispanic householder, etc), and joins between group quarters and persons (e.g., age by sex by group quarters type).
+
+These queries are not to be treated as written in stone. We may provide more information than these queries (e.g., full demographic counts at the US level) and some queries may be removed (e.g., number of people for whom age was imputed).
+\subsection{Available Testing Data}
+The synthetic Population released by the Labor Dynamics Institute, \url{https://zenodo.org/record/556121}, contains a version of the US population based on the ACS data. The ACS data can be viewed as a superset of the Decennial data with a few variables coded differently (e.g., different maximum ages and different relation to householder). This data currently supports the following geography hierarchy: US, region (e.g., northwest), state, PUMA\footnote{Public-Use Micro Area} \mh{What is the relationship between PUMA and the geography hierarchy defined previously?  How fine-grained is PUMA?} \ik{PUMAS are defined such that they cover at least 100k people, also PUMAS should be used with the State variable, e.g., PUMA = 100 appears in a total of 36 states in each of which it has a $>100K$ count. This means that PUMA + ST corresponds to a unique area with population $>100K$ }. According to the Census website, PUMAS contain at least 100,000 people and John states that they are designed to be roughly uniform in population. They are also built based on Counties and Tracts, so I assume some heavily populated counties are broken into tracts to get to close to 100,000 people and some sparse counties are merged together with other counties and tracts to get to 100,000.  and tracts to get to 100,000. This data will be extended to the full Census hierarchy in the future.
+
+\mh{so we need to translate this dataset to match the schema described in~\cref{sec:data}.  Ios is working on this with help from Dan.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% EATEN STUFF ABOUT DEV PLAN ... WHICH HAS SIGNIFICANTLY CHANGED
+
+\eat{ 
+\newpage
+What follows is a description of the development plan.
+
+
+\section{Milestones} \label{sec:milestones}
+
+\begin{enumerate}
+\item [X] Establish shared git repo and initial system requirements (anaconda, pyspark, python 3.5 (?), gurobi)
+\item [X] Construct synthetic dataset from the ACS synthetic data (\cref{sec:milestone:schema}) -- generate a second dataset with puma00.
+\item Implement baseline algorithms (some DP/some non-DP)
+\begin{enumerate}
+	\item version 0: a non-DP algorithm that simply outputs the input (rationale: establish schema, software config, etc.) -- MH is lead
+    \item bottom up solution: (rationale: useful for thinking about some problems, like household; also it will serve as a baseline) -- William and Simson?
+% 	\item random sampling: does not satisfy constraints (rationale: useful baseline)
+\end{enumerate}
+\item implement overall architecture: input to subproblems, subproblem solutions back to glue.  -- AM and MH 
+\item generate smaller datasets: one PUMA, one state, three states.
+\item System Glue (described in \Cref{sec:milestone:glue}) -- AM is lead
+\item Implement prototype evaluation system (described in \Cref{sec:milestone:prototype}) 
+\begin{enumerate}
+\item constraints: check whether constraints are being satisfied
+\item utility: compare query answers. Workload is described in \Cref{sec:milestone:workload}
+\end{enumerate}
+\item PL94 component (described in \Cref{sec:milestone:pl94})
+\end{enumerate}
+
+\vspace{3em}
+Action items:
+\begin{itemize}
+\item AM: will ask Jerry for his set of constraints.  
+\item DK: get list of constraints
+\item DK: will generate a list of queries based on his experience looking at SF1.  
+\item DK: household size distribution problem
+\item MH/GM: Prototype evaluation: look at all marginals at varying levels of geography.  For lower levels of geography: sample a subset of the PUMAs (for efficiency).  
+\end{itemize}
+
+\section{Milestone Descriptions}\label{sec:milestonedesc}
+This section contains a more detailed description of milestone requirements.
+
+\subsection{Initial Input and Output Schema}\label{sec:milestone:schema}
+The input and output schemas are the same. They consist of 5 tables:
+
+\begin{enumerate}
+\item \textbf{hh\_persons}(\underline{\textit{p\_id}}, \underline{\textit{hh\_id}}, \textit{AGEP}:integer, \textit{RELP}:categorical, \textit{SEX}:binary,  \textit{RACWHT}:binary, \textit{RACBLK}:binary, \textit{RACASN}:binary, \textit{RACAIAN}:binary, \textit{RACNHPI}:binary, \textit{RACSOR}:binary, \textit{isHISP}:binary). 
+\begin{itemize}
+\item \textit{p\_id} primary key
+\item \textit{hh\_id} foreign key to \textbf{hh} table.  
+\item The attributes below are taken directly from the ACS data\footnote{\url{https://github.com/labordynamicsinstitute/SynUSpopulation}} and are described in the ACS data dictionary.\footnote{\label{note1}\url{https://www2.census.gov/programs-surveys/acs/tech_docs/pums/data_dict/PUMS_Data_Dictionary_2010-2014.pdf}}
+\item RELP Relation to householder for details takes 18 values.  
+%The categories for relation come from the synthetic ACS data. They are: "Reference person", "Husband/wife", "Biological son or daughter", "Adopted son or daughter", "Stepson or stepdaughter", "Brother or sister", "Father or mother", "Grandchild", "Parent-in-law", "Son-in-law or daughter-in-law", "Other relative", "Roomer or boarder", "Housemate or roommate", "Unmarried partner", "Foster child", "Other nonrelative".
+\item SEX  [1: Male, 2:Female]
+\item AGEP [from 00 to 99]
+\item RACWHT, RACBLK, RACAIAN, RACASN, RACNHPI, RACSOR Six binary [0,1] race variables for the major races.\footnote{White, Black, American Indian or Alaskan Indian, Asian, Native Hawaian or Pacific Islander, Some other Race}. A person can be multi-racial if multiple race attributes are set to 1.
+\item isHISP [0: not Hispanic, 1: Hispanic]  (A recoding of the HISP attribute from ACS.)
+\end{itemize}
+
+\item \textbf{gq\_persons}
+(\underline{\textit{p\_id}}, \underline{\textit{gq\_id}}, \textit{SEX}:binary, \textit{AGEP}:integer, \textit{isHISP}:binary, \textit{RACWHT}:binary, \textit{RACBLK}:binary, \textit{RACASN}:binary, \textit{RACAIAN}:binary, \textit{RACNHPI}:binary, \textit{RACSOR}:binary).
+\begin{itemize}
+\item Schema same as \textbf{hh\_persons} except:  \textit{hh\_id} replaced with \textit{gq\_id}, a foreign key to \textbf{gq} table, and \textit{RELP} dropped.
+\end{itemize}
+\item \textbf{hh}(\underline{\textit{hh\_id}}, \underline{\textit{g\_id}}, \textit{TEN}:categorical). 
+\begin{itemize}
+\item \textit{g\_id} is a foreign key to \textbf{geography}
+\item TEN [1: `owned with mortgage or loan', 2: `owned free and clear', 3: `rented', 4: `occupied without payment of rent']
+\end{itemize}
+\item \textbf{gq}(\underline{\textit{gq\_id}}, \textit{g\_id}, \textit{TYPE}). 
+\begin{itemize}
+\item \textit{g\_id} is a foreign key to \textbf{geography}
+\item \textit{TYPE} [2: Institutional group quarters, 3: Noninstitutional group quarters]. (Note group quarters should be hierarchical but ACS data doesn't have any information below the top level.)
+\end{itemize}
+\item \textbf{geography}(\underline{\textit{g\_id}}, \textit{ST}:integer, \textit{puma}:string). 
+\begin{itemize}
+\item \textit{ST} is the state (FIPS code, see ACS data dictionary).
+\item \textit{puma} To be used in conjuction \textit{with} the state variable. Corresponds to a geography that has population more than 100K. Note that \textit{puma} may refer to PUMA10 or PUMA00 depending on which subset of ACS data was used to generate the data.  Which PUMA encoding used should be made clear with the name of the directory holding the data.
+\end{itemize}
+\end{enumerate}
+
+
+\subsection{Glue System}\label{sec:milestone:glue}
+
+Simplest subproblems with glue
+\begin{itemize}
+\item Problem 1: generate people at US level (i.e., a combined view of GQPersons and HHPersons with household/qg id and geography removed).  This must preserve number of households (i.e., number of people with RELP assigned to head of household. %(including relationship to householder, RELP) and assign them to geography.
+% \item Problem 2: generate people records based on counts output by Problem 1.
+\item Problem 2: add geography to people records output by Problem 2 (probably using counts output by Problem 1)
+\item Note: problem 1-2 can be further broken down (top down vs. bottom up).
+\item Problem 3: household size distribution without geography
+\item Problem 4: add geography to output of 3.  
+\item Repeat problems 3-4 for GQ.
+\item Problem 5 (glue): \\
+Input: \textbf{hh\_persons} records without \emph{hh\_id} (output of 2), \textbf{gq\_persons} records without \emph{gq\_id} (output of 4), a list of (fake) household and gq ids, perblock household size and gq size distributions (output of ??)\\
+Output: Assign people records to household/gq ids. 
+\item Smarter variants: measure household composition ( essentially the relationship between household size and RELP).
+\end{itemize}
+
+The input schema to the Glue system is:
+\begin{enumerate}
+\item \textbf{hh\_persons} from \Cref{sec:milestone:schema} but with household\_id removed and geography added.
+\item \textbf{gq\_persons} from \Cref{sec:milestone:schema} but with gq\_id removed.
+\item \textbf{households} from \Cref{sec:milestone:schema} (and possibly also the number of individuals in each household).
+\item \textbf{gq} from \Cref{sec:milestone:schema}
+\item \textbf{geography} from \Cref{sec:milestone:schema}
+\end{enumerate}
+The output schema to the Glue system is the same as the input schema in \Cref{sec:milestone:schema}. 
+
+Thus the goal of the Glue system is to add the foreign keys household\_id and gq\_id into the hh\_persons and gq\_persons tables, respectively. This assignment has to be done in a way that respects the following rules:
+\begin{itemize}
+\item Every household person in a block is assigned to exactly one household.
+\item Every group quarters person in a block is assigned to exactly one group quarters.
+\item Every household has exactly one householder.
+\end{itemize}
+The Glue system should also create a log file of errors indicating failure to add the foreign keys. For example, there may be no group quarters in a block but there are at least 1 gq\_persons in the block. Another error is if there are more householders than households in a block.
+
+
+
+\subsection{Workload}\label{sec:milestone:workload}
+The queries in SF1 are an initial start for the workload. However, it would be a mistake to make SF1 the workload because those queries are limited by:
+\begin{itemize}
+\item The need to produce tables rather than microdata that can be used to compute them. The microdata is a more compact way of representing many more statistics. For this reason, things like the US-level full person histogram have never been published accurately (one must estimate it from the PUMA, a 10\% subsample).
+\item The queries themselves embody primitive forms of disclosure control - they try to create age ranges and categories that may be populous enough. 
+\end{itemize}
+Thus our workload should be more general. Thus we have the following types of queries, grouped by sub-type:
+\subsubsection{Person-level queries}
+The attributes of interest are age, race, ethnicity, sex, relation (relation to householder + institutionalized + non-institutionalized). The query groups (at all levels of geography) are:
+\begin{itemize}
+\item All marginal queries
+\end{itemize}
+\subsubsection{PL94 Queries}
+The attributes of interest are age ($\geq 18$ vs. $\leq 17$), ethnicity, race. The query groups (at all levels of geography) are
+\begin{itemize}
+\item All marginals (including marginals on subsets of the races)
+\item For every subset $S$ of races:
+\begin{enumerate}
+\item All marginals on age where the races in $S$ are 1 and races not in $S$ are $0$
+\item All marginals on ethnicity where the races in $S$ are 1 and races not in $S$ are $0$
+\item Full table on age x ethnicity where the races in $S$ are 1 and races not in $S$ are $0$
+\end{enumerate}
+In other words, for every non-race demographic, they are interested in how many of those people selected "white" alone, "white and black" alone, etc.
+\end{itemize}
+\subsubsection{Group Quarters queries}
+The attributes of interest are age, group quarters type (ggtype), sex, ethnicity, race. The group quarters type is a hierarchy of level 3 (which the acs data don't have except for the top level - institutionalized or non-institutionalized)
+The query groups of interest are population counts (at every level of geography):
+\begin{itemize}
+\item All marginals (and gqtype can be rolled up to any of its levels)
+\end{itemize}
+\subsubsection{Household queries A (not done yet)}\label{sec:milestone:workload:hqA}
+variables of interest tenure (it includes  occupancy status), householder age, householder races, householder sex, householder ethnicity, number of people in the household, number of people $0-17$ the following boolean Grouping variables:
+\begin{itemize}
+\item Are all children of householder between 0-6 (note children by definition are 0-17)
+\item Are all children of householder between 7-17
+\item Are some children of householder between 0-6 and some 7-17 
+\item Are all children (now including grandchildren, nieces, etc) between 0-6
+\item Are all children between 7-17
+\item Are some children 0-6 and others 7-17
+\item Are all people under 18 aged 0-6
+\item Are all people under 18 aged 7-17
+\item Are some people under 18 aged 7-17 and some 0-6
+\end{itemize}
+and the following (mutually exclusive) hierarchical household type variables
+\begin{itemize}
+\item Family household / husband-wife family: does household have a spouse of householder
+\item Family household / other family / unmarried-partner household: does household have someone related to householder and an unmarried partner of householder 
+\item Family household / other family / no spouse: does household have someone related to householder but no spouse/unmarried partner
+\item Nonfamily household / householder alone: household only has 1 person
+\item Nonfamily household / unmarried householder, same-sex partner: no one related to householder, unmarried partner exists and has same sex as householder
+\item Nonfamily household / unmarried householder, opposite-sex partner: no one related to householder, unmarried partner exists and has different sex from householder 
+\item Nonfamily household / other / householder not alone: no one related to householder, no unmarried partner. 
+\end{itemize}
+Queries of interest are \textbf{number of households} with certain characteristics and \textbf{how many people} live in households with certain characteristics:
+\begin{itemize}
+\item Tenure by itself
+\item Household type by itself
+\item All marginals of tenure by race by ethnicity of householder (in sf1 they care about only part of race: white alone, black alone, etc. and "two or more races (not specifying which ones)")
+\item All marginals of household type (rolled up at various levels) by race by ethnicity of householder (in sf1 they care about only part of race: white alone, black alone, etc. and "two or more races (not specifying which ones)")
+\item Tenure by X where X can be any of the new boolean Grouping variables (e.g., are all children between 7-17)
+\item Household type by X where X can be any of the new boolean Grouping variables (e.g., are all children between 7-17)
+\item Number of households
+\end{itemize}
+\subsubsection{Household Queries B (not done yet)}
+These queries are about how many people (who satisfy certain conditions) live in households that satisfy certain conditions. Thus to the full person record, we attach the variables household type, and races/ethnicity of householder (in sf1 they care about only part of race: white alone, black alone, etc. and "two or more races (not specifying which ones)"), and
+The queries of interest are:
+\begin{itemize}
+\item Number of people under 18 (and then $18+$) in households by race and ethnicity of householder
+\end{itemize}
+\subsubsection{Household size distributions (not done yet)}
+These queries are about how many households (satisfying certain characteristics) have size $=x$ for various values of $x$. Variables of interest are: race/ethnicity of householder (in sf1 they care about only part of race: white alone, black alone, etc. and "two or more races (not specifying which ones)"), number of people 18+, number of people $\leq 17$, and boolean grouping variables from Household queries A, whether householder is $65+$ or not.
+The queries are:
+\begin{itemize}
+\item Number of households with X many people 18+ (and then $18+$) and race and ethnicity of householder $=$ $y$ and $z$
+\item Number of households with X many people by household type and by whether householder has no kids $\leq 17$ or all kids $0-6$ or all kids $7-17$ or "some kids $0-6$ and some kids $7-17$".
+\end{itemize}
+\subsubsection{Specific race combinations}
+TBD
+
+
+\subsection{Prototype Evaluation System}\label{sec:milestone:prototype}
+The evaluation system has two parts: (1) constraint checking and (2) error measures comparing the input data to the synthesized data.
+The constraints (so far) it should check are:
+\begin{itemize}
+\item The total population in each block is the same in both the original and synthesized data.
+\item The number of households in each block is the same in both the original and synthesized data.
+\item The number of group quarters facilities in each block is the same in both the original and synthesized data.
+\item All householders have age $\geq 15$.
+\item Every household has exactly one householder.
+\end{itemize}
+
+The utility measures are:
+\begin{itemize}
+\item $[$TBD how to evaluate accuracy of workload queries from \Cref{sec:milestone:workload}$]$
+\end{itemize}
+\subsection{PL94 Milestone}\label{sec:milestone:pl94}
+The input to the PL94 component is a view that contains the age ($\leq 17$ or $\geq 18$), ethnicity, region, state, puma, and races of every individual (in group quarters and households). Its output has the same schema as its view.
+
+The PL94 component also needs an adapter that takes this view and uses it to create the hh\_persons and gq\_persons tables that are part of the input schema for the Glue Systme (\Cref{sec:milestone:glue}).
+
+
+
+\section{High-level Strategy}
+There are several sources of difficulty for the problem. 
+\begin{itemize}
+\item The relational nature of the data
+\item The dimensionality of the tables. The universe size of hh-person records is close to 500,000
+\item The geography. Statistics need to be produced down to the block level, which involves high-dimensional tables in 11 million regions.
+\item The number of records in the data. There are roughly 320 million records.
+\item Known constraints. Constraints on the population and household totals add a degree of difficulty. For example, if we create household, gq and person data at the US level (without geography), it can be hard to add geography (assign households to blocks in a way that respects public count). One can think of it as a subset-sum problem.
+\end{itemize}
+
+A proposed strategy is the following:
+\begin{enumerate}
+\item First create household templates down to the block level. We can think of this as creating a bunch of households, where each household has a detailed geography and a predetermined number of people aged 0-17 in the household, 18-64 in the household, and 65+ in the household. This can be done by asking queries of the form: in region $A$, how many households simultaneously have $X$ people with age 0-17, $Y$ people with age 18-64, and $Z$ people with age 65+. By starting with these household templates, we have the fewest restrictions (we just need to match the number of households per block, number of voting age people per block, and population per block).
+\item Next create a similar group quarters template where we estimate the institutional and non-institutional group quarters population in each block by directly asking those population counts in each area of geography. Note that the population in gq + population in households in each block is known.
+\item Fixing these household and group quarters templates, we now have estimated counts for (1) number of people 0-17 in households, (2) number of people 0-17 in group quarters, (3) number of people 18-64 in households, etc.
+\item With these new constraints we now generate a population (but do not group them into households). That is, we create a nonnegative integer histogram on age x sex x relation (or institutional/non-institutional) x ethnicity x race that at each level of geography that is consistent with all constraints generated so far. There are other constraints to include (e.g., number of spouses of householders cannot exceed number of householders). To increase the accuracy of pl 94 data, we simply feed more privacy budget into this section and add additional queries (via matrix mechanism) for which more accuracy is needed.
+\item In order to assign these people to households, we generate differentially private "join data": number of households with white householder, number of people living in households with black householder, number of families with a householder and spouse of householder, etc. Then we assign people to households in the same geography in a way that maximizes some objective function involving these noisy counts.
+\end{enumerate}
+One approach to these problems is the top down approach. E.g., first create a US level set of people, then ask queries about state demographics and use that to assign people.
+
+\mh{This is an interesting strategy but I think it would be more productive if we first tried to tackle a smaller problem of creating synthetic individuals (w/ geography) and focus on accurate answers for PL-94 queries.  Perhaps this could be the first milestone below?}
+
+\section{Research Problems}
+There are several major research problems:
+\begin{enumerate}
+\item How to create a nonnegative integer histogram of a huge table where one of the attributes is a hierarchical geography. We want similar accuracy for all marginals at the same level of geography while tuning for accuracy at different levels of geography (e.g., if we want tract counts to be more accurate, where does the budget allocation go?). These histograms also need to satisfy constraints. The tables are too large to fit into memory.
+\item How to perform the join of synthetic people to synthetic household/group quarters slots.
+\item Because of sparsity at lower levels of geography, we may want to use sparse models (i.e. those with fewer features) to assign people to geography. Thus one question is how to do model search. A loglinear model can be specified by a set of non-redundant marginals. We can do structure search by cre to ask and use their answers to create data at lower levels of geography, generating different sets of noisy (consistent) marginals, using them to fit the data, evaluating it in a private way, and taking the best structure (like a noisy max approach), then computing new noisy statistics for that structure and building a model. This would be a competitor to something like PrivBayes.
+\item Another approach is to dynamically select queries to ask. For example, if we notice a tract is very homogeneous in terms of race (based on our differentially private data at this level), we may look for high entropy queries to ask and use their answers to create data at lower levels of geography.
+\end{enumerate}
+\pl{should integrality of the microdata be separated from some of these problems, e.g. distinguished from the other known constraints? the natural optimization problems often jump from tractable to NP-Hard when we throw ``give us integer counts'' into the mix, but adding several publicly known constraints together doesn't make the problem very much harder if continuous ``microdata'' is acceptable.}
+
+\section{Glue System}
+\subsection{Alternative I}
+Assume that \textbf{hh\_persons} has the right \# of householders (matching the publicly known constraint). This algorithm does not change the record values in \textbf{hh\_persons}. It only assigns records to households. We will assume that the constructed \textbf{hh\_persons} has matched the person levels stats on the relationship attribute as well as possible. 
+Goal of the glue algorithm is to assign non-householder records to a unique householder while minimizing a \emph{discrepancy score}. The discrepancy score measures how much the output clustering disagree with the statistics on households (and the edit constraints). \emph{The discrepancy score definition is TBD.}
+
+One can construct a simple greedy algorithm: 
+\begin{itemize}
+\item Initialization: Assign each householder in \textbf{hh\_persons} table to a unique cluster. Assign all other records \emph{arbitrarily} to the households.
+\begin{itemize}
+\item In this step, we can have some best effort to ensure some exact constraints  -- e.g., two spouses do not go to the same household at least in the initial clusters, ages are appropriate,  and records in the same household all match on geography. 
+\end{itemize}
+\item Moves: Iteratively make moves by moving an individual record from one cluster to another (or swapping two records in the case of spouses), as long as the discrepancy score reduces. 
+\item Termination: Stop when a local minima is reached. 
+\end{itemize}
+\am{Is constrained clustering related to our problem? See \url{http://hanj.cs.illinois.edu/pdf/icdt01.pdf}}
+
+\subsection{Alternative II -- Households}
+The challenge with the solution outlined in the previous section is that it is not going to be efficient, and could be very inaccurate. First, since we have over 300 million people records and over 100 million households, getting to the right assignment of people to households would take an extraordinaly large number of moves, unless we magically get a ``good'' initialization. Moreover, give the highly non-linear (and possibly non-convex) nature of the objectives we are trying to optimize (namely closeness to household and person queries) we may quickly converge to ``bad local minima''. 
+
+The second alternative algorithm is an extension that hopefully can generate a ``good initialization''. This algorithm proceeds as follows. Recall that we  
+\begin{itemize}
+\item Generate noisy person counts (that have high accuracy on important person queries) 
+\item Generate person records from the noisy counts 
+\item Generate noisy household counts (that have high accuracy on important household queries A (see Section~\ref{sec:milestone:workload:hqA})
+\item Generate household records from the noisy counts
+\item Assign person records to household records possibly altering (a small number of the) person and household records generated in the previous step. 
+\end{itemize}
+
+The approach is attractive for the following reasons: 
+\begin{itemize}
+\item Person queries can be expressed as linear queries over the person attributes. So generating noisy person histograms is doable. 
+\item Household queries A can be expressed as linear queries over the household attributes. So generating noisy person histograms is doable. The one tricky problem here is that the neighboring definition is slightly different from that of the persons table (but it is one that can be expressed using Blowfish). 
+\item Neither the person table nor the household table alone can answer the household queries B (that ask \emph{how many people} live in households of certain characteristics), which are high sensitivity queries that depend on the size of the household. Moreover, the precise constitution of a household has many constraints. It seems like it might be easier to handle those constraints in the assignment problem, rather than as part of a DP algorithm.    
+\end{itemize}
+
+We know how to generate person records. We still need to define how to (a) generate the household records, and (b) assign person records to person records.
+
+\subsubsection{Generating household records}
+We need to generate household records that have attributes relating to the composition of the households. As a first cut, here are some attributes that could classify households into different categories: \am{I saw the variables in Section~\ref{sec:milestone:workload:hqA}. We should discuss which set of variables makes sense.}
+\begin{itemize}
+\item size: number of individuals in the household
+\item h\_gender: gender of householder
+\item h\_race: a vector of binary attributes describing the race of the householder
+\item h\_age: age of householder
+\item geo\_id: location of the household
+\item has\_spouse: Does the householder have a spouse/partner
+\item has\_samesexspouse: is the spouse's gender same as householder?
+\item has\_sameracespouse: is the spouse's race same as householder? \am{Means the entire vector of races should be the same.}
+\item has\_children: Does the householder have children?
+\item has\_other: Does the householder have other dependents?
+\end{itemize}
+
+
+There are a lot of constraints in the above set of attributes. If has\_spouse is \emph{false}, then the answers to the next two attributes do not matter. Similarly, if size is 1, then all the answers to questions about spouse/children and other dependents should be \emph{false}. 
+
+The process of generating the household records could be similar to that of generating person records -- use a DP algorithm to generate an non-negative histogram over households, and then use rounding to generate the household records. 
+
+\subsubsection{Assigning person records to households}
+\begin{itemize}
+\item Finding a feasible solution
+\item Optimizing the solution
+\end{itemize}
+
+\subsection{Alternative II -- GQs}
+The approach is the same, but attributes for GQ do not seem to easy to generate. One could, instead, take each GQ (since their presence is known), and generate a perturbed histogram of counts over a set of person attributes, and use that to assign people to the GQ. 
+
+
+%\subsection{Alternative II}
+%The problem the Glue system is trying to solve could potentially be abstracted to one of the following. Let $D$ be the input private dataset, and $D_{syn}$ a synthetic dataset generated using a differentially private algorithm. Our goal is to generate a new dataset $\hat{D}$ such that (a) $\hat{D}$ is as close to $D_{syn}$ (and $D$) as possible, and (b) $\hat{D}$ encodes all the relationships that are present in the original dataset $D$. However, the challenge is that "all the relationships" that need to be preserved may either be unknown or unenumerable. Given that, here are a couple of observations: 
+%\begin{itemize}
+%\item Having access to public data from the same distribution would be trmemdously helpful in ``learning'' the relationships that must hold in the output.
+%\item If we have access to a public dataset, can we use something like a GAN for the glue code? 
+%\end{itemize}
+%\subsubsection{Generative Adversarial Networks (GAN)}
+%The goal of a GAN is the following: Given as input a set of points $X$ drawn from some distribution $\pi$, construct an algorithm, called a \emph{generator} $G$, that maps random values $z$ to points from $\hat{\pi}$, as estimate of $\pi$. GANs work by jointly optimizing the generator and a \emph{discriminator} $D$, which tries to distinguish between real points ($x \in X$) and fake points ($G(z)$). If the generator can fool the discriminator, then $G$ has successfully generated points from $\pi$. 
+%\subsubsection{Applying GANs for the Glue code}
+%We could use the public dataset as the proxy for the distribution $\pi$ we would like to generate from. Rather than starting with random values $z$, we could start with points in $D_{syn}$ as inputs to the generator. 
+}
+\end{document}
+
+
+

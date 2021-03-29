@@ -1,0 +1,56 @@
+#!/bin/bash
+
+usage() {
+    echo please specify pl94 fast fast_mdf dry small or pdf
+    exit 1
+}
+
+# 60 seconds:
+if [ x$1 = x ]; then
+    usage
+fi
+
+# set options using command line argument
+config=configs/PL94/topdown_RI.ini
+if [ $1 = fast ]; then
+    echo making data but not writing out MDF
+    export NUM_EXECUTORS=4	# for speed
+
+elif [ $1 = fast_mdf ]; then
+    echo making data and writing out MDF
+    config=configs/PL94/topdown_RI_MDF2020Persons.ini
+    export NUM_EXECUTORS=4	# for speed
+
+elif [ $1 = pl94 ]; then
+    echo pl94
+    config=configs/PL94_2020/timetest.ini
+
+elif [ $1 = dry ]; then
+    echo dry run
+    extra="--dry-run"
+
+elif [ $1 = small ]; then
+    echo trying to sneak in with a single executor
+    export NUM_EXECUTORS=1
+    export EXECUTOR_CORES=1
+    export DRIVER_CORES=5
+
+elif [ $1 = pdf ]; then
+    echo just making the pdf certificate
+    extra="--pdf_only"
+
+elif [ $1 = small ]; then
+    export NUM_EXECUTORS=1	# Can usually sneak in
+    export EXECUTOR_CORES=1
+    export DRIVER_CORES=5
+
+elif [ $1 = fast_mdf ]; then
+    config=configs/PL94/topdown_RI_MDF2020Persons.ini
+
+else
+    usage
+
+fi
+
+echo using config $config
+config=$config bash run_cluster.sh --fg $dry $extra
