@@ -1,0 +1,950 @@
+2021-03-05 11:40:37,020 driver.py:1065 (main_setup) Config path: /mnt/users/heine008/repos/0305/das_decennial/configs/PL94/topdown_RI.ini
+2021-03-05 11:40:37,020 hierarchical_configparser.py:284 (validate) section gurobi option record_gurobi_stats
+2021-03-05 11:40:37,020 hierarchical_configparser.py:284 (validate) section gurobi option print_gurobi_stats
+2021-03-05 11:40:37,020 hierarchical_configparser.py:284 (validate) section gurobi option l2_optimization_approach
+2021-03-05 11:40:37,020 hierarchical_configparser.py:284 (validate) section gurobi option rounder_optimization_approach
+2021-03-05 11:40:37,020 hierarchical_configparser.py:284 (validate) section gurobi option dataindnpass_tolerancetype
+2021-03-05 11:40:37,020 hierarchical_configparser.py:284 (validate) section gurobi option opt_tol_slack
+2021-03-05 11:40:37,020 hierarchical_configparser.py:284 (validate) section gurobi option gurobi_path
+2021-03-05 11:40:37,020 hierarchical_configparser.py:284 (validate) section gurobi option gurobi_lic
+2021-03-05 11:40:37,020 hierarchical_configparser.py:284 (validate) section gurobi option gurobi_logfile_name
+2021-03-05 11:40:37,020 hierarchical_configparser.py:284 (validate) section gurobi option outputflag
+2021-03-05 11:40:37,020 hierarchical_configparser.py:284 (validate) section gurobi option optimalitytol
+2021-03-05 11:40:37,020 hierarchical_configparser.py:284 (validate) section gurobi option barconvtol
+2021-03-05 11:40:37,020 hierarchical_configparser.py:284 (validate) section gurobi option barqcpconvtol
+2021-03-05 11:40:37,020 hierarchical_configparser.py:284 (validate) section gurobi option bariterlimit
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option feasibilitytol
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option presolve
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option numericfocus
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option gurobi_lic_create
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option tokenserver
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option port
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option threads
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option threads_root2root
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option threads_state
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option threads_county
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option threads_tract_group
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option threads_tract
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option threads_block_group
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option threads_block
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option python_presolve
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option l2_suboptimal_allowed
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option l2_grb_algorithm
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option l2_grb_presolve
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option l2_grb_presparsify
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option notification_frequency
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option save_lp_seconds
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option random_report_frequency
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section gurobi option epsilon
+2021-03-05 11:40:37,021 hierarchical_configparser.py:284 (validate) section spark option spark.driver.maxresultsize
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section spark option spark.executor.memoryoverhead
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section spark option spark.local.dir
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section spark option spark.eventlog.enabled
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section spark option spark.eventlog.dir
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section spark option spark.submit.deploymode
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section spark option spark.network.timeout
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section spark option epsilon
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section logging option logfilename
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section logging option loglevel
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section logging option logfolder
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section logging option dvs_enabled
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section logging option dvs_api_endpoint
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section logging option epsilon
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section ENVIRONMENT option das_framework_version
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section ENVIRONMENT option grb_isv_name
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section ENVIRONMENT option grb_app_name
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section ENVIRONMENT option grb_env3
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section ENVIRONMENT option grb_env4
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section ENVIRONMENT option epsilon
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section geodict option geolevel_names
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section geodict option geolevel_leng
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section geodict option spine
+2021-03-05 11:40:37,022 hierarchical_configparser.py:284 (validate) section geodict option aian_areas
+2021-03-05 11:40:37,023 hierarchical_configparser.py:284 (validate) section geodict option bypass_cutoff
+2021-03-05 11:40:37,023 hierarchical_configparser.py:284 (validate) section geodict option entity_threshold
+2021-03-05 11:40:37,023 hierarchical_configparser.py:284 (validate) section geodict option fanout_cutoff
+2021-03-05 11:40:37,023 hierarchical_configparser.py:284 (validate) section geodict option redefine_counties
+2021-03-05 11:40:37,023 hierarchical_configparser.py:284 (validate) section geodict option geocode_length
+2021-03-05 11:40:37,023 hierarchical_configparser.py:284 (validate) section geodict option geo_toplevel
+2021-03-05 11:40:37,023 hierarchical_configparser.py:284 (validate) section geodict option geo_bottomlevel
+2021-03-05 11:40:37,023 hierarchical_configparser.py:284 (validate) section geodict option geo_path
+2021-03-05 11:40:37,023 hierarchical_configparser.py:284 (validate) section geodict option spine.re
+2021-03-05 11:40:37,023 hierarchical_configparser.py:291 (validate) checking re
+2021-03-05 11:40:37,023 hierarchical_configparser.py:296 (validate) m=<_sre.SRE_Match object; span=(0, 9), match='opt_spine'>
+2021-03-05 11:40:37,023 hierarchical_configparser.py:284 (validate) section geodict option spine.required
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section geodict option epsilon
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section setup option setup
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section setup option spark.name
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section setup option spark.loglevel
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section setup option environment
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section setup option epsilon
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section reader option persondata.path
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section reader option unitdata.path
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section reader option persondata.class
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section reader option unitdata.class
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section reader option numreaderpartitions
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section reader option validate_input_data_constraints
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section reader option partition_by_block_group
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section reader option reader
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section reader option tables
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section reader option privacy_table
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section reader option constraint_tables
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section reader option delimiter
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section reader option header
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section reader option persondata.variables
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section reader option unitdata.variables
+2021-03-05 11:40:37,024 hierarchical_configparser.py:284 (validate) section reader option linkage
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option geocode.type
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option geocode.legal
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option mafid.type
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option mafid.legal
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option householder.type
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option householder.legal
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option sex.type
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option sex.legal
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option votingage.type
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option votingage.legal
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option hispanic.type
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option hispanic.legal
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option white.type
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option white.legal
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option black.type
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option black.legal
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option aian.type
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option aian.legal
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option asian.type
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option asian.legal
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option nhopi.type
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option nhopi.legal
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option other.type
+2021-03-05 11:40:37,025 hierarchical_configparser.py:284 (validate) section reader option other.legal
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section reader option hhgq.type
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section reader option hhgq.legal
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section reader option persondata.recoder
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section reader option persondata.recode_variables
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section reader option cenrace
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section reader option cenrace.type
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section reader option cenrace.legal
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section reader option persondata.geography
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section reader option persondata.histogram
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section reader option unitdata.geography
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section reader option unitdata.histogram
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section reader option unitdata.unique
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section reader option epsilon
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section engine option engine
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section engine option saved_noisy_app_id
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section engine option check_budget
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section engine option save_noisy
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section engine option delete_raw
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section engine option epsilon
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section schema option schema
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section schema option epsilon
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section budget option privacy_framework
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section budget option dp_mechanism
+2021-03-05 11:40:37,026 hierarchical_configparser.py:284 (validate) section budget option print_per_attr_epsilons
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section budget option global_scale
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section budget option geolevel_budget_prop
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section budget option dpqueries
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section budget option queriesprop
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section budget option only_dyadic_rationals
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section budget option epsilon
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section constraints option theinvariants.block
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section constraints option theinvariants.tract
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section constraints option theconstraints.block
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section constraints option theconstraints.tract
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section constraints option minimalschema
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section constraints option epsilon
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section writer option output_path
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section writer option output_datafile_name
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section writer option produce_flag
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section writer option keep_attrs
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section writer option overwrite_flag
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section writer option save_git_commit
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section writer option s3cat
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section writer option s3cat_suffix
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section writer option s3cat_verbose
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section writer option num_parts
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section writer option writer
+2021-03-05 11:40:37,027 hierarchical_configparser.py:284 (validate) section writer option s3cat_prefix
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section writer option stats_dir
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section writer option certificate_suffix
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section writer option certificate_name
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section writer option certificate_title
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section writer option certificate_person1
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section writer option certificate_title1
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section writer option certificate_person2
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section writer option certificate_title2
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section writer option epsilon
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section validator option validator
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section validator option results_fname
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section validator option epsilon
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section assessment option epsilon
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section takedown option takedown
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section takedown option delete_output
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section takedown option epsilon
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section experiment option experiment
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section experiment option run_experiment_flag
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section experiment option loop2
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section experiment option plotx
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section experiment option epsilon
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section error_metrics option error_metrics
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section error_metrics option calculate_binned_query_errors
+2021-03-05 11:40:37,028 hierarchical_configparser.py:284 (validate) section error_metrics option calculate_per_query_quantile_errors
+2021-03-05 11:40:37,029 hierarchical_configparser.py:284 (validate) section error_metrics option calculate_per_query_quantile_signed_errors
+2021-03-05 11:40:37,029 hierarchical_configparser.py:284 (validate) section error_metrics option epsilon
+2021-03-05 11:40:37,029 hierarchical_configparser.py:284 (validate) section stats option notify_gc_master
+2021-03-05 11:40:37,029 hierarchical_configparser.py:284 (validate) section stats option epsilon
+2021-03-05 11:40:37,029 hierarchical_configparser.py:284 (validate) section python option epsilon
+2021-03-05 11:40:37,029 hierarchical_configparser.py:284 (validate) section hdmm option epsilon
+2021-03-05 11:40:37,029 hierarchical_configparser.py:284 (validate) section monitoring option print_heartbeat
+2021-03-05 11:40:37,029 hierarchical_configparser.py:284 (validate) section monitoring option print_heartbeat_frequency
+2021-03-05 11:40:37,029 hierarchical_configparser.py:284 (validate) section monitoring option send_stacktrace
+2021-03-05 11:40:37,029 hierarchical_configparser.py:284 (validate) section monitoring option heartbeat_frequency
+2021-03-05 11:40:37,029 hierarchical_configparser.py:284 (validate) section monitoring option notify_dashboard_gurobi_success
+2021-03-05 11:40:37,029 hierarchical_configparser.py:284 (validate) section monitoring option notify_dashboard_gurobi_retry
+2021-03-05 11:40:37,029 hierarchical_configparser.py:284 (validate) section monitoring option notification_frequency
+2021-03-05 11:40:37,029 hierarchical_configparser.py:284 (validate) section monitoring option epsilon
+2021-03-05 11:40:37,029 hierarchical_configparser.py:284 (validate) section alert option message
+2021-03-05 11:40:37,029 hierarchical_configparser.py:284 (validate) section alert option epsilon
+2021-03-05 11:40:52,355 das2020_driver.py:411 (<module>) applicationId: application_1608047018101_1395
+2021-03-05 11:40:52,374 driver.py:136 (config_apply_environment) EXPORT DAS_FRAMEWORK_VERSION=0.0.1
+2021-03-05 11:40:52,374 driver.py:136 (config_apply_environment) EXPORT GRB_ISV_NAME=Census
+2021-03-05 11:40:52,374 driver.py:136 (config_apply_environment) EXPORT GRB_APP_NAME=DAS
+2021-03-05 11:40:52,375 driver.py:136 (config_apply_environment) EXPORT GRB_ENV3=0
+2021-03-05 11:40:52,375 driver.py:136 (config_apply_environment) EXPORT GRB_ENV4=
+2021-03-05 11:40:52,375 driver.py:136 (config_apply_environment) EXPORT EPSILON=1
+2021-03-05 11:40:52,375 driver.py:162 (config_validate) Validating config section [gurobi]
+2021-03-05 11:40:52,375 driver.py:162 (config_validate) Validating config section [spark]
+2021-03-05 11:40:52,376 driver.py:162 (config_validate) Validating config section [logging]
+2021-03-05 11:40:52,376 driver.py:162 (config_validate) Validating config section [ENVIRONMENT]
+2021-03-05 11:40:52,376 driver.py:162 (config_validate) Validating config section [geodict]
+2021-03-05 11:40:52,376 driver.py:162 (config_validate) Validating config section [setup]
+2021-03-05 11:40:52,376 driver.py:162 (config_validate) Validating config section [reader]
+2021-03-05 11:40:52,377 driver.py:162 (config_validate) Validating config section [engine]
+2021-03-05 11:40:52,377 driver.py:162 (config_validate) Validating config section [schema]
+2021-03-05 11:40:52,377 driver.py:162 (config_validate) Validating config section [budget]
+2021-03-05 11:40:52,377 driver.py:162 (config_validate) Validating config section [constraints]
+2021-03-05 11:40:52,377 driver.py:162 (config_validate) Validating config section [writer]
+2021-03-05 11:40:52,377 driver.py:162 (config_validate) Validating config section [validator]
+2021-03-05 11:40:52,377 driver.py:162 (config_validate) Validating config section [assessment]
+2021-03-05 11:40:52,378 driver.py:162 (config_validate) Validating config section [takedown]
+2021-03-05 11:40:52,378 driver.py:162 (config_validate) Validating config section [experiment]
+2021-03-05 11:40:52,378 driver.py:162 (config_validate) Validating config section [error_metrics]
+2021-03-05 11:40:52,378 driver.py:162 (config_validate) Validating config section [stats]
+2021-03-05 11:40:52,378 driver.py:162 (config_validate) Validating config section [python]
+2021-03-05 11:40:52,378 driver.py:162 (config_validate) Validating config section [hdmm]
+2021-03-05 11:40:52,378 driver.py:162 (config_validate) Validating config section [monitoring]
+2021-03-05 11:40:52,378 driver.py:162 (config_validate) Validating config section [alert]
+2021-03-05 11:40:52,378 driver.py:162 (config_validate) Validating config section [environment]
+2021-03-05 11:40:52,379 driver.py:639 (__init__) Reading filenames and class names from config file
+2021-03-05 11:40:52,612 driver.py:692 (load_module) __import__ file: programs.das_setup
+2021-03-05 11:40:52,847 driver.py:692 (load_module) __import__ file: programs.reader.table_reader
+2021-03-05 11:40:52,909 __init__.py:241 (wrapper) (private) matplotlib data path: /mnt/das_python/matplotlib/mpl-data
+2021-03-05 11:40:52,910 __init__.py:241 (wrapper) matplotlib data path: /mnt/das_python/matplotlib/mpl-data
+2021-03-05 11:40:52,913 __init__.py:241 (wrapper) CONFIGDIR=/mnt/users/heine008/.config/matplotlib
+2021-03-05 11:40:52,915 __init__.py:1464 (<module>) matplotlib version 3.3.0
+2021-03-05 11:40:52,916 __init__.py:1465 (<module>) interactive is False
+2021-03-05 11:40:52,916 __init__.py:1466 (<module>) platform is linux
+2021-03-05 11:40:52,916 __init__.py:1467 (<module>) loaded modules: ['builtins', 'sys', '_frozen_importlib', '_imp', '_warnings', '_thread', '_weakref', '_frozen_importlib_external', '_io', 'marshal', 'posix', 'zipimport', 'encodings', 'codecs', '_codecs', 'encodings.aliases', 'encodings.utf_8', '_signal', '__main__', 'encodings.latin_1', 'io', 'abc', '_weakrefset', '_bootlocale', '_locale', 'site', 'os', 'errno', 'stat', '_stat', 'posixpath', 'genericpath', 'os.path', '_collections_abc', '_sitebuiltins', 'sysconfig', '_sysconfigdata_m_linux_x86_64-linux-gnu', 'types', 'functools', '_functools', 'collections', 'operator', '_operator', 'keyword', 'heapq', '_heapq', 'itertools', 'reprlib', '_collections', 'weakref', 'collections.abc', 'importlib', 'importlib._bootstrap', 'importlib._bootstrap_external', 'warnings', 'importlib.util', 'importlib.abc', 'importlib.machinery', 'contextlib', 'mpl_toolkits', 'json', 'json.decoder', 're', 'enum', 'sre_compile', '_sre', 'sre_parse', 'sre_constants', 'copyreg', 'json.scanner', '_json', 'json.encoder', 'logging', 'time', 'traceback', 'linecache', 'tokenize', 'token', 'string', '_string', 'threading', 'atexit', 'subprocess', 'signal', '_posixsubprocess', 'select', 'selectors', 'math', 'syslog', 'csv', '_csv', 'requests', 'urllib3', '__future__', 'urllib3.connectionpool', 'socket', '_socket', 'urllib3.exceptions', 'urllib3.packages', 'urllib3.packages.ssl_match_hostname', 'ssl', 'ipaddress', 'textwrap', '_ssl', 'base64', 'struct', '_struct', 'binascii', 'urllib3.packages.six', 'urllib3.packages.six.moves', 'http', 'http.client', 'email', 'email.parser', 'email.feedparser', 'email.errors', 'email._policybase', 'email.header', 'email.quoprimime', 'email.base64mime', 'email.charset', 'email.encoders', 'quopri', 'email.utils', 'random', 'hashlib', '_hashlib', '_blake2', '_sha3', 'bisect', '_bisect', '_random', 'datetime', '_datetime', 'urllib', 'urllib.parse', 'email._parseaddr', 'calendar', 'locale', 'email.message', 'uu', 'email._encoded_words', 'email.iterators', 'urllib3.packages.six.moves.http_client', 'queue', 'urllib3.connection', 'urllib3.util', 'urllib3.util.connection', 'urllib3.util.wait', 'urllib3.contrib', 'urllib3.contrib._appengine_environ', 'urllib3.util.request', 'urllib3.util.response', 'urllib3.util.ssl_', 'hmac', 'urllib3.util.url', 'urllib3.util.timeout', 'urllib3.util.retry', 'urllib3._collections', 'urllib3.request', 'urllib3.filepost', 'urllib3.fields', 'mimetypes', 'urllib3.packages.six.moves.urllib', 'urllib3.packages.six.moves.urllib.parse', 'urllib3.response', 'zlib', 'urllib3.util.queue', 'urllib3.poolmanager', 'urllib3._version', 'chardet', 'chardet.compat', 'chardet.universaldetector', 'chardet.charsetgroupprober', 'chardet.enums', 'chardet.charsetprober', 'chardet.escprober', 'chardet.codingstatemachine', 'chardet.escsm', 'chardet.latin1prober', 'chardet.mbcsgroupprober', 'chardet.utf8prober', 'chardet.mbcssm', 'chardet.sjisprober', 'chardet.mbcharsetprober', 'chardet.chardistribution', 'chardet.euctwfreq', 'chardet.euckrfreq', 'chardet.gb2312freq', 'chardet.big5freq', 'chardet.jisfreq', 'chardet.jpcntx', 'chardet.eucjpprober', 'chardet.gb2312prober', 'chardet.euckrprober', 'chardet.cp949prober', 'chardet.big5prober', 'chardet.euctwprober', 'chardet.sbcsgroupprober', 'chardet.sbcharsetprober', 'chardet.langcyrillicmodel', 'chardet.langgreekmodel', 'chardet.langbulgarianmodel', 'chardet.langthaimodel', 'chardet.langhebrewmodel', 'chardet.hebrewprober', 'chardet.langturkishmodel', 'chardet.version', 'requests.exceptions', 'requests.__version__', 'requests.utils', 'tempfile', 'shutil', 'fnmatch', 'bz2', '_compression', '_bz2', 'lzma', '_lzma', 'pwd', 'grp', 'zipfile', 'requests.certs', 'certifi', 'certifi.core', 'requests._internal_utils', 'requests.compat', 'urllib.request', 'urllib.error', 'urllib.response', 'http.cookiejar', 'copy', 'org', 'http.cookies', 'requests.cookies', 'requests.structures', 'requests.packages', 'requests.packages.urllib3', 'requests.packages.urllib3.connectionpool', 'requests.packages.urllib3.exceptions', 'requests.packages.urllib3.packages', 'requests.packages.urllib3.packages.ssl_match_hostname', 'requests.packages.urllib3.packages.six', 'requests.packages.urllib3.packages.six.moves', 'requests.packages.urllib3.packages.six.moves.http_client', 'requests.packages.urllib3.connection', 'requests.packages.urllib3.util', 'requests.packages.urllib3.util.connection', 'requests.packages.urllib3.util.wait', 'requests.packages.urllib3.contrib', 'requests.packages.urllib3.contrib._appengine_environ', 'requests.packages.urllib3.util.request', 'requests.packages.urllib3.util.response', 'requests.packages.urllib3.util.ssl_', 'requests.packages.urllib3.util.url', 'requests.packages.urllib3.util.timeout', 'requests.packages.urllib3.util.retry', 'requests.packages.urllib3._collections', 'requests.packages.urllib3.request', 'requests.packages.urllib3.filepost', 'requests.packages.urllib3.fields', 'requests.packages.urllib3.packages.six.moves.urllib', 'requests.packages.urllib3.packages.six.moves.urllib.parse', 'requests.packages.urllib3.response', 'requests.packages.urllib3.util.queue', 'requests.packages.urllib3.poolmanager', 'requests.packages.urllib3._version', 'idna', 'idna.package_data', 'idna.core', 'idna.idnadata', 'unicodedata', 'idna.intranges', 'requests.packages.idna', 'requests.packages.idna.package_data', 'requests.packages.idna.core', 'requests.packages.idna.idnadata', 'requests.packages.idna.intranges', 'requests.packages.chardet', 'requests.packages.chardet.compat', 'requests.packages.chardet.universaldetector', 'requests.packages.chardet.charsetgroupprober', 'requests.packages.chardet.enums', 'requests.packages.chardet.charsetprober', 'requests.packages.chardet.escprober', 'requests.packages.chardet.codingstatemachine', 'requests.packages.chardet.escsm', 'requests.packages.chardet.latin1prober', 'requests.packages.chardet.mbcsgroupprober', 'requests.packages.chardet.utf8prober', 'requests.packages.chardet.mbcssm', 'requests.packages.chardet.sjisprober', 'requests.packages.chardet.mbcharsetprober', 'requests.packages.chardet.chardistribution', 'requests.packages.chardet.euctwfreq', 'requests.packages.chardet.euckrfreq', 'requests.packages.chardet.gb2312freq', 'requests.packages.chardet.big5freq', 'requests.packages.chardet.jisfreq', 'requests.packages.chardet.jpcntx', 'requests.packages.chardet.eucjpprober', 'requests.packages.chardet.gb2312prober', 'requests.packages.chardet.euckrprober', 'requests.packages.chardet.cp949prober', 'requests.packages.chardet.big5prober', 'requests.packages.chardet.euctwprober', 'requests.packages.chardet.sbcsgroupprober', 'requests.packages.chardet.sbcharsetprober', 'requests.packages.chardet.langcyrillicmodel', 'requests.packages.chardet.langgreekmodel', 'requests.packages.chardet.langbulgarianmodel', 'requests.packages.chardet.langthaimodel', 'requests.packages.chardet.langhebrewmodel', 'requests.packages.chardet.hebrewprober', 'requests.packages.chardet.langturkishmodel', 'requests.packages.chardet.version', 'requests.models', 'encodings.idna', 'stringprep', 'requests.hooks', 'requests.auth', 'requests.status_codes', 'requests.api', 'requests.sessions', 'requests.adapters', 'xml', 'xml.etree', 'xml.etree.ElementTree', 'xml.etree.ElementPath', 'pyexpat.errors', 'pyexpat.model', 'pyexpat', '_elementtree', 'boto3', 'boto3.session', 'botocore', 'botocore.session', 'platform', 'botocore.configloader', 'shlex', 'botocore.compat', 'inspect', 'ast', '_ast', 'dis', 'opcode', '_opcode', 'botocore.vendored', 'botocore.vendored.six', 'botocore.exceptions', 'botocore.vendored.requests', 'botocore.vendored.requests.exceptions', 'botocore.vendored.requests.packages', 'botocore.vendored.requests.packages.urllib3', 'botocore.vendored.requests.packages.urllib3.exceptions', 'dateutil', 'dateutil._version', 'dateutil.tz', 'dateutil.tz.tz', 'six', 'six.moves', 'dateutil.tz._common', 'dateutil.tz._factories', 'botocore.vendored.six.moves', 'xml.etree.cElementTree', 'botocore.credentials', 'getpass', 'termios', 'dateutil.parser', 'dateutil.parser._parser', 'decimal', 'numbers', '_decimal', 'dateutil.relativedelta', 'dateutil._common', 'dateutil.parser.isoparser', 'botocore.config', 'botocore.endpoint', 'botocore.awsrequest', 'botocore.utils', 'cgi', 'html', 'html.entities', 'botocore.httpsession', 'botocore.vendored.six.moves.urllib_parse', 'botocore.vendored.six.moves.urllib', 'botocore.vendored.six.moves.urllib.request', 'botocore.hooks', 'botocore.history', 'botocore.response', 'botocore.parsers', 'botocore.eventstream', 'botocore.client', 'botocore.waiter', 'jmespath', 'jmespath.parser', 'jmespath.lexer', 'jmespath.exceptions', 'jmespath.compat', 'jmespath.ast', 'jmespath.visitor', 'jmespath.functions', 'botocore.docs', 'botocore.docs.service', 'botocore.docs.utils', 'botocore.docs.client', 'botocore.docs.method', 'botocore.docs.params', 'botocore.docs.shape', 'botocore.docs.example', 'botocore.docs.sharedexample', 'botocore.docs.waiter', 'botocore.docs.paginator', 'botocore.docs.bcdoc', 'botocore.docs.bcdoc.restdoc', 'botocore.docs.bcdoc.docstringparser', 'html.parser', '_markupbase', 'botocore.docs.bcdoc.style', 'botocore.docs.docstring', 'botocore.args', 'botocore.serialize', 'botocore.validate', 'botocore.signers', 'botocore.auth', 'botocore.model', 'botocore.paginate', 'botocore.discovery', 'botocore.retries', 'botocore.retries.standard', 'botocore.retries.quota', 'botocore.retries.special', 'botocore.retries.base', 'botocore.retries.adaptive', 'botocore.retries.bucket', 'botocore.retries.throttling', 'botocore.configprovider', 'botocore.errorfactory', 'botocore.handlers', 'uuid', 'ctypes', '_ctypes', 'ctypes._endian', 'ctypes.util', 'botocore.retryhandler', 'botocore.translate', 'botocore.loaders', 'botocore.regions', 'botocore.monitoring', 'boto3.utils', 'boto3.exceptions', 'boto3.resources', 'boto3.resources.factory', 'boto3.resources.action', 'boto3.resources.params', 'boto3.resources.response', 'boto3.resources.model', 'boto3.docs', 'boto3.docs.service', 'boto3.docs.client', 'boto3.docs.resource', 'boto3.docs.base', 'boto3.docs.action', 'boto3.docs.method', 'boto3.docs.utils', 'boto3.docs.waiter', 'boto3.docs.collection', 'boto3.docs.subresource', 'boto3.docs.attr', 'boto3.docs.docstring', 'boto3.resources.base', 'boto3.resources.collection', 'boto3.compat', 'pathlib', 'ntpath', 'encodings.cp437', 'constants', 'das_framework', 'das_framework.driver', 'logging.handlers', 'pickle', '_compat_pickle', '_pickle', 'numpy', 'numpy._globals', 'numpy.__config__', 'numpy.version', 'numpy._distributor_init', 'numpy.core', 'numpy.core.multiarray', 'numpy.core.overrides', 'numpy.core._multiarray_umath', 'numpy.compat', 'numpy.compat._inspect', 'numpy.compat.py3k', 'numpy.core.umath', 'numpy.core.numerictypes', 'numpy.core._string_helpers', 'numpy.core._type_aliases', 'numpy.core._dtype', 'numpy.core.numeric', 'numpy.core.shape_base', 'numpy.core._asarray', 'numpy.core.fromnumeric', 'numpy.core._methods', 'numpy.core._exceptions', 'numpy.core._ufunc_config', 'numpy.core.arrayprint', 'numpy.core.defchararray', 'numpy.core.records', 'numpy.core.memmap', 'numpy.core.function_base', 'numpy.core.machar', 'numpy.core.getlimits', 'numpy.core.einsumfunc', 'numpy.core._add_newdocs', 'numpy.core._multiarray_tests', 'numpy.core._dtype_ctypes', 'numpy.core._internal', 'numpy._pytesttester', 'numpy.lib', 'numpy.lib.mixins', 'numpy.lib.scimath', 'numpy.lib.type_check', 'numpy.lib.ufunclike', 'numpy.lib.index_tricks', 'numpy.matrixlib', 'numpy.matrixlib.defmatrix', 'numpy.linalg', 'numpy.linalg.linalg', 'numpy.lib.twodim_base', 'numpy.linalg.lapack_lite', 'numpy.linalg._umath_linalg', 'numpy.lib.function_base', 'numpy.lib.histograms', 'numpy.lib.stride_tricks', 'numpy.lib.nanfunctions', 'numpy.lib.shape_base', 'numpy.lib.polynomial', 'numpy.lib.utils', 'numpy.lib.arraysetops', 'numpy.lib.npyio', 'numpy.lib.format', 'numpy.lib._datasource', 'numpy.lib._iotools', 'numpy.lib.financial', 'numpy.lib.arrayterator', 'numpy.lib.arraypad', 'numpy.lib._version', 'numpy.fft', 'numpy.fft._pocketfft', 'numpy.fft._pocketfft_internal', 'numpy.fft.helper', 'numpy.polynomial', 'numpy.polynomial.polynomial', 'numpy.polynomial.polyutils', 'numpy.polynomial._polybase', 'numpy.polynomial.chebyshev', 'numpy.polynomial.legendre', 'numpy.polynomial.hermite', 'numpy.polynomial.hermite_e', 'numpy.polynomial.laguerre', 'numpy.random', 'numpy.random._pickle', 'numpy.random.mtrand', 'cython_runtime', 'numpy.random.bit_generator', '_cython_0_29_21', 'numpy.random._common', 'secrets', 'numpy.random._bounded_integers', 'numpy.random._mt19937', 'numpy.random._philox', 'numpy.random._pcg64', 'numpy.random._sfc64', 'numpy.random._generator', 'numpy.ctypeslib', 'numpy.ma', 'numpy.ma.core', 'numpy.ma.extras', 'numpy.testing', 'unittest', 'unittest.result', 'unittest.util', 'unittest.case', 'difflib', 'pprint', 'unittest.suite', 'unittest.loader', 'unittest.main', 'argparse', 'gettext', 'unittest.runner', 'unittest.signals', 'numpy.testing._private', 'numpy.testing._private.utils', 'gc', 'numpy.testing._private.decorators', 'numpy.testing._private.nosetester', 'configparser', 'fractions', 'ctools', 'ctools.clogging', 'experiment', 'driver', 'dfxml_writer', 'xml.parsers', 'xml.parsers.expat', 'xml.parsers.expat.model', 'xml.parsers.expat.errors', 'psutil', 'psutil._common', 'psutil._compat', 'psutil._pslinux', 'glob', 'psutil._psposix', 'psutil._psutil_linux', 'psutil._psutil_posix', 'certificate', 'modulefinder', 'imp', 'certificate.bom', 'ctools.tytable', 'typing', 'typing.io', 'typing.re', 'sqlite3', 'sqlite3.dbapi2', '_sqlite3', 'xml.dom', 'xml.dom.domreg', 'xml.dom.minidom', 'xml.dom.minicompat', 'xml.dom.xmlbuilder', 'xml.dom.NodeFilter', 'latex_tools', 'distutils', 'distutils.spawn', 'distutils.errors', 'distutils.debug', 'distutils.log', 'ctools.latex_tools', 'ctools.hierarchical_configparser', 'das_framework.ctools', 'das_framework.ctools.clogging', 'das_framework.ctools.cspark', 'programs', 'programs.dashboard', 'programs.colors', 'das_framework.ctools.aws', 'programs.random_mission', 'ctools.aws', 'programs.emr_control', 'das_framework.ctools.emr', 'multiprocessing', 'multiprocessing.context', 'multiprocessing.process', 'multiprocessing.reduction', 'array', '__mp_main__', 'aws', 'ec2', 'programs.das_config_upload', 'das_framework.ctools.s3', 'gurobipy', 'gurobipy.gurobipy', 'cspark', 'pyspark', 'pyspark.conf', 'pyspark.context', 'py4j', 'py4j.version', 'py4j.protocol', 'py4j.compat', 'pyspark.accumulators', 'socketserver', 'pyspark.serializers', 'pyspark.cloudpickle', 'pyspark.util', 'pyspark.broadcast', 'pyspark.java_gateway', 'py4j.java_gateway', 'pydoc', 'pkgutil', 'py4j.finalizer', 'py4j.signals', 'py4j.java_collections', 'pyspark.find_spark_home', 'pyspark.files', 'pyspark.storagelevel', 'pyspark.rdd', 'pyspark.join', 'pyspark.resultiterable', 'pyspark.statcounter', 'pyspark.rddsampler', 'pyspark.shuffle', 'pyspark.heapq3', 'pyspark.traceback_utils', 'pyspark.status', 'pyspark.profiler', 'cProfile', '_lsprof', 'profile', 'optparse', 'pstats', 'pyspark.taskcontext', 'pyspark.version', 'pyspark._globals', 'pyspark.sql', 'pyspark.sql.types', 'pyspark.sql.context', 'pyspark.sql.session', 'pyspark.sql.conf', 'pyspark.sql.dataframe', 'pyspark.sql.column', 'pyspark.sql.readwriter', 'pyspark.sql.utils', 'pyspark.sql.streaming', 'pyspark.sql.udf', 'pyspark.sql.catalog', 'pyspark.sql.group', 'pyspark.sql.window', 'xml.sax', 'xml.sax.xmlreader', 'xml.sax.handler', 'xml.sax._exceptions', 'xml.sax.saxutils', 'programs.das_setup', 'hdfs_logger', 'programs.schema', 'programs.schema.schemas', 'programs.schema.schemas.schemamaker', 'programs.schema.schema', 'programs.queries', 'programs.queries.querybase', 'scipy', 'scipy._lib', 'scipy._lib._testutils', 'scipy._lib.deprecation', 'scipy.__config__', 'scipy.version', 'scipy._distributor_init', 'scipy._lib._pep440', 'scipy._lib._ccallback', 'scipy._lib._ccallback_c', 'scipy.fft', 'scipy.fft._basic', 'scipy._lib.uarray', 'scipy._lib._uarray', 'scipy._lib._uarray._backend', 'scipy._lib._uarray._uarray', 'scipy.fft._realtransforms', 'scipy.fft._helper', 'scipy.fft._pocketfft', 'scipy.fft._pocketfft.basic', 'scipy.fft._pocketfft.pypocketfft', 'scipy.fft._pocketfft.helper', 'scipy.fft._pocketfft.realtransforms', 'scipy.fft._backend', 'scipy.sparse', 'scipy.sparse.base', 'scipy.sparse.sputils', 'scipy._lib._util', 'scipy.sparse.csr', 'scipy.sparse._sparsetools', 'scipy.sparse.compressed', 'scipy.sparse.data', 'scipy.sparse.dia', 'scipy.sparse._index', 'scipy.sparse.csc', 'scipy.sparse.lil', 'scipy.sparse._csparsetools', 'scipy.sparse.dok', 'scipy.sparse.coo', 'scipy.sparse.bsr', 'scipy.sparse.construct', 'scipy.sparse.extract', 'scipy.sparse._matrix_io', 'scipy.sparse.csgraph', 'scipy.sparse.csgraph._laplacian', 'scipy.sparse.csgraph._shortest_path', '_cython_0_29_18', 'scipy.sparse.csgraph._validation', 'scipy.sparse.csgraph._tools', 'scipy.sparse.csgraph._traversal', 'scipy.sparse.csgraph._min_spanning_tree', 'scipy.sparse.csgraph._flow', 'scipy.sparse.csgraph._matching', 'scipy.sparse.csgraph._reordering', 'das_utils', 'programs.sparse', 'das_framework.ctools.env', 'exceptions', 'pandas', 'pytz', 'pytz.exceptions', 'pytz.lazy', 'pytz.tzinfo', 'pytz.tzfile', 'pandas.compat', 'pandas._typing', 'pandas.compat.numpy', 'distutils.version', 'pandas._libs', 'pandas._libs.interval', '_cython_0_29_16', 'pandas._libs.hashtable', 'pandas._libs.missing', 'pandas._libs.tslibs', 'pandas._libs.tslibs.dtypes', 'pandas._libs.tslibs.conversion', 'pandas._libs.tslibs.base', 'pandas._libs.tslibs.nattype', 'pandas._libs.tslibs.np_datetime', 'pandas._libs.tslibs.timezones', 'pandas._libs.tslibs.tzconversion', 'pandas._libs.tslibs.ccalendar', 'pandas._libs.tslibs.parsing', 'pandas._libs.tslibs.offsets', 'pandas._libs.tslibs.timedeltas', 'pandas._libs.tslibs.timestamps', 'pandas._libs.tslibs.fields', 'pandas._config', 'pandas._config.config', 'pandas._config.dates', 'pandas._config.display', 'pandas._config.localization', 'pandas._libs.tslibs.strptime', 'dateutil.easter', 'pandas._libs.properties', 'pandas._libs.tslibs.period', 'pandas._libs.tslibs.vectorized', 'pandas._libs.ops_dispatch', 'pandas._libs.algos', 'pandas._libs.lib', 'pandas._libs.tslib', 'pandas.core', 'pandas.core.config_init', 'pandas.core.api', 'pandas.core.dtypes', 'pandas.core.dtypes.dtypes', 'pandas.core.dtypes.base', 'pandas.errors', 'pandas.core.dtypes.generic', 'pandas.core.dtypes.inference', 'pandas.core.dtypes.missing', 'pandas.core.dtypes.common', 'pandas.core.algorithms', 'pandas.util', 'pandas.util._decorators', 'pandas.core.util', 'pandas.core.util.hashing', 'pandas._libs.hashing', 'pandas.core.dtypes.cast', 'pandas.util._validators', 'pandas.core.construction', 'pandas.core.common', 'pandas.core.indexers', 'pandas.core.arrays', 'pandas.core.arrays.base', 'pandas.compat.numpy.function', 'pandas.core.ops', 'pandas.core.ops.array_ops', 'pandas._libs.ops', 'pandas.core.ops.missing', 'pandas.core.ops.roperator', 'pandas.core.ops.dispatch', 'pandas.core.ops.invalid', 'pandas.core.ops.common', 'pandas.core.ops.docstrings', 'pandas.core.ops.mask_ops', 'pandas.core.ops.methods', 'pandas.core.missing', 'pandas.compat._optional', 'pandas.core.sorting', 'pandas.core.arrays.boolean', 'pandas.core.arrays.masked', 'pandas.core.nanops', 'pandas.core.array_algos', 'pandas.core.array_algos.masked_reductions', 'pandas.core.arrays.categorical', 'pandas.core.accessor', 'pandas.core.array_algos.transforms', 'pandas.core.arrays._mixins', 'pandas.core.base', 'pandas.io', 'pandas.io.formats', 'pandas.io.formats.console', 'pandas.core.arrays.datetimes', 'pandas.core.arrays.datetimelike', 'pandas.tseries', 'pandas.tseries.frequencies', 'pandas.core.arrays._ranges', 'pandas.tseries.offsets', 'pandas.core.arrays.integer', 'pandas.core.tools', 'pandas.core.tools.numeric', 'pandas.core.arrays.interval', 'pandas.core.indexes', 'pandas.core.indexes.base', 'pandas._libs.index', 'pandas._libs.join', 'pandas.core.dtypes.concat', 'pandas.core.arrays.sparse', 'pandas.core.arrays.sparse.accessor', 'pandas.core.arrays.sparse.array', 'pandas._libs.sparse', 'pandas.core.arrays.sparse.dtype', 'pandas.io.formats.printing', 'pandas.core.indexes.frozen', 'pandas.core.strings', 'pandas.core.arrays.numpy_', 'pandas.core.arrays.period', 'pandas.core.arrays.string_', 'pandas.core.arrays.timedeltas', 'pandas.core.groupby', 'pandas.core.groupby.generic', 'pandas.core.aggregation', 'pandas.core.indexes.api', 'pandas.core.indexes.category', 'pandas.core.indexes.extension', 'pandas.core.indexes.datetimes', 'pandas.core.indexes.datetimelike', 'pandas.core.indexes.numeric', 'pandas.core.tools.timedeltas', 'pandas.core.tools.times', 'pandas.core.indexes.interval', 'pandas.util._exceptions', 'pandas.core.indexes.multi', 'pandas.core.indexes.timedeltas', 'pandas.core.indexes.period', 'pandas.core.indexes.range', 'pandas.core.series', 'pandas._libs.reshape', 'pandas.core.generic', 'pandas.core.indexing', 'pandas._libs.indexing', 'pandas.core.internals', 'pandas.core.internals.blocks', 'pandas._libs.writers', 'pandas._libs.internals', 'pandas.core.internals.concat', 'pandas.core.internals.managers', 'pandas.core.internals.ops', 'pandas.core.shared_docs', 'pandas.io.formats.format', 'pandas.io.common', 'gzip', 'mmap', 'pandas.core.indexes.accessors', 'pandas.core.tools.datetimes', 'pandas.arrays', 'pandas.plotting', 'pandas.plotting._core', 'pandas.plotting._misc', 'pandas.core.window', 'pandas.core.window.ewm', 'pandas._libs.window', 'pandas._libs.window.aggregations', 'pandas.core.window.common', 'pandas.core.groupby.base', 'pandas.core.window.rolling', 'pandas.core.util.numba_', 'pandas.core.window.indexers', 'pandas._libs.window.indexers', 'pandas.core.window.numba_', 'pandas.core.window.expanding', 'pandas.core.frame', 'pandas.core.internals.construction', 'pandas.core.reshape', 'pandas.core.reshape.melt', 'pandas.core.reshape.concat', 'pandas.core.reshape.util', 'pandas.io.formats.info', 'pandas.core.groupby.groupby', 'pandas._libs.groupby', 'pandas.core.groupby.ops', 'pandas._libs.reduction', 'pandas.core.groupby.grouper', 'pandas.core.groupby.categorical', 'pandas.tseries.api', 'pandas.core.computation', 'pandas.core.computation.api', 'pandas.core.computation.eval', 'pandas.core.computation.engines', 'pandas.core.computation.align', 'pandas.core.computation.common', 'pandas.core.computation.ops', 'pandas.core.computation.scope', 'pandas.compat.chainmap', 'pandas.core.computation.expr', 'pandas.core.computation.parsing', 'pandas.core.reshape.api', 'pandas.core.reshape.merge', 'pandas.core.reshape.pivot', 'pandas.core.reshape.reshape', 'pandas.core.reshape.tile', 'pandas.api', 'pandas.api.extensions', 'pandas.api.indexers', 'pandas.api.types', 'pandas.core.dtypes.api', 'pandas.util._print_versions', 'pandas.io.api', 'pandas.io.clipboards', 'pandas.io.excel', 'pandas.io.excel._base', 'pandas._libs.parsers', 'pandas.io.excel._util', 'pandas.io.parsers', 'pandas.io.date_converters', 'pandas.io.excel._odfreader', 'pandas.io.excel._openpyxl', 'pandas.io.excel._xlrd', 'pandas.io.excel._pyxlsb', 'pandas.io.excel._odswriter', 'pandas._libs.json', 'pandas.io.formats.excel', 'pandas.io.formats.css', 'pandas.io.excel._xlsxwriter', 'pandas.io.excel._xlwt', 'pandas.io.feather_format', 'pandas.io.gbq', 'pandas.io.html', 'pandas.io.json', 'pandas.io.json._json', 'pandas.io.json._normalize', 'pandas.io.json._table_schema', 'pandas.io.orc', 'pandas.io.parquet', 'pandas.io.pickle', 'pandas.compat.pickle_compat', 'pandas.io.pytables', 'pandas.core.computation.pytables', 'pandas.io.sas', 'pandas.io.sas.sasreader', 'pandas.io.spss', 'pandas.io.sql', 'pandas.io.stata', 'pandas.util._tester', 'pandas.testing', 'pandas._testing', 'pandas._libs.testing', 'pandas._version', 'programs.schema.tabletools', 'programs.schema.attributes', 'programs.schema.attributes.age', 'programs.schema.attributes.abstractattribute', 'programs.schema.attributes.cenrace', 'programs.cenrace', 'programs.schema.attributes.citizen', 'programs.schema.attributes.hhgq_person_simple', 'programs.schema.attributes.hisp', 'programs.schema.attributes.rel', 'programs.schema.attributes.sex', 'programs.schema.attributes.hhage', 'programs.schema.attributes.hhelderly', 'programs.schema.attributes.hhhisp', 'programs.schema.attributes.hhmulti', 'programs.schema.attributes.hhrace', 'programs.schema.attributes.race_cvap', 'programs.schema.attributes.race', 'programs.schema.attributes.hhsex', 'programs.schema.attributes.hhsize', 'programs.schema.attributes.hhtype', 'programs.schema.attributes.tenure', 'programs.schema.attributes.tenure2', 'programs.schema.attributes.relgq', 'programs.schema.attributes.votingage', 'programs.schema.attributes.hhgq1940', 'programs.schema.attributes.age1940', 'programs.schema.attributes.sex1940', 'programs.schema.attributes.hisp1940', 'programs.schema.attributes.citizen1940', 'programs.schema.attributes.race1940', 'programs.schema.attributes.agecat', 'programs.schema.attributes.hhgq_unit_demoproduct', 'programs.schema.attributes.hhgq_unit_simple', 'programs.schema.attributes.hhgq_unit_simple_recoded', 'programs.schema.attributes.hhgq', 'programs.schema.attributes.tenvacgq', 'programs.schema.attributes.vacs', 'programs.schema.attributes.dhch', 'programs.schema.attributes.dhch.hhtype_dhch', 'programs.schema.attributes.dhch.hhtype_map', 'programs.schema.attributes.hhtenshort', 'programs.schema.attributes.h1', 'programs.invariants', 'programs.invariants.invariantsmaker', 'programs.reader', 'programs.reader.table_reader', 'programs.nodes', 'programs.nodes.nodes', 'programs.utilities', 'programs.utilities.geo', 'programs.constraints', 'programs.constraints.constraint_dict', 'programs.queries.constraints_dpqueries', 'programs.utilities.numpy_utils', 'programs.engine', 'programs.engine.primitives', 'programs.engine.rngs', 'scipy.stats', 'scipy.stats.stats', 'scipy.spatial', 'scipy.spatial.kdtree', 'scipy.spatial.ckdtree', 'scipy.spatial.qhull', 'scipy._lib.messagestream', 'scipy.spatial._spherical_voronoi', 'scipy.spatial._voronoi', 'scipy.spatial._plotutils', 'scipy._lib.decorator', 'scipy.spatial._procrustes', 'scipy.linalg', 'scipy.linalg.misc', 'scipy.linalg.blas', 'scipy.linalg._fblas', 'scipy.linalg.lapack', 'scipy.linalg._flapack', 'scipy.linalg.basic', 'scipy.linalg.flinalg', 'scipy.linalg._flinalg', 'scipy.linalg.decomp', 'scipy.linalg.decomp_svd', 'scipy.linalg._solve_toeplitz', 'scipy.linalg.decomp_lu', 'scipy.linalg._decomp_ldl', 'scipy.linalg.decomp_cholesky', 'scipy.linalg.decomp_qr', 'scipy.linalg._decomp_qz', 'scipy.linalg.decomp_schur', 'scipy.linalg._decomp_polar', 'scipy.linalg.matfuncs', 'scipy.linalg.special_matrices', 'scipy.linalg._expm_frechet', 'scipy.linalg._matfuncs_sqrtm', 'scipy.linalg._solvers', 'scipy.linalg._procrustes', 'scipy.linalg._decomp_update', 'scipy.linalg.cython_blas', 'scipy.linalg.cython_lapack', 'scipy.linalg._sketches', 'scipy.linalg._decomp_cossin', 'scipy.spatial._geometric_slerp', 'scipy.spatial.distance', 'scipy.spatial._distance_wrap', 'scipy.spatial._hausdorff', 'scipy.special', 'scipy.special.sf_error', 'scipy.special._ufuncs', 'scipy.special._ufuncs_cxx', 'scipy.special._basic', 'scipy.special.specfun', 'scipy.special.orthogonal', 'scipy.special._comb', 'scipy.special._logsumexp', 'scipy.special.spfun_stats', 'scipy.special._ellip_harm', 'scipy.special._ellip_harm_2', 'scipy.special._lambertw', 'scipy.special._spherical_bessel', 'scipy.spatial.transform', 'scipy.spatial.transform.rotation', 'scipy.spatial.transform._rotation_groups', 'scipy.constants', 'scipy.constants.codata', 'scipy.constants.constants', 'scipy.spatial.transform._rotation_spline', 'scipy.ndimage', 'scipy.ndimage.filters', 'scipy.ndimage._ni_support', 'scipy.ndimage._nd_image', 'scipy.ndimage._ni_docstrings', 'scipy._lib.doccer', 'scipy.ndimage.fourier', 'scipy.ndimage.interpolation', 'scipy.ndimage.measurements', 'scipy.ndimage._ni_label', '_ni_label', 'scipy.ndimage.morphology', 'scipy.stats.distributions', 'scipy.stats._distn_infrastructure', 'scipy.stats._distr_params', 'scipy.optimize', 'scipy.optimize.optimize', 'scipy.optimize.linesearch', 'scipy.optimize.minpack2', 'scipy.optimize._numdiff', 'scipy.sparse.linalg', 'scipy.sparse.linalg.isolve', 'scipy.sparse.linalg.isolve.iterative', 'scipy.sparse.linalg.isolve._iterative', 'scipy.sparse.linalg.interface', 'scipy.sparse.linalg.isolve.utils', 'scipy._lib._threadsafety', 'scipy.sparse.linalg.isolve.minres', 'scipy.sparse.linalg.isolve.lgmres', 'scipy.sparse.linalg.isolve._gcrotmk', 'scipy.sparse.linalg.isolve.lsqr', 'scipy.sparse.linalg.isolve.lsmr', 'scipy.sparse.linalg.dsolve', 'scipy.sparse.linalg.dsolve.linsolve', 'scipy.sparse.linalg.dsolve._superlu', 'scipy.sparse.linalg.dsolve._add_newdocs', 'scipy.sparse.linalg.eigen', 'scipy.sparse.linalg.eigen.arpack', 'scipy.sparse.linalg.eigen.arpack.arpack', 'scipy.sparse.linalg.eigen.arpack._arpack', 'scipy.sparse.linalg.eigen.lobpcg', 'scipy.sparse.linalg.eigen.lobpcg.lobpcg', 'scipy.sparse.linalg.matfuncs', 'scipy.sparse.linalg._expm_multiply', 'scipy.sparse.linalg._onenormest', 'scipy.sparse.linalg._norm', 'scipy.optimize._group_columns', 'scipy.optimize._differentiable_functions', 'scipy.optimize._hessian_update_strategy', 'scipy.optimize._minimize', 'scipy.optimize._trustregion_dogleg', 'scipy.optimize._trustregion', 'scipy.optimize._trustregion_ncg', 'scipy.optimize._trustregion_krylov', 'scipy.optimize._trlib', 'scipy.optimize._trlib._trlib', 'scipy.optimize._trustregion_exact', 'scipy.optimize._trustregion_constr', 'scipy.optimize._trustregion_constr.minimize_trustregion_constr', 'scipy.optimize._constraints', 'scipy.optimize._trustregion_constr.equality_constrained_sqp', 'scipy.optimize._trustregion_constr.projections', 'scipy.optimize._trustregion_constr.qp_subproblem', 'scipy.optimize._trustregion_constr.canonical_constraint', 'scipy.optimize._trustregion_constr.tr_interior_point', 'scipy.optimize._trustregion_constr.report', 'scipy.optimize.lbfgsb', 'scipy.optimize._lbfgsb', 'scipy.optimize.tnc', 'scipy.optimize.moduleTNC', 'scipy.optimize.cobyla', 'scipy.optimize._cobyla', 'scipy.optimize.slsqp', 'scipy.optimize._slsqp', 'scipy.optimize._root', 'scipy.optimize.minpack', 'scipy.optimize._minpack', 'scipy.optimize._lsq', 'scipy.optimize._lsq.least_squares', 'scipy.optimize._lsq.trf', 'scipy.optimize._lsq.common', 'scipy.optimize._lsq.dogbox', 'scipy.optimize._lsq.lsq_linear', 'scipy.optimize._lsq.trf_linear', 'scipy.optimize._lsq.givens_elimination', 'scipy.optimize._lsq.bvls', 'scipy.optimize._spectral', 'scipy.optimize.nonlin', 'scipy.optimize._root_scalar', 'scipy.optimize.zeros', 'scipy.optimize._zeros', 'scipy.optimize._nnls', 'scipy.optimize.__nnls', 'scipy.optimize._basinhopping', 'scipy.optimize._linprog', 'scipy.optimize._linprog_ip', 'scipy.optimize._linprog_util', 'scipy.optimize._remove_redundancy', 'scipy.optimize._linprog_simplex', 'scipy.optimize._linprog_rs', 'scipy.optimize._bglu_dense', 'scipy.optimize._lsap', 'scipy.optimize._lsap_module', 'scipy.optimize._differentialevolution', 'scipy.optimize._shgo', 'scipy.optimize._shgo_lib', 'scipy.optimize._shgo_lib.sobol_seq', 'scipy.optimize._shgo_lib.triangulation', 'scipy.optimize._dual_annealing', 'scipy.integrate', 'scipy.integrate._quadrature', 'scipy.integrate.odepack', 'scipy.integrate._odepack', 'scipy.integrate.quadpack', 'scipy.integrate._quadpack', 'scipy.integrate._ode', 'scipy.integrate.vode', 'scipy.integrate._dop', 'scipy.integrate.lsoda', 'scipy.integrate._bvp', 'scipy.integrate._ivp', 'scipy.integrate._ivp.ivp', 'scipy.integrate._ivp.bdf', 'scipy.integrate._ivp.common', 'scipy.integrate._ivp.base', 'scipy.integrate._ivp.radau', 'scipy.integrate._ivp.rk', 'scipy.integrate._ivp.dop853_coefficients', 'scipy.integrate._ivp.lsoda', 'scipy.integrate._quad_vec', 'scipy.misc', 'scipy.misc.doccer', 'scipy.misc.common', 'scipy.stats._constants', 'scipy.stats._continuous_distns', 'scipy.interpolate', 'scipy.interpolate.interpolate', 'scipy.interpolate.fitpack', 'scipy.interpolate._fitpack_impl', 'scipy.interpolate._fitpack', 'scipy.interpolate.dfitpack', 'scipy.interpolate._bsplines', 'scipy.interpolate._bspl', 'scipy.interpolate.polyint', 'scipy.interpolate._ppoly', 'scipy.interpolate.fitpack2', 'scipy.interpolate.interpnd', 'scipy.interpolate.rbf', 'scipy.interpolate._cubic', 'scipy.interpolate.ndgriddata', 'scipy.interpolate._pade', 'scipy.stats._stats', 'scipy.special.cython_special', 'scipy.stats._rvs_sampling', 'scipy.stats._tukeylambda_stats', 'scipy.stats._ksstats', 'scipy.stats._discrete_distns', 'scipy.stats.mstats_basic', 'scipy.stats._stats_mstats_common', 'scipy.stats._hypotests', 'scipy.stats._wilcoxon_data', 'scipy.stats.morestats', 'scipy.stats.statlib', 'scipy.stats.contingency', 'scipy.stats._binned_statistic', 'scipy.stats.kde', 'scipy.stats.mvn', 'scipy.stats.mstats', 'scipy.stats.mstats_extras', 'scipy.stats._multivariate', 'programs.engine.discrete_gaussian_utility', 'programs.das_rdd', 'programs.rdd_like_list', 'programs.geographic_spines', 'programs.geographic_spines.define_spines', 'programs.geographic_spines.optimize_spine', 'programs.engine.topdown_engine', 'programs.nodes.manipulate_nodes', 'programs.optimization', 'programs.optimization.sequential_optimizers', 'programs.optimization.optimizer', 'resource', 'programs.optimization.maps', 'programs.optimization.gurobi_stats', 'programs.optimization.geo_optimizers', 'programs.optimization.simple_rounder', 'programs.optimization.multipass_rounder', 'programs.optimization.multipass_query_rounder', 'programs.optimization.l2_dataIndep_npass_optimizer', 'programs.optimization.l2_dataIndep_npass_optimizer_improv', 'programs.engine.engine_utils', 'programs.s3cat', 'ctools.s3', 'programs.engine.curve', 'matplotlib', 'matplotlib.cbook', 'matplotlib.cbook.deprecation', 'matplotlib.rcsetup', 'matplotlib.animation', 'matplotlib._animation_data', 'matplotlib.fontconfig_pattern', 'pyparsing', 'matplotlib.colors', 'matplotlib.docstring', 'matplotlib._color_data', 'cycler', 'matplotlib._version', 'matplotlib.ft2font', 'kiwisolver']
+2021-03-05 11:40:52,949 __init__.py:241 (wrapper) CACHEDIR=/mnt/users/heine008/.cache/matplotlib
+2021-03-05 11:40:52,951 font_manager.py:1436 (<module>) Using fontManager instance from /mnt/users/heine008/.cache/matplotlib/fontlist-v330.json
+2021-03-05 11:40:53,080 pyplot.py:273 (switch_backend) Loaded backend qt5agg version unknown.
+2021-03-05 11:40:53,083 pyplot.py:273 (switch_backend) Loaded backend agg version unknown.
+2021-03-05 11:40:53,084 pyplot.py:273 (switch_backend) Loaded backend agg version unknown.
+2021-03-05 11:40:53,132 driver.py:692 (load_module) __import__ file: programs.engine.topdown_engine
+2021-03-05 11:40:53,135 driver.py:692 (load_module) __import__ file: programs.metrics.accuracy_metrics
+2021-03-05 11:40:53,135 driver.py:692 (load_module) __import__ file: programs.writer.pickled_block_data_writer
+2021-03-05 11:40:53,135 driver.py:692 (load_module) __import__ file: programs.stub_validator
+2021-03-05 11:40:53,135 driver.py:692 (load_module) __import__ file: programs.takedown
+2021-03-05 11:40:53,136 driver.py:654 (__init__) classes: DASDecennialSetup TopdownEngine AccuracyMetrics DASDecennialReader PickledBlockDataWriter validator takedown
+2021-03-05 11:40:53,136 driver.py:658 (__init__) modules: <module 'programs.das_setup' from '/mnt/users/heine008/repos/0305/das_decennial/programs/das_setup.py'> <module 'programs.engine.topdown_engine' from '/mnt/users/heine008/repos/0305/das_decennial/programs/engine/topdown_engine.py'> <module 'programs.metrics.accuracy_metrics' from '/mnt/users/heine008/repos/0305/das_decennial/programs/metrics/accuracy_metrics.py'> <module 'programs.reader.table_reader' from '/mnt/users/heine008/repos/0305/das_decennial/programs/reader/table_reader.py'> <module 'programs.writer.pickled_block_data_writer' from '/mnt/users/heine008/repos/0305/das_decennial/programs/writer/pickled_block_data_writer.py'> <module 'programs.stub_validator' from '/mnt/users/heine008/repos/0305/das_decennial/programs/stub_validator.py'> <module 'programs.takedown' from '/mnt/users/heine008/repos/0305/das_decennial/programs/takedown.py'>
+2021-03-05 11:40:53,136 driver.py:659 (__init__) Creating and running DAS setup object
+2021-03-05 11:40:53,136 driver.py:251 (getconfig) config[setup][pre_release] not present; returning default False
+2021-03-05 11:40:53,140 driver.py:251 (getconfig) config[engine][spark] not present; returning default True
+2021-03-05 11:40:53,140 driver.py:244 (getconfig) config[geodict][geolevel_names]=Block,Block_Group,Tract,County,State
+2021-03-05 11:40:53,140 driver.py:244 (getconfig) config[geodict][geo_bottomlevel]=
+2021-03-05 11:40:53,140 driver.py:244 (getconfig) config[budget][only_dyadic_rationals]=False
+2021-03-05 11:40:53,140 driver.py:244 (getconfig) config[budget][geolevel_budget_prop]=103/512, 103/512, 102/512, 102/512, 102/512
+2021-03-05 11:40:53,141 driver.py:244 (getconfig) config[geodict][geolevel_leng]=16,12,11,5,2
+2021-03-05 11:40:53,141 driver.py:244 (getconfig) config[geodict][spine]=opt_spine
+2021-03-05 11:40:53,141 driver.py:244 (getconfig) config[budget][privacy_framework]=zcdp
+2021-03-05 11:40:53,141 driver.py:244 (getconfig) config[budget][dp_mechanism]=discrete_gaussian_mechanism
+2021-03-05 11:40:53,141 driver.py:717 (<lambda>) Privacy mechanism: discrete_gaussian_mechanism
+2021-03-05 11:40:53,141 driver.py:717 (<lambda>) geolevels: ('Block', 'Block_Group', 'Tract', 'County', 'State')
+2021-03-05 11:40:53,141 driver.py:244 (getconfig) config[schema][schema]=PL94
+2021-03-05 11:40:53,142 driver.py:717 (<lambda>) schema keyword: PL94
+2021-03-05 11:40:53,144 driver.py:251 (getconfig) config[engine][postprocess_only] not present; returning default False
+2021-03-05 11:40:53,144 driver.py:244 (getconfig) config[reader][validate_input_data_constraints]=off
+2021-03-05 11:40:53,144 driver.py:244 (getconfig) config[constraints][theInvariants.Block]=gqhh_vect, gqhh_tot
+2021-03-05 11:40:53,144 driver.py:244 (getconfig) config[constraints][theConstraints.Block]=hhgq_total_lb, hhgq_total_ub, nurse_nva_0
+2021-03-05 11:40:53,144 driver.py:254 (getconfig) config[constraints][theInvariants.Block_Group] does not exist and no default provided
+2021-03-05 11:40:53,144 driver.py:254 (getconfig) config[constraints][theConstraints.Block_Group] does not exist and no default provided
+2021-03-05 11:40:53,144 driver.py:244 (getconfig) config[constraints][theInvariants.Tract]=tot
+2021-03-05 11:40:53,144 driver.py:244 (getconfig) config[constraints][theConstraints.Tract]=total, hhgq_total_lb, hhgq_total_ub
+2021-03-05 11:40:53,144 driver.py:254 (getconfig) config[constraints][theInvariants.County] does not exist and no default provided
+2021-03-05 11:40:53,145 driver.py:254 (getconfig) config[constraints][theConstraints.County] does not exist and no default provided
+2021-03-05 11:40:53,145 driver.py:254 (getconfig) config[constraints][theInvariants.State] does not exist and no default provided
+2021-03-05 11:40:53,145 driver.py:254 (getconfig) config[constraints][theConstraints.State] does not exist and no default provided
+2021-03-05 11:40:53,145 driver.py:251 (getconfig) config[writer][noisy_partitions_by_level] not present; returning default 0,0,0,0,0
+2021-03-05 11:40:53,145 driver.py:700 (timestamp) ANNOTATE: noisy_partitions_by_level: (0, 0, 0, 0, 0)
+2021-03-05 11:40:53,145 driver.py:700 (timestamp) ANNOTATE: noisy_partitions_dict: {'Block': 0, 'Block_Group': 0, 'Tract': 0, 'County': 0, 'State': 0}
+2021-03-05 11:40:53,145 driver.py:244 (getconfig) config[logging][dvs_enabled]=False
+2021-03-05 11:40:53,147 driver.py:244 (getconfig) config[setup][spark.name]=DAS_RI_TEST
+2021-03-05 11:40:53,148 driver.py:244 (getconfig) config[setup][spark.loglevel]=ERROR
+2021-03-05 11:40:53,464 driver.py:663 (__init__) DAS setup returned <programs.das_setup.DASDecennialSetup object at 0x7fc3427b96d8>
+2021-03-05 11:40:53,473 driver.py:251 (getconfig) config[writer][run_type] not present; returning default dev
+2021-03-05 11:40:53,473 driver.py:251 (getconfig) config[writer][descriptive_name] not present; returning default {BRANCH_NAME}
+2021-03-05 11:40:53,473 driver.py:244 (getconfig) config[writer][produce_flag]=1
+2021-03-05 11:40:53,474 driver.py:244 (getconfig) config[writer][output_datafile_name]=data
+2021-03-05 11:40:53,474 driver.py:244 (getconfig) config[writer][overwrite_flag]=1
+2021-03-05 11:40:53,474 driver.py:251 (getconfig) config[writer][write_metadata] not present; returning default True
+2021-03-05 11:40:53,474 driver.py:244 (getconfig) config[writer][s3cat]=1
+2021-03-05 11:40:53,474 driver.py:244 (getconfig) config[writer][s3cat_suffix]=.txt
+2021-03-05 11:40:53,474 driver.py:244 (getconfig) config[writer][s3cat_verbose]=1
+2021-03-05 11:40:53,474 driver.py:254 (getconfig) config[reader][comment] does not exist and no default provided
+2021-03-05 11:40:53,475 driver.py:244 (getconfig) config[reader][header]=True
+2021-03-05 11:40:53,475 driver.py:244 (getconfig) config[reader][delimiter]=\t
+2021-03-05 11:40:53,475 driver.py:244 (getconfig) config[reader][numReaderPartitions]=500
+2021-03-05 11:40:53,475 driver.py:251 (getconfig) config[reader][rangePartition] not present; returning default False
+2021-03-05 11:40:53,475 driver.py:251 (getconfig) config[reader][readerPartitionLen] not present; returning default 11
+2021-03-05 11:40:53,475 driver.py:251 (getconfig) config[reader][measure_rdd_times] not present; returning default False
+2021-03-05 11:40:53,475 driver.py:244 (getconfig) config[reader][tables]=PersonData UnitData
+2021-03-05 11:40:53,476 driver.py:700 (timestamp) ANNOTATE: building table infrastructure
+2021-03-05 11:40:53,476 driver.py:700 (timestamp) ANNOTATE: table names ('PersonData', 'UnitData')
+2021-03-05 11:40:53,476 driver.py:700 (timestamp) ANNOTATE: Reading table module and class names from config
+2021-03-05 11:40:53,478 driver.py:244 (getconfig) config[reader][PersonData.path]=s3://uscb-decennial-ite-das/title13_input_data/table8/ri44.txt
+2021-03-05 11:40:53,478 driver.py:244 (getconfig) config[reader][PersonData.variables]=MAFID geocode white black aian asian nhopi other hispanic sex householder votingage hhgq
+2021-03-05 11:40:53,478 driver.py:244 (getconfig) config[reader][PersonData.recode_variables]=cenrace
+2021-03-05 11:40:53,478 driver.py:254 (getconfig) config[reader][PersonData.delimiter] does not exist and no default provided
+2021-03-05 11:40:53,479 driver.py:244 (getconfig) config[reader][PersonData.geography]=geocode
+2021-03-05 11:40:53,479 driver.py:244 (getconfig) config[reader][PersonData.histogram]=hhgq votingage hispanic cenrace
+2021-03-05 11:40:53,479 driver.py:244 (getconfig) config[reader][cenrace]=white black aian asian nhopi other
+2021-03-05 11:40:53,479 driver.py:251 (getconfig) config[reader][PersonData.newrecoder] not present; returning default False
+2021-03-05 11:40:53,480 driver.py:244 (getconfig) config[reader][UnitData.path]=s3://uscb-decennial-ite-das/title13_input_data/table8/ri44.txt
+2021-03-05 11:40:53,480 driver.py:244 (getconfig) config[reader][UnitData.variables]=MAFID geocode white black aian asian nhopi other hispanic sex householder votingage hhgq
+2021-03-05 11:40:53,480 driver.py:254 (getconfig) config[reader][UnitData.recode_variables] does not exist and no default provided
+2021-03-05 11:40:53,481 driver.py:254 (getconfig) config[reader][UnitData.delimiter] does not exist and no default provided
+2021-03-05 11:40:53,481 driver.py:244 (getconfig) config[reader][UnitData.geography]=geocode
+2021-03-05 11:40:53,481 driver.py:244 (getconfig) config[reader][UnitData.histogram]=hhgq
+2021-03-05 11:40:53,481 table_reader.py:509 (__init__) recode meta for table PersonData
+2021-03-05 11:40:53,481 table_reader.py:509 (__init__) recode meta for table UnitData
+2021-03-05 11:40:53,481 driver.py:244 (getconfig) config[reader][privacy_table]=PersonData
+2021-03-05 11:40:53,481 driver.py:244 (getconfig) config[reader][constraint_tables]=UnitData
+2021-03-05 11:40:53,481 engine_utils.py:134 (__init__) levels: ('Block', 'Block_Group', 'Tract', 'County', 'State')
+2021-03-05 11:40:53,482 driver.py:717 (<lambda>) the variables in the schema are: {'hhgq': 0, 'votingage': 1, 'hispanic': 2, 'cenrace': 3} (reader names)
+2021-03-05 11:40:53,482 driver.py:717 (<lambda>) Their names in the PL94 schema are ['hhgq', 'votingage', 'hispanic', 'cenrace']
+2021-03-05 11:40:53,482 driver.py:251 (getconfig) config[writer][write_all_geolevels] not present; returning default False
+2021-03-05 11:40:53,482 driver.py:244 (getconfig) config[constraints][minimalSchema]=hhgq
+2021-03-05 11:40:53,482 driver.py:244 (getconfig) config[engine][save_noisy]=on
+2021-03-05 11:40:53,482 driver.py:251 (getconfig) config[engine][reload_noisy] not present; returning default True
+2021-03-05 11:40:53,482 driver.py:254 (getconfig) config[engine][optimization_start_from_level] does not exist and no default provided
+2021-03-05 11:40:53,506 driver.py:251 (getconfig) config[validator][validate_at_level] not present; returning default False
+2021-03-05 11:40:53,506 driver.py:244 (getconfig) config[budget][global_scale]=1/1
+2021-03-05 11:40:53,507 driver.py:251 (getconfig) config[budget][approx_dp_delta] not present; returning default 1/10000000000
+2021-03-05 11:40:53,507 driver.py:244 (getconfig) config[gurobi][l2_optimization_approach]=SinglePassRegular
+2021-03-05 11:40:53,507 driver.py:244 (getconfig) config[writer][output_path]=s3://uscb-decennial-ite-das/runs/test/heine008/topdown_RI
+2021-03-05 11:40:53,507 driver.py:251 (getconfig) config[engine][noisy_measurements_postfix] not present; returning default noisy_measurements
+2021-03-05 11:40:53,507 driver.py:717 (<lambda>) zcdp rho is split between geolevels with proportions: (Fraction(103, 512), Fraction(103, 512), Fraction(51, 256), Fraction(51, 256), Fraction(51, 256))
+2021-03-05 11:40:53,508 driver.py:244 (getconfig) config[budget][DPqueries]=hhgq, cenrace * hispanic * votingage, detailed
+2021-03-05 11:40:53,508 driver.py:254 (getconfig) config[budget][UnitDPqueries] does not exist and no default provided
+2021-03-05 11:40:53,508 driver.py:254 (getconfig) config[budget][VacancyDPqueries] does not exist and no default provided
+2021-03-05 11:40:53,508 driver.py:254 (getconfig) config[budget][RounderQueries] does not exist and no default provided
+2021-03-05 11:40:53,508 driver.py:717 (<lambda>) ###
+Levels of the marginals of main histogram DP queries to be measured:
+2021-03-05 11:40:53,509 driver.py:717 (<lambda>) votingage levels:
+------------------------
+17 and under
+18 and over
+---------------------------------
+2021-03-05 11:40:53,509 driver.py:717 (<lambda>) cenrace levels:
+------------------------
+white
+black
+aian
+asian
+nhopi
+sor
+white-black
+white-aian
+white-asian
+white-nhopi
+white-sor
+black-aian
+black-asian
+black-nhopi
+black-sor
+aian-asian
+aian-nhopi
+aian-sor
+asian-nhopi
+asian-sor
+nhopi-sor
+white-black-aian
+white-black-asian
+white-black-nhopi
+white-black-sor
+white-aian-asian
+white-aian-nhopi
+white-aian-sor
+white-asian-nhopi
+white-asian-sor
+white-nhopi-sor
+black-aian-asian
+black-aian-nhopi
+black-aian-sor
+black-asian-nhopi
+black-asian-sor
+black-nhopi-sor
+aian-asian-nhopi
+aian-asian-sor
+aian-nhopi-sor
+asian-nhopi-sor
+white-black-aian-asian
+white-black-aian-nhopi
+white-black-aian-sor
+white-black-asian-nhopi
+white-black-asian-sor
+white-black-nhopi-sor
+white-aian-asian-nhopi
+white-aian-asian-sor
+white-aian-nhopi-sor
+white-asian-nhopi-sor
+black-aian-asian-nhopi
+black-aian-asian-sor
+black-aian-nhopi-sor
+black-asian-nhopi-sor
+aian-asian-nhopi-sor
+white-black-aian-asian-nhopi
+white-black-aian-asian-sor
+white-black-aian-nhopi-sor
+white-black-asian-nhopi-sor
+white-aian-asian-nhopi-sor
+black-aian-asian-nhopi-sor
+white-black-aian-asian-nhopi-sor
+---------------------------------
+2021-03-05 11:40:53,509 driver.py:717 (<lambda>) hhgq levels:
+------------------------
+Household
+Correctional facilities for adults
+Juvenile facilities
+Nursing facilities/Skilled-nursing facilities
+Other institutional facilities
+College/University student housing
+Military quarters
+Other noninstitutional facilities
+---------------------------------
+2021-03-05 11:40:53,509 driver.py:717 (<lambda>) hispanic levels:
+------------------------
+Not Hispanic or Latino
+Hispanic or Latino
+---------------------------------
+2021-03-05 11:40:53,509 driver.py:717 (<lambda>) ###
+Levels of the marginals of unit histogram DP queries to be measured:
+2021-03-05 11:40:53,510 driver.py:717 (<lambda>) ###
+Levels of the marginals of vacancy DP queries to be measured:
+2021-03-05 11:40:53,510 driver.py:244 (getconfig) config[gurobi][l2_optimization_approach]=SinglePassRegular
+2021-03-05 11:40:53,510 driver.py:244 (getconfig) config[gurobi][rounder_optimization_approach]=CellWiseRounder
+2021-03-05 11:40:53,510 driver.py:251 (getconfig) config[gurobi][seq_optimization_approach] not present; returning default L2PlusRounderWithBackup
+2021-03-05 11:40:53,510 driver.py:244 (getconfig) config[budget][queriesprop]=230/1024, 692/1024, 102/1024
+2021-03-05 11:40:53,511 driver.py:717 (<lambda>) ###
+Impact of DP queries ([budget]/DPqueries) to be measured:
+2021-03-05 11:40:53,513 driver.py:717 (<lambda>) cenrace * hispanic * votingage ~ Impact
+                                                    Min: 1, Max: 1, All: [[1 1 1 ... 1 1 1]]
+2021-03-05 11:40:53,515 driver.py:717 (<lambda>) detailed ~ Impact
+                                                    Min: 1, Max: 1, All: [[1 1 1 ... 1 1 1]]
+2021-03-05 11:40:53,517 driver.py:717 (<lambda>) hhgq ~ Impact
+                                                    Min: 1, Max: 1, All: [[1 1 1 ... 1 1 1]]
+2021-03-05 11:40:53,517 driver.py:717 (<lambda>) The sequential-composition budget allocation between queries in a geolevel is:
+DPQueries: (Fraction(115, 512), Fraction(173, 256), Fraction(51, 512)) (0.224609375,0.67578125,0.099609375)
+2021-03-05 11:40:53,517 driver.py:717 (<lambda>) Computing total budget using privacy (accounting) framework zcdp
+2021-03-05 11:40:53,525 driver.py:717 (<lambda>) Noise 'precision' for State: 103/256
+2021-03-05 11:40:53,525 driver.py:717 (<lambda>) Noise 'precision' for County: 103/256
+2021-03-05 11:40:53,525 driver.py:717 (<lambda>) Noise 'precision' for Tract: 51/128
+2021-03-05 11:40:53,526 driver.py:717 (<lambda>) Noise 'precision' for Block_Group: 51/128
+2021-03-05 11:40:53,526 driver.py:717 (<lambda>) Noise 'precision' for Block: 51/128
+2021-03-05 11:40:53,526 driver.py:717 (<lambda>) Delta: 1/10000000000
+2021-03-05 11:40:53,526 driver.py:717 (<lambda>) Denominator limit: 1048576
+2021-03-05 11:40:53,526 driver.py:717 (<lambda>) Total budget: 1995560/198873
+2021-03-05 11:40:53,526 driver.py:717 (<lambda>) Global scale: 1
+2021-03-05 11:40:53,526 driver.py:244 (getconfig) config[budget][print_per_attr_epsilons]=True
+2021-03-05 11:40:53,526 driver.py:717 (<lambda>) Computing per-attribute epsilon for each of ['hhgq', 'votingage', 'hispanic', 'cenrace'], and for Block-in-Geolevel for each Geolevel in ['State', 'County', 'Tract', 'Block_Group']
+(NOTE: geolevels with proportion of budget 0 assigned to them are ignored)
+2021-03-05 11:40:53,527 driver.py:717 (<lambda>) Found queries for dim hhgq:
+2021-03-05 11:40:53,527 driver.py:717 (<lambda>)
+detailed : 173/256
+2021-03-05 11:40:53,527 driver.py:717 (<lambda>)
+hhgq : 51/512
+2021-03-05 11:40:53,527 driver.py:717 (<lambda>) Found queries for dim votingage:
+2021-03-05 11:40:53,527 driver.py:717 (<lambda>)
+cenrace * hispanic * votingage : 115/512
+2021-03-05 11:40:53,527 driver.py:717 (<lambda>)
+detailed : 173/256
+2021-03-05 11:40:53,527 driver.py:717 (<lambda>) Found queries for dim hispanic:
+2021-03-05 11:40:53,528 driver.py:717 (<lambda>)
+cenrace * hispanic * votingage : 115/512
+2021-03-05 11:40:53,528 driver.py:717 (<lambda>)
+detailed : 173/256
+2021-03-05 11:40:53,528 driver.py:717 (<lambda>) Found queries for dim cenrace:
+2021-03-05 11:40:53,528 driver.py:717 (<lambda>)
+cenrace * hispanic * votingage : 115/512
+2021-03-05 11:40:53,528 driver.py:717 (<lambda>)
+detailed : 173/256
+2021-03-05 11:40:53,533 driver.py:717 (<lambda>) For single attr/dim hhgq semantics, zCDP-implied epsilon: 73052875/8388608 (approx 8.708581328392029,  in eps, 1/10000000000-DP)
+2021-03-05 11:40:53,538 driver.py:717 (<lambda>) For single attr/dim votingage semantics, zCDP-implied epsilon: 317531975/33554432 (approx 9.463190287351608,  in eps, 1/10000000000-DP)
+2021-03-05 11:40:53,543 driver.py:717 (<lambda>) For single attr/dim hispanic semantics, zCDP-implied epsilon: 317531975/33554432 (approx 9.463190287351608,  in eps, 1/10000000000-DP)
+2021-03-05 11:40:53,548 driver.py:717 (<lambda>) For single attr/dim cenrace semantics, zCDP-implied epsilon: 317531975/33554432 (approx 9.463190287351608,  in eps, 1/10000000000-DP)
+2021-03-05 11:40:53,553 driver.py:717 (<lambda>) For geolevel semantics protecting Block within State,
+zCDP-implied epsilon: 297079745/33554432 (approx 8.853666335344315,  in eps, 1/10000000000-DP)
+2021-03-05 11:40:53,558 driver.py:717 (<lambda>) For geolevel semantics protecting Block within County,
+zCDP-implied epsilon: 506162065/67108864 (approx 7.542402520775795,  in eps, 1/10000000000-DP)
+2021-03-05 11:40:53,563 driver.py:717 (<lambda>) For geolevel semantics protecting Block within Tract,
+zCDP-implied epsilon: 405526245/67108864 (approx 6.042811945080757,  in eps, 1/10000000000-DP)
+2021-03-05 11:40:53,567 driver.py:717 (<lambda>) For geolevel semantics protecting Block within Block_Group,
+zCDP-implied epsilon: 139529065/33554432 (approx 4.1582901775836945,  in eps, 1/10000000000-DP)
+2021-03-05 11:40:53,567 driver.py:244 (getconfig) config[error_metrics][calculate_per_query_quantile_errors]=False
+2021-03-05 11:40:53,567 driver.py:244 (getconfig) config[error_metrics][calculate_per_query_quantile_signed_errors]=False
+2021-03-05 11:40:53,567 driver.py:675 (__init__) DAS object complete
+2021-03-05 11:40:53,568 das2020_driver.py:481 (<module>) Creating release: /usr/bin/python3 /mnt/users/heine008/repos/0305/das_decennial/das2020_driver.py --logfile /dev/null --make_release logs/DAS-2021-03-05_0700_TECHNICAL_TOPIC.release.zip configs/PL94/topdown_RI.ini
+2021-03-05 11:40:56,034 das2020_driver.py:527 (<module>) {"applicationId": "application_1608047018101_1395", "START": 1614962456.0349104, "func": " __main__"}
+2021-03-05 11:40:56,077 driver.py:700 (timestamp) ANNOTATE: save_git_commit set to True
+2021-03-05 11:40:56,296 driver.py:700 (timestamp) ANNOTATE: Git commit info: das_framework commit 392fddbffa7297e21e6368b5a1dfaad166daef5f (untracked files present at run time)|ctools commit 8af1aa3c5f2dba6b17dc7c33aeea81f84f2373fa (untracked files present at run time)|python_dvs commit 8a9e4171cdddc6c4b1512be615c9d6c2032a8b5b (untracked files present at run time)|das_decennial commit a68488b617e09c9e9e67000f958a83dc7f782d08
+2021-03-05 11:40:56,306 connectionpool.py:943 (_new_conn) Starting new HTTPS connection (1): dasexperimental.ite.ti.census.gov:443
+2021-03-05 11:40:56,652 connectionpool.py:442 (_make_request) https://dasexperimental.ite.ti.census.gov:443 "POST /~garfi303adm/html/api/das_config_upload HTTP/1.1" 200 0
+2021-03-05 11:40:56,655 driver.py:1114 (main_run_das) START /mnt/users/heine008/repos/0305/das_decennial/das_framework/driver.py
+2021-03-05 11:40:56,655 driver.py:1121 (main_run_das) Config file:
+2021-03-05 11:40:56,655 driver.py:1123 (main_run_das) [gurobi]
+2021-03-05 11:40:56,655 driver.py:1125 (main_run_das) record_gurobi_stats: True
+2021-03-05 11:40:56,655 driver.py:1125 (main_run_das) print_gurobi_stats: False
+2021-03-05 11:40:56,655 driver.py:1125 (main_run_das) l2_optimization_approach: SinglePassRegular
+2021-03-05 11:40:56,655 driver.py:1125 (main_run_das) rounder_optimization_approach: CellWiseRounder
+2021-03-05 11:40:56,655 driver.py:1125 (main_run_das) dataindnpass_tolerancetype: opt_tol
+2021-03-05 11:40:56,656 driver.py:1125 (main_run_das) opt_tol_slack: 0.1
+2021-03-05 11:40:56,656 driver.py:1125 (main_run_das) gurobi_path: $GUROBI_HOME/linux64/lib/${PYTHON_VERSION}_utf32/
+2021-03-05 11:40:56,656 driver.py:1125 (main_run_das) gurobi_lic: $GUROBI_HOME/gurobi_client.lic
+2021-03-05 11:40:56,656 driver.py:1125 (main_run_das) gurobi_logfile_name: gurobi.log
+2021-03-05 11:40:56,656 driver.py:1125 (main_run_das) outputflag: 1
+2021-03-05 11:40:56,656 driver.py:1125 (main_run_das) optimalitytol: 1e-9
+2021-03-05 11:40:56,656 driver.py:1125 (main_run_das) barconvtol: 1e-8
+2021-03-05 11:40:56,656 driver.py:1125 (main_run_das) barqcpconvtol: 0
+2021-03-05 11:40:56,656 driver.py:1125 (main_run_das) bariterlimit: 1000
+2021-03-05 11:40:56,656 driver.py:1125 (main_run_das) feasibilitytol: 1e-9
+2021-03-05 11:40:56,656 driver.py:1125 (main_run_das) presolve: -1
+2021-03-05 11:40:56,656 driver.py:1125 (main_run_das) numericfocus: 3
+2021-03-05 11:40:56,657 driver.py:1125 (main_run_das) gurobi_lic_create: true
+2021-03-05 11:40:56,657 driver.py:1125 (main_run_das) tokenserver: mr7dassv001.ti.census.gov,mr7dassv002.ti.census.gov
+2021-03-05 11:40:56,657 driver.py:1125 (main_run_das) port: 41954
+2021-03-05 11:40:56,657 driver.py:1125 (main_run_das) threads: 1
+2021-03-05 11:40:56,657 driver.py:1125 (main_run_das) threads_root2root: 64
+2021-03-05 11:40:56,657 driver.py:1125 (main_run_das) threads_state: 32
+2021-03-05 11:40:56,657 driver.py:1125 (main_run_das) threads_county: 16
+2021-03-05 11:40:56,657 driver.py:1125 (main_run_das) threads_tract_group: 8
+2021-03-05 11:40:56,657 driver.py:1125 (main_run_das) threads_tract: 8
+2021-03-05 11:40:56,657 driver.py:1125 (main_run_das) threads_block_group: 8
+2021-03-05 11:40:56,657 driver.py:1125 (main_run_das) threads_block: 8
+2021-03-05 11:40:56,658 driver.py:1125 (main_run_das) python_presolve: 1
+2021-03-05 11:40:56,658 driver.py:1125 (main_run_das) l2_suboptimal_allowed: False
+2021-03-05 11:40:56,658 driver.py:1125 (main_run_das) l2_grb_algorithm: -1
+2021-03-05 11:40:56,658 driver.py:1125 (main_run_das) l2_grb_presolve: -1
+2021-03-05 11:40:56,658 driver.py:1125 (main_run_das) l2_grb_presparsify: -1
+2021-03-05 11:40:56,658 driver.py:1125 (main_run_das) notification_frequency: 60
+2021-03-05 11:40:56,658 driver.py:1125 (main_run_das) save_lp_seconds: 10000
+2021-03-05 11:40:56,658 driver.py:1125 (main_run_das) random_report_frequency: 0.0
+2021-03-05 11:40:56,658 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,658 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,658 driver.py:1123 (main_run_das) [spark]
+2021-03-05 11:40:56,658 driver.py:1125 (main_run_das) spark.driver.maxresultsize: 0g
+2021-03-05 11:40:56,659 driver.py:1125 (main_run_das) spark.executor.memoryoverhead: 16g
+2021-03-05 11:40:56,659 driver.py:1125 (main_run_das) spark.local.dir: /mnt/tmp/
+2021-03-05 11:40:56,659 driver.py:1125 (main_run_das) spark.eventlog.enabled: true
+2021-03-05 11:40:56,659 driver.py:1125 (main_run_das) spark.eventlog.dir: /mnt/tmp/logs/
+2021-03-05 11:40:56,659 driver.py:1125 (main_run_das) spark.submit.deploymode: client
+2021-03-05 11:40:56,659 driver.py:1125 (main_run_das) spark.network.timeout: 3000
+2021-03-05 11:40:56,659 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,659 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,659 driver.py:1123 (main_run_das) [logging]
+2021-03-05 11:40:56,659 driver.py:1125 (main_run_das) logfilename: DAS
+2021-03-05 11:40:56,659 driver.py:1125 (main_run_das) loglevel: INFO
+2021-03-05 11:40:56,659 driver.py:1125 (main_run_das) logfolder: logs
+2021-03-05 11:40:56,660 driver.py:1125 (main_run_das) dvs_enabled: False
+2021-03-05 11:40:56,660 driver.py:1125 (main_run_das) dvs_api_endpoint: https://dasexperimental.ite.ti.census.gov/api/dvs
+2021-03-05 11:40:56,660 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,660 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,660 driver.py:1123 (main_run_das) [ENVIRONMENT]
+2021-03-05 11:40:56,660 driver.py:1125 (main_run_das) das_framework_version: 0.0.1
+2021-03-05 11:40:56,660 driver.py:1125 (main_run_das) grb_isv_name: Census
+2021-03-05 11:40:56,660 driver.py:1125 (main_run_das) grb_app_name: DAS
+2021-03-05 11:40:56,660 driver.py:1125 (main_run_das) grb_env3: 0
+2021-03-05 11:40:56,660 driver.py:1125 (main_run_das) grb_env4:
+2021-03-05 11:40:56,660 driver.py:1125 (main_run_das) aws_auto_scaling_home: /opt/aws/apitools/as
+2021-03-05 11:40:56,661 driver.py:1125 (main_run_das) aws_default_region: us-gov-west-1
+2021-03-05 11:40:56,661 driver.py:1125 (main_run_das) aws_cloudwatch_home: /opt/aws/apitools/mon
+2021-03-05 11:40:56,661 driver.py:1125 (main_run_das) aws_elb_home: /opt/aws/apitools/elb
+2021-03-05 11:40:56,661 driver.py:1125 (main_run_das) aws_path: /opt/aws
+2021-03-05 11:40:56,661 driver.py:1125 (main_run_das) bcc_http_proxy: http://proxy.ti.census.gov:3128
+2021-03-05 11:40:56,661 driver.py:1125 (main_run_das) bcc_https_proxy: https://proxy.ti.census.gov:3128
+2021-03-05 11:40:56,661 driver.py:1125 (main_run_das) bcc_no_proxy: 10.,172.16.,148.129.,169.254.169.254,127.,localhost,.census.gov,.s3.us-gov-west-1.amazonaws.com,.dynamodb.us-gov-west-1.amazonaws.com
+2021-03-05 11:40:56,661 driver.py:1125 (main_run_das) clusterid: j-R47KNTER0GNU
+2021-03-05 11:40:56,661 driver.py:1125 (main_run_das) das_environment: ITE
+2021-03-05 11:40:56,661 driver.py:1125 (main_run_das) das_loghost: aws-syslog-vip.ti.census.gov
+2021-03-05 11:40:56,661 driver.py:1125 (main_run_das) das_s3root: s3://uscb-decennial-ite-das
+2021-03-05 11:40:56,662 driver.py:1125 (main_run_das) dashboard_destination: SQS
+2021-03-05 11:40:56,662 driver.py:1125 (main_run_das) friendly_name: clued
+2021-03-05 11:40:56,662 driver.py:1125 (main_run_das) git_ssl_no_verify: true
+2021-03-05 11:40:56,662 driver.py:1125 (main_run_das) grb_license_file: /usr/local/lib64/python3.6/site-packages/gurobipy/gurobi_client.lic
+2021-03-05 11:40:56,662 driver.py:1125 (main_run_das) gurobi_home: /usr/local/lib64/python3.6/site-packages/gurobipy
+2021-03-05 11:40:56,662 driver.py:1125 (main_run_das) jbid: heine008
+2021-03-05 11:40:56,662 driver.py:1125 (main_run_das) mission_name: TECHNICAL_TOPIC
+2021-03-05 11:40:56,662 driver.py:1125 (main_run_das) no_proxy: 10.,172.16.,148.129.,169.254.169.254,127.,localhost,.census.gov,.s3.us-gov-west-1.amazonaws.com,.dynamodb.us-gov-west-1.amazonaws.com
+2021-03-05 11:40:56,662 driver.py:1125 (main_run_das) temp: /usr/tmp
+2021-03-05 11:40:56,662 driver.py:1125 (main_run_das) tmpdir: /usr/tmp
+2021-03-05 11:40:56,662 driver.py:1125 (main_run_das) tz: America/New_York
+2021-03-05 11:40:56,663 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,663 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,663 driver.py:1123 (main_run_das) [geodict]
+2021-03-05 11:40:56,663 driver.py:1125 (main_run_das) geolevel_names: Block,Block_Group,Tract,County,State
+2021-03-05 11:40:56,663 driver.py:1125 (main_run_das) geolevel_leng: 16,12,11,5,2
+2021-03-05 11:40:56,663 driver.py:1125 (main_run_das) spine: opt_spine
+2021-03-05 11:40:56,663 driver.py:1125 (main_run_das) aian_areas: Legal_Federally_Recognized_American_Indian_Area,American_Indian_Joint_Use_Area,Hawaiian_Home_Land,Alaska_Native_Village_Statistical_Area,State_Recognized_Legal_American_Indian_Area,Oklahoma_Tribal_Statistical_Area,Joint_Use_Oklahoma_Tribal_Statistical_Area
+2021-03-05 11:40:56,663 driver.py:1125 (main_run_das) bypass_cutoff: 150
+2021-03-05 11:40:56,663 driver.py:1125 (main_run_das) entity_threshold: 9
+2021-03-05 11:40:56,663 driver.py:1125 (main_run_das) fanout_cutoff: 12
+2021-03-05 11:40:56,663 driver.py:1125 (main_run_das) redefine_counties: in_strong_MCDs
+2021-03-05 11:40:56,663 driver.py:1125 (main_run_das) geocode_length: 16
+2021-03-05 11:40:56,664 driver.py:1125 (main_run_das) geo_toplevel:
+2021-03-05 11:40:56,664 driver.py:1125 (main_run_das) geo_bottomlevel:
+2021-03-05 11:40:56,664 driver.py:1125 (main_run_das) geo_path:
+2021-03-05 11:40:56,664 driver.py:1125 (main_run_das) spine.re: ([a-z_]+)
+2021-03-05 11:40:56,664 driver.py:1125 (main_run_das) spine.required: True
+2021-03-05 11:40:56,664 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,664 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,664 driver.py:1123 (main_run_das) [setup]
+2021-03-05 11:40:56,664 driver.py:1125 (main_run_das) setup: programs.das_setup.DASDecennialSetup
+2021-03-05 11:40:56,664 driver.py:1125 (main_run_das) spark.name: DAS_RI_TEST
+2021-03-05 11:40:56,664 driver.py:1125 (main_run_das) spark.loglevel: ERROR
+2021-03-05 11:40:56,664 driver.py:1125 (main_run_das) environment: AWS_AUTO_SCALING_HOME,AWS_DEFAULT_REGION,AWS_CLOUDWATCH_HOME,AWS_ELB_HOME,AWS_PATH,BCC_HTTP_PROXY,BCC_HTTPS_PROXY,BCC_NO_PROXY,BOOTSTRAP_VERSION,CLUSTERID,DAS_ENVIRONMENT,DAS_ESB,DAS_LOGHOST,DAS_S3ROOT,DAS_SQS_URL,DASHBOARD_DESTINATION,FRIENDLY_NAME,GIT_SSL_NO_VERIFY,GRB_APP_NAME,GRB_ISV_NAME,GRB_LICENSE_FILE,GUROBI_HOME,JBID,MASTER,MISSION_NAME,NO_PROXY,TEMP,TMPDIR,TZ
+2021-03-05 11:40:56,665 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,665 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,665 driver.py:1123 (main_run_das) [reader]
+2021-03-05 11:40:56,665 driver.py:1125 (main_run_das) persondata.path: $DAS_S3ROOT/title13_input_data/table8/ri44.txt
+2021-03-05 11:40:56,665 driver.py:1125 (main_run_das) unitdata.path: $DAS_S3ROOT/title13_input_data/table8/ri44.txt
+2021-03-05 11:40:56,665 driver.py:1125 (main_run_das) persondata.class: programs.reader.sql_spar_table.SQLSparseHistogramTable
+2021-03-05 11:40:56,665 driver.py:1125 (main_run_das) unitdata.class: programs.reader.sql_spar_table.UnitFromPersonSQLSparseHistogramTable
+2021-03-05 11:40:56,665 driver.py:1125 (main_run_das) numreaderpartitions: 500
+2021-03-05 11:40:56,665 driver.py:1125 (main_run_das) validate_input_data_constraints: off
+2021-03-05 11:40:56,665 driver.py:1125 (main_run_das) partition_by_block_group: off
+2021-03-05 11:40:56,666 driver.py:1125 (main_run_das) reader: programs.reader.table_reader.DASDecennialReader
+2021-03-05 11:40:56,666 driver.py:1125 (main_run_das) tables: PersonData UnitData
+2021-03-05 11:40:56,666 driver.py:1125 (main_run_das) privacy_table: PersonData
+2021-03-05 11:40:56,666 driver.py:1125 (main_run_das) constraint_tables: UnitData
+2021-03-05 11:40:56,666 driver.py:1125 (main_run_das) delimiter: \t
+2021-03-05 11:40:56,666 driver.py:1125 (main_run_das) header: True
+2021-03-05 11:40:56,666 driver.py:1125 (main_run_das) persondata.variables: MAFID geocode white black aian asian nhopi other hispanic sex householder votingage hhgq
+2021-03-05 11:40:56,666 driver.py:1125 (main_run_das) unitdata.variables: MAFID geocode white black aian asian nhopi other hispanic sex householder votingage hhgq
+2021-03-05 11:40:56,666 driver.py:1125 (main_run_das) linkage: geocode
+2021-03-05 11:40:56,666 driver.py:1125 (main_run_das) geocode.type: str
+2021-03-05 11:40:56,667 driver.py:1125 (main_run_das) geocode.legal: 0000000000000000-9999999999999999
+2021-03-05 11:40:56,667 driver.py:1125 (main_run_das) mafid.type: str
+2021-03-05 11:40:56,667 driver.py:1125 (main_run_das) mafid.legal: 000000000-999999999
+2021-03-05 11:40:56,667 driver.py:1125 (main_run_das) householder.type: int
+2021-03-05 11:40:56,667 driver.py:1125 (main_run_das) householder.legal: 0,1
+2021-03-05 11:40:56,667 driver.py:1125 (main_run_das) sex.type: int
+2021-03-05 11:40:56,667 driver.py:1125 (main_run_das) sex.legal: 0,1
+2021-03-05 11:40:56,667 driver.py:1125 (main_run_das) votingage.type: int
+2021-03-05 11:40:56,667 driver.py:1125 (main_run_das) votingage.legal: 0,1
+2021-03-05 11:40:56,667 driver.py:1125 (main_run_das) hispanic.type: int
+2021-03-05 11:40:56,667 driver.py:1125 (main_run_das) hispanic.legal: 0,1
+2021-03-05 11:40:56,667 driver.py:1125 (main_run_das) white.type: int
+2021-03-05 11:40:56,668 driver.py:1125 (main_run_das) white.legal: 0,1
+2021-03-05 11:40:56,668 driver.py:1125 (main_run_das) black.type: int
+2021-03-05 11:40:56,668 driver.py:1125 (main_run_das) black.legal: 0,1
+2021-03-05 11:40:56,668 driver.py:1125 (main_run_das) aian.type: int
+2021-03-05 11:40:56,668 driver.py:1125 (main_run_das) aian.legal: 0,1
+2021-03-05 11:40:56,668 driver.py:1125 (main_run_das) asian.type: int
+2021-03-05 11:40:56,668 driver.py:1125 (main_run_das) asian.legal: 0,1
+2021-03-05 11:40:56,668 driver.py:1125 (main_run_das) nhopi.type: int
+2021-03-05 11:40:56,668 driver.py:1125 (main_run_das) nhopi.legal: 0,1
+2021-03-05 11:40:56,668 driver.py:1125 (main_run_das) other.type: int
+2021-03-05 11:40:56,668 driver.py:1125 (main_run_das) other.legal: 0,1
+2021-03-05 11:40:56,668 driver.py:1125 (main_run_das) hhgq.type: int
+2021-03-05 11:40:56,668 driver.py:1125 (main_run_das) hhgq.legal: 0-7
+2021-03-05 11:40:56,669 driver.py:1125 (main_run_das) persondata.recoder: programs.reader.e2e_recoder.table8_recoder
+2021-03-05 11:40:56,669 driver.py:1125 (main_run_das) persondata.recode_variables: cenrace
+2021-03-05 11:40:56,669 driver.py:1125 (main_run_das) cenrace: white black aian asian nhopi other
+2021-03-05 11:40:56,669 driver.py:1125 (main_run_das) cenrace.type: int
+2021-03-05 11:40:56,669 driver.py:1125 (main_run_das) cenrace.legal: 0-62
+2021-03-05 11:40:56,669 driver.py:1125 (main_run_das) persondata.geography: geocode
+2021-03-05 11:40:56,669 driver.py:1125 (main_run_das) persondata.histogram: hhgq votingage hispanic cenrace
+2021-03-05 11:40:56,669 driver.py:1125 (main_run_das) unitdata.geography: geocode
+2021-03-05 11:40:56,669 driver.py:1125 (main_run_das) unitdata.histogram: hhgq
+2021-03-05 11:40:56,669 driver.py:1125 (main_run_das) unitdata.unique: MAFID
+2021-03-05 11:40:56,669 driver.py:1125 (main_run_das) git-commit: das_framework commit 392fddbffa7297e21e6368b5a1dfaad166daef5f (untracked files present at run time)|ctools commit 8af1aa3c5f2dba6b17dc7c33aeea81f84f2373fa (untracked files present at run time)|python_dvs commit 8a9e4171cdddc6c4b1512be615c9d6c2032a8b5b (untracked files present at run time)|das_decennial commit a68488b617e09c9e9e67000f958a83dc7f782d08 (modifications from commit present at run time)
+2021-03-05 11:40:56,669 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,670 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,670 driver.py:1123 (main_run_das) [engine]
+2021-03-05 11:40:56,670 driver.py:1125 (main_run_das) engine: programs.engine.topdown_engine.TopdownEngine
+2021-03-05 11:40:56,670 driver.py:1125 (main_run_das) saved_noisy_app_id: application_1578508239190_1228
+2021-03-05 11:40:56,670 driver.py:1125 (main_run_das) check_budget: off
+2021-03-05 11:40:56,670 driver.py:1125 (main_run_das) save_noisy: on
+2021-03-05 11:40:56,670 driver.py:1125 (main_run_das) delete_raw: 0
+2021-03-05 11:40:56,670 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,670 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,670 driver.py:1123 (main_run_das) [schema]
+2021-03-05 11:40:56,670 driver.py:1125 (main_run_das) schema: PL94
+2021-03-05 11:40:56,671 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,671 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,671 driver.py:1123 (main_run_das) [budget]
+2021-03-05 11:40:56,671 driver.py:1125 (main_run_das) privacy_framework: zcdp
+2021-03-05 11:40:56,671 driver.py:1125 (main_run_das) dp_mechanism: discrete_gaussian_mechanism
+2021-03-05 11:40:56,671 driver.py:1125 (main_run_das) print_per_attr_epsilons: True
+2021-03-05 11:40:56,671 driver.py:1125 (main_run_das) global_scale: 1/1
+2021-03-05 11:40:56,671 driver.py:1125 (main_run_das) geolevel_budget_prop: 103/512, 103/512, 102/512, 102/512, 102/512
+2021-03-05 11:40:56,671 driver.py:1125 (main_run_das) dpqueries: hhgq, cenrace * hispanic * votingage, detailed
+2021-03-05 11:40:56,671 driver.py:1125 (main_run_das) queriesprop: 230/1024, 692/1024, 102/1024
+2021-03-05 11:40:56,671 driver.py:1125 (main_run_das) only_dyadic_rationals: False
+2021-03-05 11:40:56,672 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,672 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,672 driver.py:1123 (main_run_das) [constraints]
+2021-03-05 11:40:56,672 driver.py:1125 (main_run_das) theinvariants.block: gqhh_vect, gqhh_tot
+2021-03-05 11:40:56,672 driver.py:1125 (main_run_das) theinvariants.tract: tot
+2021-03-05 11:40:56,672 driver.py:1125 (main_run_das) theconstraints.block: hhgq_total_lb, hhgq_total_ub, nurse_nva_0
+2021-03-05 11:40:56,672 driver.py:1125 (main_run_das) theconstraints.tract: total, hhgq_total_lb, hhgq_total_ub
+2021-03-05 11:40:56,672 driver.py:1125 (main_run_das) minimalschema: hhgq
+2021-03-05 11:40:56,672 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,672 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,672 driver.py:1123 (main_run_das) [writer]
+2021-03-05 11:40:56,672 driver.py:1125 (main_run_das) output_path: $DAS_S3ROOT/runs/test/$JBID/topdown_RI
+2021-03-05 11:40:56,673 driver.py:1125 (main_run_das) output_datafile_name: data
+2021-03-05 11:40:56,673 driver.py:1125 (main_run_das) produce_flag: 1
+2021-03-05 11:40:56,673 driver.py:1125 (main_run_das) keep_attrs: geocode, syn, raw_housing
+2021-03-05 11:40:56,673 driver.py:1125 (main_run_das) overwrite_flag: 1
+2021-03-05 11:40:56,673 driver.py:1125 (main_run_das) save_git_commit: 1
+2021-03-05 11:40:56,673 driver.py:1125 (main_run_das) s3cat: 1
+2021-03-05 11:40:56,673 driver.py:1125 (main_run_das) s3cat_suffix: .txt
+2021-03-05 11:40:56,673 driver.py:1125 (main_run_das) s3cat_verbose: 1
+2021-03-05 11:40:56,673 driver.py:1125 (main_run_das) num_parts: 0
+2021-03-05 11:40:56,673 driver.py:1125 (main_run_das) writer: programs.writer.pickled_block_data_writer.PickledBlockDataWriter
+2021-03-05 11:40:56,673 driver.py:1125 (main_run_das) s3cat_prefix: .pickle
+2021-03-05 11:40:56,674 driver.py:1125 (main_run_das) stats_dir: $DAS_S3ROOT/rpc/upload
+2021-03-05 11:40:56,674 driver.py:1125 (main_run_das) certificate_suffix: .certificate.pdf
+2021-03-05 11:40:56,674 driver.py:1125 (main_run_das) certificate_name: A very precise data set
+2021-03-05 11:40:56,674 driver.py:1125 (main_run_das) certificate_title: Certificate of Disclosure Avoidance
+2021-03-05 11:40:56,674 driver.py:1125 (main_run_das) certificate_person1: Ben Bitdiddle
+2021-03-05 11:40:56,674 driver.py:1125 (main_run_das) certificate_title1: Novice Programmer
+2021-03-05 11:40:56,674 driver.py:1125 (main_run_das) certificate_person2: Alyssa P. Hacker
+2021-03-05 11:40:56,674 driver.py:1125 (main_run_das) certificate_title2: Supervisor
+2021-03-05 11:40:56,674 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,674 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,674 driver.py:1123 (main_run_das) [validator]
+2021-03-05 11:40:56,675 driver.py:1125 (main_run_das) validator: programs.stub_validator.validator
+2021-03-05 11:40:56,675 driver.py:1125 (main_run_das) results_fname: /mnt/tmp/RA_results
+2021-03-05 11:40:56,675 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,675 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,675 driver.py:1123 (main_run_das) [assessment]
+2021-03-05 11:40:56,675 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,675 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,675 driver.py:1123 (main_run_das) [takedown]
+2021-03-05 11:40:56,675 driver.py:1125 (main_run_das) takedown: programs.takedown.takedown
+2021-03-05 11:40:56,675 driver.py:1125 (main_run_das) delete_output: False
+2021-03-05 11:40:56,675 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,676 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,676 driver.py:1123 (main_run_das) [experiment]
+2021-03-05 11:40:56,676 driver.py:1125 (main_run_das) experiment: programs.experiment.config_loops_exp.ConfigLoopsExperimentByLevel
+2021-03-05 11:40:56,676 driver.py:1125 (main_run_das) run_experiment_flag: 0
+2021-03-05 11:40:56,676 driver.py:1125 (main_run_das) loop2: FOR DEFAULT.epsilon IN 1,10,100
+2021-03-05 11:40:56,676 driver.py:1125 (main_run_das) plotx: epsilon
+2021-03-05 11:40:56,676 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,676 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,676 driver.py:1123 (main_run_das) [error_metrics]
+2021-03-05 11:40:56,676 driver.py:1125 (main_run_das) error_metrics: programs.metrics.accuracy_metrics.AccuracyMetrics
+2021-03-05 11:40:56,676 driver.py:1125 (main_run_das) calculate_binned_query_errors: False
+2021-03-05 11:40:56,677 driver.py:1125 (main_run_das) calculate_per_query_quantile_errors: False
+2021-03-05 11:40:56,677 driver.py:1125 (main_run_das) calculate_per_query_quantile_signed_errors: False
+2021-03-05 11:40:56,677 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,677 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,677 driver.py:1123 (main_run_das) [stats]
+2021-03-05 11:40:56,677 driver.py:1125 (main_run_das) notify_gc_master: 0
+2021-03-05 11:40:56,677 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,677 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,677 driver.py:1123 (main_run_das) [python]
+2021-03-05 11:40:56,677 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,677 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,677 driver.py:1123 (main_run_das) [hdmm]
+2021-03-05 11:40:56,678 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,678 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,678 driver.py:1123 (main_run_das) [monitoring]
+2021-03-05 11:40:56,678 driver.py:1125 (main_run_das) print_heartbeat: False
+2021-03-05 11:40:56,678 driver.py:1125 (main_run_das) print_heartbeat_frequency: 180
+2021-03-05 11:40:56,678 driver.py:1125 (main_run_das) send_stacktrace: False
+2021-03-05 11:40:56,678 driver.py:1125 (main_run_das) heartbeat_frequency: 60
+2021-03-05 11:40:56,678 driver.py:1125 (main_run_das) notify_dashboard_gurobi_success: false
+2021-03-05 11:40:56,678 driver.py:1125 (main_run_das) notify_dashboard_gurobi_retry: true
+2021-03-05 11:40:56,678 driver.py:1125 (main_run_das) notification_frequency: 60
+2021-03-05 11:40:56,678 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,679 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,679 driver.py:1123 (main_run_das) [alert]
+2021-03-05 11:40:56,679 driver.py:1125 (main_run_das) message: Hello world!
+2021-03-05 11:40:56,679 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,679 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,679 driver.py:1123 (main_run_das) [environment]
+2021-03-05 11:40:56,679 driver.py:1125 (main_run_das) das_run_uuid: c4aa84f1-9068-4087-9d49-f57b349972cf
+2021-03-05 11:40:56,679 driver.py:1125 (main_run_das) epsilon: 1
+2021-03-05 11:40:56,679 driver.py:1126 (main_run_das)
+2021-03-05 11:40:56,679 driver.py:1151 (main_run_das) == no experiment ==
+2021-03-05 11:40:56,679 driver.py:700 (timestamp) run
+2021-03-05 11:40:56,680 driver.py:700 (timestamp) runReader: Creating and running DAS reader
+2021-03-05 11:40:56,680 driver.py:254 (getconfig) config[reader][test_area] does not exist and no default provided
+2021-03-05 11:40:56,680 table_reader.py:576 (read) loading the data
+2021-03-05 11:40:56,680 driver.py:700 (timestamp) ANNOTATE: loading table PersonData
+2021-03-05 11:40:58,831 table_reader.py:584 (read) applying filter to PersonData
+2021-03-05 11:40:58,831 table_reader.py:586 (read) recodes for PersonData
+2021-03-05 11:41:01,683 action.py:81 (__call__) Calling sqs:send_message_batch with {'QueueUrl': 'https://sqs.us-gov-west-1.amazonaws.com/245748476030/ite-decennial-das-sqs', 'Entries': [{'MessageBody': '{"sender": "daslog", "data": {"clusterId": "j-R47KNTER0GNU", "instanceId": "i-0933bb2a56dbbdfe9", "code": 10, "start": "now()", "message": "TECHNICAL_TOPIC starting", "jbid": "heine008", "gurobi_version": "9.1.0", "python_executable": "/usr/bin/python3", "mission_name": "TECHNICAL_TOPIC", "das_run_uuid": "c4aa84f1-9068-4087-9d49-f57b349972cf", "ipaddr": "10.252.46.101", "t": 1614962452.3587945}}', 'Id': '0'}, {'MessageBody': '{"sender": "daslog", "data": {"clusterId": "j-R47KNTER0GNU", "instanceId": "i-0933bb2a56dbbdfe9", "code": 10, "message": "Hello world!", "jbid": "heine008", "gurobi_version": "9.1.0", "python_executable": "/usr/bin/python3", "mission_name": "TECHNICAL_TOPIC", "das_run_uuid": "c4aa84f1-9068-4087-9d49-f57b349972cf", "ipaddr": "10.252.46.101", "t": 1614962452.3598473}}', 'Id': '1'}, {'MessageBody': '{"sender": "daslog", "data": {"clusterId": "j-R47KNTER0GNU", "instanceId": "i-0933bb2a56dbbdfe9", "code": 0, "heartbeat": 1, "jbid": "heine008", "gurobi_version": "9.1.0", "python_executable": "/usr/bin/python3", "mission_name": "TECHNICAL_TOPIC", "das_run_uuid": "c4aa84f1-9068-4087-9d49-f57b349972cf", "ipaddr": "10.252.46.101", "t": 1614962455.9910226}}', 'Id': '2'}, {'MessageBody': '{"sender": "daslog", "data": {"clusterId": "j-R47KNTER0GNU", "instanceId": "i-0933bb2a56dbbdfe9", "code": 10, "applicationId": "application_1608047018101_1395", "num_geolevels": 5, "git-commit": "time)", "jbid": "heine008", "driver_memory": 5368709120, "executor_memory": 17179869184, "executor_cores": 4, "num_executors": 4, "max_result_size": 0, "gurobi_version": "9.1.0", "python_executable": "/usr/bin/python3", "mission_name": "TECHNICAL_TOPIC", "das_run_uuid": "c4aa84f1-9068-4087-9d49-f57b349972cf", "ipaddr": "10.252.46.101", "t": 1614962456.03476}}', 'Id': '3'}, {'MessageBody': '{"sender": "daslog", "data": {"clusterId": "j-R47KNTER0GNU", "instanceId": "i-0933bb2a56dbbdfe9", "code": 10, "message": "save_git_commit set to True", "jbid": "heine008", "gurobi_version": "9.1.0", "python_executable": "/usr/bin/python3", "mission_name": "TECHNICAL_TOPIC", "das_run_uuid": "c4aa84f1-9068-4087-9d49-f57b349972cf", "ipaddr": "10.252.46.101", "t": 1614962456.0785978}}', 'Id': '4'}, {'MessageBody': '{"sender": "daslog", "data": {"clusterId": "j-R47KNTER0GNU", "instanceId": "i-0933bb2a56dbbdfe9", "code": 10, "message": "Git commit info: das_framework commit 392fddbffa7297e21e6368b5a1dfaad166daef5f (untracked files present at run time)|ctools commit 8af1aa3c5f2dba6b17dc7c33aeea81f84f2373fa (untracked files present at run time)|python_dvs commit 8a9e4171cdddc6c4b1512be615c9d6c2032a8b5b (untracked files present at run time)|das_decennial commit a68488b617e09c9e9e67000f958a83dc7f782d08 (modifications from commit present at run time)", "jbid": "heine008", "gurobi_version": "9.1.0", "python_executable": "/usr/bin/python3", "mission_name": "TECHNICAL_TOPIC", "das_run_uuid": "c4aa84f1-9068-4087-9d49-f57b349972cf", "ipaddr": "10.252.46.101", "t": 1614962456.298521}}', 'Id': '5'}, {'MessageBody': '{"sender": "daslog", "data": {"clusterId": "j-R47KNTER0GNU", "instanceId": "i-0933bb2a56dbbdfe9", "code": 10, "message": "loading table PersonData", "jbid": "heine008", "gurobi_version": "9.1.0", "python_executable": "/usr/bin/python3", "mission_name": "TECHNICAL_TOPIC", "das_run_uuid": "c4aa84f1-9068-4087-9d49-f57b349972cf", "ipaddr": "10.252.46.101", "t": 1614962456.6821}}', 'Id': '6'}]}
+2021-03-05 11:41:01,684 hooks.py:210 (_emit) Event before-parameter-build.sqs.SendMessageBatch: calling handler <function generate_idempotent_uuid at 0x7fc34659cbf8>
+2021-03-05 11:41:01,685 hooks.py:210 (_emit) Event before-call.sqs.SendMessageBatch: calling handler <function inject_api_version_header_if_needed at 0x7fc34659f400>
+2021-03-05 11:41:04,477 driver.py:700 (timestamp) ANNOTATE: loading table UnitData
+2021-03-05 11:41:04,488 table_reader.py:584 (read) applying filter to UnitData
+2021-03-05 11:41:04,488 table_reader.py:586 (read) recodes for UnitData
+2021-03-05 11:41:04,488 table_reader.py:590 (read) dict
+2021-03-05 11:41:04,488 driver.py:244 (getconfig) config[reader][UnitData.unique]=MAFID
+2021-03-05 11:41:05,151 driver.py:244 (getconfig) config[geodict][redefine_counties]=in_strong_MCDs
+2021-03-05 11:41:05,151 driver.py:244 (getconfig) config[geodict][aian_areas]=Legal_Federally_Recognized_American_Indian_Area,American_Indian_Joint_Use_Area,Hawaiian_Home_Land,Alaska_Native_Village_Statistical_Area,State_Recognized_Legal_American_Indian_Area,Oklahoma_Tribal_Statistical_Area,Joint_Use_Oklahoma_Tribal_Statistical_Area
+2021-03-05 11:41:05,151 driver.py:251 (getconfig) config[reader][grfc_path] not present; returning default s3://uscb-decennial-ite-das/2010-convert/grfc
+2021-03-05 11:41:05,151 driver.py:251 (getconfig) config[geodict][aian_ranges_path] not present; returning default /mnt/users/heine008/repos/0305/das_decennial/programs/geographic_spines/AIANNHCE_ranges.csv
+2021-03-05 11:41:05,151 driver.py:254 (getconfig) config[geodict][strong_mcd_states] does not exist and no default provided
+2021-03-05 11:41:05,152 driver.py:244 (getconfig) config[geodict][entity_threshold]=9
+2021-03-05 11:41:05,152 driver.py:244 (getconfig) config[geodict][bypass_cutoff]=150
+2021-03-05 11:41:05,152 driver.py:244 (getconfig) config[geodict][fanout_cutoff]=12
+2021-03-05 11:41:57,072 driver.py:717 (<lambda>) Collecting unique geocodes above county
+2021-03-05 11:41:57,935 driver.py:717 (<lambda>) Starting spine optimization
+2021-03-05 11:41:59,430 driver.py:717 (<lambda>) Broadcasting PLB allocation...
+2021-03-05 11:41:59,443 driver.py:717 (<lambda>) Broadcasting PLB allocation done.
+2021-03-05 11:41:59,444 driver.py:244 (getconfig) config[reader][partition_by_block_group]=off
+2021-03-05 11:41:59,864 driver.py:753 (runReader) original_data=PythonRDD[127] at RDD at PythonRDD.scala:53
+2021-03-05 11:41:59,865 driver.py:700 (timestamp) runEngine: Creating and running DAS engine
+2021-03-05 11:41:59,865 driver.py:700 (timestamp) ANNOTATE: TopdownEngine run
+2021-03-05 11:41:59,867 driver.py:244 (getconfig) config[budget][global_scale]=1/1
+2021-03-05 11:41:59,868 driver.py:717 (<lambda>) zcdp rho is split between geolevels with proportions: (Fraction(103, 512), Fraction(103, 512), Fraction(51, 256), Fraction(51, 256), Fraction(51, 256))
+2021-03-05 11:41:59,871 driver.py:717 (<lambda>) votingage levels:
+------------------------
+17 and under
+18 and over
+---------------------------------
+------------------------
+white
+black
+aian
+asian
+nhopi
+sor
+white-black
+white-aian
+white-asian
+white-nhopi
+white-sor
+black-aian
+black-asian
+black-nhopi
+black-sor
+aian-asian
+aian-nhopi
+aian-sor
+asian-nhopi
+asian-sor
+nhopi-sor
+white-black-aian
+white-black-asian
+white-black-nhopi
+white-black-sor
+white-aian-asian
+white-aian-nhopi
+white-aian-sor
+white-asian-nhopi
+white-asian-sor
+white-nhopi-sor
+black-aian-asian
+black-aian-nhopi
+black-aian-sor
+black-asian-nhopi
+black-asian-sor
+black-nhopi-sor
+aian-asian-nhopi
+aian-asian-sor
+aian-nhopi-sor
+asian-nhopi-sor
+white-black-aian-asian
+white-black-aian-nhopi
+white-black-aian-sor
+white-black-asian-nhopi
+white-black-asian-sor
+white-black-nhopi-sor
+white-aian-asian-nhopi
+white-aian-asian-sor
+white-aian-nhopi-sor
+white-asian-nhopi-sor
+black-aian-asian-nhopi
+black-aian-asian-sor
+black-aian-nhopi-sor
+black-asian-nhopi-sor
+aian-asian-nhopi-sor
+white-black-aian-asian-nhopi
+white-black-aian-asian-sor
+white-black-aian-nhopi-sor
+white-black-asian-nhopi-sor
+white-aian-asian-nhopi-sor
+black-aian-asian-nhopi-sor
+white-black-aian-asian-nhopi-sor
+---------------------------------
+2021-03-05 11:41:59,873 driver.py:717 (<lambda>) hhgq levels:
+------------------------
+Household
+Correctional facilities for adults
+Juvenile facilities
+Nursing facilities/Skilled-nursing facilities
+Other institutional facilities
+College/University student housing
+Military quarters
+Other noninstitutional facilities
+---------------------------------
+2021-03-05 11:41:59,873 driver.py:717 (<lambda>) hispanic levels:
+------------------------
+Not Hispanic or Latino
+Hispanic or Latino
+---------------------------------
+2021-03-05 11:41:59,874 driver.py:717 (<lambda>) ###
+Levels of the marginals of unit histogram DP queries to be measured:
+2021-03-05 11:41:59,874 driver.py:717 (<lambda>) ###
+Levels of the marginals of vacancy DP queries to be measured:
+2021-03-05 11:41:59,874 driver.py:244 (getconfig) config[gurobi][l2_optimization_approach]=SinglePassRegular
+2021-03-05 11:41:59,874 driver.py:244 (getconfig) config[gurobi][rounder_optimization_approach]=CellWiseRounder
+2021-03-05 11:41:59,874 driver.py:251 (getconfig) config[gurobi][seq_optimization_approach] not present; returning default L2PlusRounderWithBackup
+2021-03-05 11:41:59,874 driver.py:244 (getconfig) config[budget][queriesprop]=230/1024, 692/1024, 102/1024
+2021-03-05 11:43:25,814 driver.py:700 (timestamp) ANNOTATE: topdown will use sequential optimizer: L2PlusRounderWithBackup
+2021-03-05 11:43:25,815 driver.py:700 (timestamp) ANNOTATE: topdown will use l2 optimization approach: SinglePassRegular
+2021-03-05 11:43:25,816 driver.py:700 (timestamp) ANNOTATE: topdown will use rounder optimization approach: CellWiseRounder
+2021-03-05 11:43:25,816 driver.py:251 (getconfig) config[engine][pool_measurements] not present; returning default False
+22021-03-05 11:43:28,853 driver.py:700 (timestamp) ANNOTATE: Geolevel State has been optimized
+2021-03-05 11:43:28,855 driver.py:700 (timestamp) ANNOTATE: Saving State optimized data
+2021-03-05 11:43:28,856 driver.py:700 (timestamp) ANNOTATE: Saving StateOptimized noisy measurements
+2021-03-05 11:43:28,857 das_utils.py:279 (clearPath) clearPath(s3://uscb-decennial-ite-das/runs/test/heine008/topdown_RI/noisy_measurements/application_1608047018101_1395-StateOptimized.pickle)
+2021-03-05 11:43:29,728 das_utils.py:401 (savePickledRDD) rdd.saveAsPickleFile(s3://uscb-decennial-ite-das/runs/test/heine008/topdown_RI/noisy_measurements/application_1608047018101_1395-StateOptimized.pickle)
+2021-03-05 11:43:31,026 das_utils.py:404 (savePickledRDD) Computing DVS annotations for s3://uscb-decennial-ite-das/runs/test/heine008/topdown_RI/noisy_measurements/application_1608047018101_1395-StateOptimized.pickle
+2021-03-05 11:43:31,027 das_utils.py:418 (savePickledRDD) Will not save to DVS
+
+2021-03-05 11:43:55,500 das_utils.py:279 (clearPath) clearPath(s3://uscb-decennial-ite-das/runs/test/heine008/topdown_RI/noisy_measurements/application_1608047018101_1395-TractOptimized.pickle)
+2021-03-05 11:43:56,371 das_utils.py:401 (savePickledRDD) rdd.saveAsPickleFile(s3://uscb-decennial-ite-das/runs/test/heine008/topdown_RI/noisy_measurements/application_1608047018101_1395-TractOptimized.pickle)
+2021-03-05 11:43:57,444 das_utils.py:404 (savePickledRDD) Computing DVS annotations for s3://uscb-decennial-ite-das/runs/test/heine008/topdown_RI/noisy_measurements/application_1608047018101_1395-TractOptimized.pickle
+2021-03-05 11:43:57,444 das_utils.py:418 (savePickledRDD) Will not save to DVS
+2021-03-05 11:43:57,463 driver.py:700 (timestamp) ANNOTATE: Reloading Tract optimized data
+2021-03-05 11:43:57,466 driver.py:251 (getconfig) config[engine][aian_sum_constraints] not present; returning default True
+2021-03-05 11:44:04,285 driver.py:700 (timestamp) ANNOTATE: Saving Block_Group optimized data
+2021-03-05 11:44:04,286 driver.py:700 (timestamp) ANNOTATE: Saving Block_GroupOptimized noisy measurements
+2021-03-05 11:44:04,287 das_utils.py:279 (clearPath) clearPath(s3://uscb-decennial-ite-das/runs/test/heine008/topdown_RI/noisy_measurements/application_1608047018101_1395-Block_GroupOptimized.pickle)
+2021-03-05 11:44:05,124 das_utils.py:401 (savePickledRDD) rdd.saveAsPickleFile(s3://uscb-decennial-ite-das/runs/test/heine008/topdown_RI/noisy_measurements/application_1608047018101_1395-Block_GroupOptimized.pickle)
+2021-03-05 11:44:06,192 das_utils.py:404 (savePickledRDD) Computing DVS annotations for s3://uscb-decennial-ite-das/runs/test/heine008/topdown_RI/noisy_measurements/application_1608047018101_1395-Block_GroupOptimized.pickle
+2021-03-05 11:44:06,193 das_utils.py:418 (savePickledRDD) Will not save to DVS
+2021-03-05 11:44:06,213 driver.py:700 (timestamp) ANNOTATE: Reloading Block_Group optimized data
+2021-03-05 11:44:06,216 driver.py:251 (getconfig) config[engine][aian_sum_constraints] not present; returning default True
+2021-03-05 11:44:06,833 driver.py:700 (timestamp) ANNOTATE: Saving Block optimized data
+2021-03-05 11:44:06,835 driver.py:700 (timestamp) ANNOTATE: Saving BlockOptimized noisy measurements
+2021-03-05 11:44:06,836 das_utils.py:279 (clearPath) clearPath(s3://uscb-decennial-ite-das/runs/test/heine008/topdown_RI/noisy_measurements/application_1608047018101_1395-BlockOptimized.pickle)
+2021-03-05 11:44:07,658 das_utils.py:401 (savePickledRDD) rdd.saveAsPickleFile(s3://uscb-decennial-ite-das/runs/test/heine008/topdown_RI/noisy_measurements/application_1608047018101_1395-BlockOptimized.pickle)
+2021-03-05 11:46:55,779 driver.py:717 (<lambda>) /mnt/users/heine008/repos/0305/das_decennial/das2020_driver.py: Elapsed time: 363 seconds (6 min, 3 seconds)
