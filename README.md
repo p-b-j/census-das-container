@@ -67,6 +67,27 @@ $ docker build --network host -t census:latest .
 $ singularity build census_das.img docker-daemon:census:latest
 ```
 
+## Alternative location
+By default, the code is meant to run under a subdirectory of your home directory,
+and many of the input/output files are based on your home directory (`~/das_files`, `~/gurobi.lic`, `~/das-log`).
+
+If you wish to run this code elsewhere on your system, you can define a new home directory
+for the singularity container to use. Note that this new home directory cannot be a subdirectory
+of your home directory due to the way that singularity mounts/binds directories.
+
+For example, if I wanted my location for the DAS to be under `/scratch/pbj/`, I would do the following:
+* Clone this repository (`census-das-container`) into a subdirectory of `/scratch/pbj/`.
+* Setup your input files in the directory `/scratch/pbj/das_files`
+* Setup your gurobi license file to have the path `/scratch/pbj/gurobi.lic`
+* Specify your new DAS home location by creating the file `census-das-container/das_home.conf`. The contents of your file should just be the path of your new location, e.g.
+
+```
+/scratch/pbj
+```
+
+
+Now you can run the DAS using the same commands specified in `standalone/README.md` and `cluster/README.md`. Your output files will now appear in `/scratch/pbj/das_files` and your logs should be in `/scratch/pbj/das-logs`.
+
 ## Modification
 The container currently runs `census2020-das-e2e/run_1940_standalone.sh`, which uses the config file `census2020-das-e2e/E2E_1940_STANDALONE_CONFIG.ini`.
 You should be able to modify these files in order to tweak DAS parameters, though we haven't rigorously tested this.
