@@ -17,7 +17,7 @@ import csv
 import requests
 import datetime
 import xml.etree.ElementTree as ET
-import boto3
+#import boto3
 from urllib.parse import urlparse
 
 SPARK_HOME = 'SPARK_HOME'

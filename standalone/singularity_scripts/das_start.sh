@@ -3,5 +3,5 @@
 source util/setup_env.sh
 
 # Run standalone config
-cd census2020-das-e2e
-./run_1940_standalone.sh
+cd das_decennial
+spark-submit das2020_driver.py ../config/standalone.ini --loglevel DEBUG --logfilename ~/das_log.log
