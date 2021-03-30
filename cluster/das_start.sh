@@ -14,8 +14,15 @@ then
     exit 1
 fi
 
+if [ -f "das_home.conf" ]
+then
+    DAS_HOME=$(cat das_home.conf)
+else
+    DAS_HOME=$HOME
+fi
+
 singularity exec \
-    --home $HOME \
+    --home $DAS_HOME \
     --bind singularity_tmp:/tmp \
     census_das.img \
     ./cluster/singularity_scripts/das_start.sh "spark://$(cat coord_hostname.txt | xargs):7077"
