@@ -8,30 +8,19 @@ This is very much a WIP; we do not know how Singularity will play w/Spark at the
 
 ## Spinning up a cluster
 
-### Temp storage setup
-These scripts rely on a local directory `singularity_tmp` for temporary storage in the Singularity container. Before running the scripts, create this directory if you haven't already:
-
-```bash
-$ mkdir singularity_tmp
-```
-
 ### Picking a coordinator
 Pick a node to be the coordinator. We'll need to be able to reference this node later
 when spinning up workers and submitting our application,
-so let's start by saving the hostname of this node to a file.
+so let's start by determining the hostname of this node.
 ```bash
-$ hostname > coord_hostname.txt
+$ hostname
 ```
 Alternatively you can use the explicit ip address to reference this node
 ```bash
-$ hostname -i > coord_hostname.txt
+$ hostname -i
 ```
 
-Scripts for starting the workers and running the DAS rely on `coord_hostname.txt`
-existing at the top-level of the repo.
-If your cluster does not have a shared file system, then you'll have to create the
-file `coord_hostname.txt` manually on nodes that start workers/run the DAS,
-and then update its contents with the hostname of the coordinator.
+Set the `coord_hostname` variable in `das_container.conf` to the output of one of the above commands.
 
 ### Starting the coordinator
 After following the above steps, you should be able to start the coordinator:

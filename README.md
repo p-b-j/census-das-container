@@ -67,7 +67,9 @@ $ docker build --network host -t census:latest .
 $ singularity build census_das.img docker-daemon:census:latest
 ```
 
-## Alternative location
+## Configuration
+There are a few ways to specify 
+### DAS files location
 By default, the code is meant to run under a subdirectory of your home directory,
 and many of the input/output files are based on your home directory (`~/das_files`, `~/gurobi.lic`, `~/das-log`).
 
@@ -79,25 +81,19 @@ For example, if I wanted my location for the DAS to be under `/scratch/pbj/`, I 
 * Clone this repository (`census-das-container`) into a subdirectory of `/scratch/pbj/`.
 * Setup your input files in the directory `/scratch/pbj/das_files`
 * Setup your gurobi license file to have the path `/scratch/pbj/gurobi.lic`
-* Specify your new DAS home location by creating the file `census-das-container/das_home.conf`. The contents of your file should just be the path of your new location, e.g.
-
-```
-/scratch/pbj
-```
-
+* Specify your new DAS home location updating the `das_home` variable in `das_container.conf` (e.g. `das_home="/scratch/pbj"`)
 
 Now you can run the DAS using the same commands specified in `standalone/README.md` and `cluster/README.md`. Your output files will now appear in `/scratch/pbj/das_files` and your logs should be in `/scratch/pbj/das-logs`.
 
-## Modification
-The container currently runs `census2020-das-e2e/run_1940_standalone.sh`, which uses the config file `census2020-das-e2e/E2E_1940_STANDALONE_CONFIG.ini`.
-You should be able to modify these files in order to tweak DAS parameters, though we haven't rigorously tested this.
+### DAS Temporary Storage
+The container scripts allow you to specify what directory in your system you want to bind to `/tmp` in the container. This is because we have often experienced permissions and space issues. This can be configured using the `container_tmp` variable in `das_container.conf`. By default, it is set to a local directory `singularity_tmp`, which you will have to create if you want to use it.
 
 ## Execution
 Scripts/instructions for running the DAS in standalone (single-machine) mode are in the `standalone` directory. 
 Scripts/instructions for running the DAS in cluster mode are in the `cluster` directory.
 All scripts should be run from the top-level of the repository.
 
-The DAS will assume your input IPUMS file is in `~/das_files` and will output logging info to `~/das-log`.
+The DAS will assume your input IPUMS file is in `${das_home}/das_files` (see configuration section above for ) and will output logging info to `~/das-log`.
 When the system finishes, your output files will be in `~/das_files/output`.
 
 ## Notes

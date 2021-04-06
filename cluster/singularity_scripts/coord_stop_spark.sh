@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Env setup
-source util/setup_env.sh
+source util/singularity_scripts/setup_env.sh
 
 # Stop coordinator
 stop-master.sh
