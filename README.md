@@ -68,7 +68,8 @@ $ singularity build census_das.img docker-daemon:census:latest
 ```
 
 ## Configuration
-There are a few ways to specify 
+There are a few ways to specify changes to where input/output/temporary files are located. These are specified using the `das_container.conf` file.
+
 ### DAS files location
 By default, the code is meant to run under a subdirectory of your home directory,
 and many of the input/output files are based on your home directory (`~/das_files`, `~/gurobi.lic`, `~/das-log`).
