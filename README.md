@@ -94,8 +94,8 @@ Scripts/instructions for running the DAS in standalone (single-machine) mode are
 Scripts/instructions for running the DAS in cluster mode are in the `cluster` directory.
 All scripts should be run from the top-level of the repository.
 
-The DAS will assume your input IPUMS file is in `${das_home}/das_files` (see configuration section above for ) and will output logging info to `~/das-log`.
-When the system finishes, your output files will be in `~/das_files/output`.
+The DAS will assume your input IPUMS file is in `${das_home}/das_files` (see configuration section above for how to configure `${das_home}`) and will output logging info to `${das_home}/das-log`.
+When the system finishes, your output files will be in `${das_home}/das_files/output`.
 
 ## Notes
 This code currently relies on the Census' [census2020-das-e2e repo](https://github.com/uscensusbureau/census2020-das-e2e) which does not include the most updated code from the DAS framework. Syncing this repo with the latest Census code will be explored soon.
