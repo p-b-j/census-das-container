@@ -9,6 +9,8 @@ import numpy as np
 from programs.engine.topdown_engine import TopdownEngine
 import programs.engine.primitives as primitives
 
+# nonprivate means "not-protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
+
 def nonprivate_answer(*, true_data, query, inverse_scale: float,  mechanism_name, bounded_dp=True):
     return TopdownNoiselessEngine.NoNoiseMechanism(inverse_scale, 1.0, query.answer(true_data))
 

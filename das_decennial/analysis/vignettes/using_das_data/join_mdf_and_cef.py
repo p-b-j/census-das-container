@@ -83,6 +83,7 @@ if __name__ == "__main__":
     #    the zeros only exist due to (orig > 0 or priv > 0)
     schema = experiment.schema
     order_cols = [AC.GEOCODE, AC.RUN_ID, AC.PLB, AC.BUDGET_GROUP] + schema.dimnames
+    # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     all_cols = order_cols + [AC.ORIG, AC.PRIV]
     
     limit_num = None

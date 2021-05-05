@@ -106,14 +106,15 @@ if __name__ == "__main__":
         """
         sdftools.show(p, "Value of p in the L^p metric")
         if p == "inf":
+            # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
             df = df.withColumn("L^inf_norm", sf.abs(sf.col(AC.PRIV) - sf.col(AC.ORIG))).persist()
-            sdftools.show(df, "L^inf_norm as | priv - orig | before taking the max")
+            sdftools.show(df, "L^inf_norm as | protected - orig | before taking the max")
             df = df.groupBy(groupby).agg(sf.max(sf.col("L^inf_norm"))).persist()
             sdftools.show(df, "L^inf_norm after taking the max per group")
             df = sdftools.stripSQLFromColumns(df).persist()
         else:
             df = df.withColumn(f"L^{p}", sf.pow(sf.abs(sf.col(AC.PRIV) - sf.col(AC.ORIG)), sf.lit(p))).persist()
-            sdftools.show(df, f"L^{p} after taking | priv - orig | ^ {p}")
+            sdftools.show(df, f"L^{p} after taking | protected - orig | ^ {p}")
             df = df.groupBy(groupby).sum().persist()
             sdftools.show(df, f"L^{p} after groupby and sum")
             df = sdftools.stripSQLFromColumns(df).persist()
@@ -121,13 +122,14 @@ if __name__ == "__main__":
             sdftools.show(df, f"L^{p} after taking {p}-th root of the sum")
             df = sdftools.stripSQLFromColumns(df).persist()
         return df
-    
+
 
     def queryHellinger(df, groupby=[AC.GEOLEVEL, AC.GEOCODE, AC.QUERY, AC.RUN_ID, AC.PLB, AC.BUDGET_GROUP]):
         """
         Calculates the Hellinger metric for each unique (GEOLEVEL, GEOCODE, QUERY, RUN_ID, PLB, BUDGET_GROUP) group
         
         g = AC.ORIG = raw = CEF
+        # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         h = AC.PRIV = syn = MDF
         
         H(g,h) = sqrt(sum([sqrt(h_i) - sqrt(g_i)]^2) / [2*sum(g_i)])

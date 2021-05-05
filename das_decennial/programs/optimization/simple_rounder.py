@@ -53,6 +53,7 @@ class GeoRound(GeoOptimizer):
             parent_diff = [None] * len(self.parent)
 
         n_list, parent_mask, parent_diff_sub = self.findDesiredIndices(self.backup_feas, self.min_schema, self.parent_shape, arrays=parent_diff)
+
         child_sub = child_leftover[parent_mask, :]
 
         return child_floor, child_sub, n_list, parent_diff, parent_mask, parent_diff_sub

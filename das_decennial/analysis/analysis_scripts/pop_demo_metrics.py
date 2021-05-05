@@ -97,6 +97,7 @@ if __name__ == "__main__":
     sdftools.show(county_totals_df, "County total pops")
     
     # 2. Calculate L1(MDF, CEF)
+    # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     abs_error_county_totals_df = sdftools.getL1(county_totals_df, colname="AbsError", col1=AC.PRIV, col2=AC.ORIG)
     sdftools.show(abs_error_county_totals_df, "L1 between MDF and CEF County total pops")
     

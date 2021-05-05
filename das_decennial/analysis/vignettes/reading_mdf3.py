@@ -65,6 +65,7 @@ class MDF2HistDF_DHCP_HHGQ():
         sdftools.show(self.df, "Analysis Hist DF with 'DHCP_HHGQ' Schema")
         
     def _join_mdf_and_cef(self):
+        # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         label = {
             AC.PLB: self.plb,
             AC.RUN_ID: self.run_id,
@@ -79,7 +80,8 @@ class MDF2HistDF_DHCP_HHGQ():
         df = df.fillna(label).persist()
         if self.debugmode: sdftools.show(label, "Fill in NAs with these values")
         if self.debugmode: sdftools.show(df, "Joined sparse histogram DF with NAs replaced by the appropriate values")
-        
+
+        # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         column_order = [AC.GEOCODE, AC.RUN_ID, AC.PLB, AC.BUDGET_GROUP] + self.schema.dimnames + [AC.ORIG, AC.PRIV]
         df = df.select(column_order).persist()
 
@@ -105,6 +107,7 @@ class MDF2HistDF_DHCP_HHGQ():
         
     def _get_counts(self, df):
         df = df.groupBy(df.columns).count().persist()
+        # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         df = df.withColumnRenamed("count", AC.PRIV).persist()
         return df
         

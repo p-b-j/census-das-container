@@ -1,9 +1,3 @@
-# This script file implements violin plots for total population entities, satisfying Executive Priority tabulations # 1
-# Original Author: Vikram Rao [<=3/24/2020]
-# Amended By: Philip Leclerc [3/25/2020]
-# Using Supporting Code From: Brett Moran [<= 3/24/2020]
-
-
 ######################################################
 # To Run this script:
 #
@@ -19,7 +13,6 @@ import analysis.tools.sdftools as sdftools
 import analysis.tools.datatools as datatools
 import analysis.tools.setuptools as setuptools
 import analysis.constants as AC
-from pyspark.sql import functions as sf
 from pyspark.sql import Row
 
 from pyspark.sql.types import DoubleType
@@ -150,9 +143,10 @@ def analyzeQuery(query, analysis, spark, geolevel, schema_name, path):
             schema          : str, name of ../programs/schema/schemas/schemamaker.py schema associated with target data
         Note, also, major control parameters hard-coded in getPaths for setting experiment ingest locations from s3.
     """
+    # To avoid cases in which max(numerator_query_levels)/denom_query_level >= 1:
+    assert query != denom_query
 
     experiment_name = "NA"
-    quantiles = [xi / 20. for xi in np.arange(20)] + [.975, .99, 1.]
     experiment = analysis.make_experiment(experiment_name, [path], schema_name=schema_name, dasruntype=AC.EXPERIMENT_FRAMEWORK_FLAT, budget_group='1', run_id='run1.0')
     spark_df = experiment.getDF()
     sdftools.print_item(experiment.__dict__, "Experiment Attributes")
@@ -161,46 +155,33 @@ def analyzeQuery(query, analysis, spark, geolevel, schema_name, path):
     sdftools.print_item(spark_df, "Flat Experiment DF")
 
     spark_df = sdftools.aggregateGeolevels(spark, spark_df, geolevel)
-
-    if geolevel == C.PLACE:
-        spark_df = spark_df.filter(spark_df.geocode[2:7] != "99999")
-    elif geolevel == 'AIAN_AREAS':
-        spark_df = spark_df.filter(spark_df.geocode != "9999")
-    elif geolevel == 'OSE':
-        spark_df = spark_df.filter(sf.col(AC.GEOCODE).substr(sf.length(sf.col(AC.GEOCODE)) - 4, sf.length(sf.col(AC.GEOCODE))) != "99999")
-    elif geolevel == 'AIANTract':
-        spark_df = spark_df.filter(spark_df.geocode != "9" * 11)
-    elif geolevel == 'AIANState':
-        spark_df = spark_df.filter(spark_df.geocode != "99")
-    elif geolevel == 'AIANBlock':
-        spark_df = spark_df.filter(spark_df.geocode != "9" * 16)
-    elif geolevel == 'COUNTY_NSMCD':
-        spark_df = spark_df.filter(spark_df.geocode != "999")
-
+    spark_df = sdftools.remove_not_in_area(spark_df, [geolevel])
     spark_df = sdftools.answerQueries(spark_df, schema, [query, denom_query])
 
     spark_df = sdftools.getL1Relative(spark_df, colname="L1Relative", denom_query=denom_query, denom_level=denom_level).persist()
+    query_counts = spark_df.rdd.map(lambda row: (row[AC.QUERY],)).countByKey()
+    query_counts_keys = list(query_counts.keys())
+    assert len(query_counts_keys) == 1 and query_counts_keys[0] == query
 
     spark_rdd_prop_lt = spark_df.rdd.map(lambda row: (int(np.digitize(row["orig"], POPULATION_BIN_STARTS)), 1. if row["L1Relative"] <= THRESHOLD else 0.))
     spark_df_prop_lt = spark_rdd_prop_lt.toDF(["pop_bin", "prop_lt"])
 
     # Find the proportion of geounits that have L1Relative errors less than threshold for each bin:
     grouped_df_prop_lt = spark_df_prop_lt.groupBy("pop_bin").agg({"prop_lt":"avg", "*":"count"})
-    # print("RCM", grouped_df_prop_lt.first())
     prop_lt = grouped_df_prop_lt.collect()
-    prop_lt_dict = {}
-    prop_lt_counts = {}
+    n_bins = len(POPULATION_BIN_STARTS) + 1
+    prop_lt_list = [None] * n_bins
+    prop_lt_counts = [0] * n_bins
     for row in prop_lt:
-        prop_lt_dict[int(row["pop_bin"])] = np.round(row["avg(prop_lt)"], 5)
+        prop_lt_list[int(row["pop_bin"])] = np.round(row["avg(prop_lt)"], 5)
         prop_lt_counts[int(row["pop_bin"])] = int(row["count(1)"])
-    print(prop_lt_dict)
-    pop_bin_indices = list(prop_lt_dict.keys())
-    for k in range(len(POPULATION_BIN_STARTS)):
-        if k not in pop_bin_indices:
-            prop_lt_dict[k] = None
-            prop_lt_counts[k] = 0
+    print(prop_lt_list)
     print(f"geounits counts for each bin: {[(POPULATION_BIN_STARTS[k], prop_lt_counts[k]) for k in range(len(POPULATION_BIN_STARTS))]}")
-    prop_lt_reformat = [(POPULATION_BIN_STARTS[k], prop_lt_dict[k]) for k in range(len(POPULATION_BIN_STARTS))]
+
+    population_bin_starts = np.concatenate(([-np.inf], POPULATION_BIN_STARTS, [np.inf]))
+    ranges = list(zip(population_bin_starts[:-1], population_bin_starts[1:] - 1))
+    assert len(prop_lt_list) == (len(population_bin_starts) - 1)
+    prop_lt_reformat = list(zip(ranges, prop_lt_list))
 
     spark_df = spark_df.filter(spark_df.orig >= POPULATION_CUTOFF)
     # Count above POPULATION_CUTOFF

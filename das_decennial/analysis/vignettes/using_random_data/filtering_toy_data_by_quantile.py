@@ -178,8 +178,9 @@ if __name__ == "__main__":
         #pandas_df = pandas_df[(pandas_df[column] >= bottom) & (pandas_df[column] <= top)]
         rows = pandas_df.to_dict('records')
         return rows
-        
 
+
+    # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     rdd = rdd.flatMapValues(lambda rows: row_selection_mapper_exclude_top_and_bottom_percent(rows, AC.PRIV, 0.05)).persist()
     sdftools.show(rdd.collect(), "Row group dfs")
     

@@ -30,6 +30,7 @@ for r, run_id in enumerate(run_ids):
         wide['agecat'] = df[df['run_id'] == run_id].reset_index()['agecat']
         wide['orig'] = df[df['run_id'] == run_id].reset_index()['orig']
     wide[run_id] = df[df['run_id'] == run_id].reset_index()['priv']
+# 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
 
 widedf = pandas.DataFrame(wide)
 

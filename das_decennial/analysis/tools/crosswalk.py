@@ -1,6 +1,7 @@
 from pyspark.sql import functions as sf
 import das_utils as du
 import constants as C
+from constants import CC
 import numpy as np
 from pyspark.sql.functions import udf
 from pyspark.sql.types import BooleanType
@@ -157,7 +158,7 @@ def getCrosswalkDF(spark=None, columns=None, strong_mcd_states=STRONG_MCD_STATES
     # Note: When using any of the columns from the next block, filter out IDs composed only of "9"'s
     aian_ranges_dict = make_aian_ranges_dict(aian_ranges_path, aian_areas)
     def is_aian(aiannhce):
-        if aiannhce == '9999':
+        if aiannhce == CC.NOT_AN_AIAN_AREA:
             return False
         else:
             # Check if AIAN area catagory is included in the user's specification of AIAN areas:
@@ -169,14 +170,14 @@ def getCrosswalkDF(spark=None, columns=None, strong_mcd_states=STRONG_MCD_STATES
     is_aian_udf = udf(is_aian, BooleanType())
     crossdf = add_aiannhce_col(spark, crossdf)
     # aian_areas:
-    crossdf = crossdf.withColumn("AIAN_AREAS", sf.when(is_aian_udf("AIANNHCE"), sf.col("AIANNHCE")).otherwise("9999"))
+    crossdf = crossdf.withColumn("AIAN_AREAS", sf.when(is_aian_udf("AIANNHCE"), sf.col("AIANNHCE")).otherwise(CC.NOT_AN_AIAN_AREA))
     # portions of Blocks/Tracts/States within aian_areas:
-    crossdf = crossdf.withColumn("AIANBlock", sf.when(sf.col("AIAN_AREAS") != "9999", sf.col("BLOCK")).otherwise("9" * 16))
+    crossdf = crossdf.withColumn("AIANBlock", sf.when(sf.col("AIAN_AREAS") != CC.NOT_AN_AIAN_AREA, sf.col("BLOCK")).otherwise(CC.NOT_AN_AIAN_BLOCK))
     crossdf = crossdf.withColumn("AIANTract", sf.col("AIANBlock")[0:11])
     crossdf = crossdf.withColumn("AIANState", sf.col("AIANTract")[0:2])
     # Define an off-spine entity (OSE) as Place in AIAN areas/ non-strong-MCD states and MCD otherwise:
-    crossdf = crossdf.withColumn("OSE", sf.when((sf.col("AIAN_AREAS") != "9999") & (sf.col("STATE").isin(strong_mcd_states)), sf.col("COUSUB")).otherwise(sf.col("PLACE")))
-    crossdf = crossdf.withColumn("COUNTY_NSMCD", sf.when(sf.col("STATE").isin(strong_mcd_states), "999").otherwise(sf.col("COUNTY")))
+    crossdf = crossdf.withColumn("OSE", sf.when((sf.col("AIAN_AREAS") != CC.NOT_AN_AIAN_AREA) & (sf.col("STATE").isin(strong_mcd_states)), sf.col("COUSUB")).otherwise(sf.col("PLACE")))
+    crossdf = crossdf.withColumn("COUNTY_NSMCD", sf.when(sf.col("STATE").isin(strong_mcd_states), CC.STRONG_MCD_COUNTY).otherwise(sf.col("COUNTY")))
 
     if columns is None:
         columns = crossdf.columns
@@ -190,10 +191,10 @@ def getCrosswalkDF(spark=None, columns=None, strong_mcd_states=STRONG_MCD_STATES
 
 def add_aiannhce_col(sc, df):
     cols_grfc = ['TABBLKST', 'TABBLKCOU', 'TABTRACTCE', 'TABBLK', 'AIANNHCE']
-    grfc = sc.read.csv('s3://uscb-decennial-ite-das/2010-convert/grfc', sep='|', header=True)\
-                  .select(*cols_grfc)\
-                  .withColumn('BLOCK', sf.concat(sf.col('TABBLKST'), sf.col('TABBLKCOU'), sf.col('TABTRACTCE'), sf.col('TABBLK')[0:1], sf.col('TABBLK')))\
-                  .select('BLOCK', 'AIANNHCE')
+    grfc = (sc.read.csv('s3://uscb-decennial-ite-das/2010-convert/grfc', sep='|', header=True)
+                  .select(*cols_grfc)
+                  .withColumn('BLOCK', sf.concat(sf.col('TABBLKST'), sf.col('TABBLKCOU'), sf.col('TABTRACTCE'), sf.col('TABBLK')[0:1], sf.col('TABBLK')))
+                  .select('BLOCK', 'AIANNHCE'))
     return df.join(grfc, df.BLOCK == grfc.BLOCK, 'inner').drop(grfc.BLOCK)
 
 

@@ -49,7 +49,7 @@ def testdata_random_geounit_generator(geocode, schema, density=0.01, scale=10):
     syn_sparse = sp.multiSparse(syn_mat, schema.shape)
     return { 'geocode': geocode, 'raw': raw_sparse, 'syn': syn_sparse }
     
-
+# 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
 def row_group_total(rows, columns=['orig','priv']):
     total_dict = {}
     for column in columns:
@@ -60,6 +60,7 @@ def row_group_total(rows, columns=['orig','priv']):
 
 def prob_vector_mapper(rows):
     orig_total = sum([x['orig'] for x in rows])
+    # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     priv_total = sum([x['priv'] for x in rows])
     for row in rows:
         row['orig_prob'] = row['orig'] / orig_total

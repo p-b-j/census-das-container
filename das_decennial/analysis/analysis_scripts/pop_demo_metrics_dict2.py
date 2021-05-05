@@ -407,6 +407,7 @@ schema_dict["H1"] = "H1_SCHEMA"         # For H1-only internal runs as of 4/2/20
 
 def getSparkDFWithAbsDiff(spark, df, geolevels, queries, schema):
     sparkDFWithAnswers = sdftools.getAnswers(spark, df, geolevels, schema, queries)
+    # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     sparkDFWithDiff = sparkDFWithAnswers.withColumn('diff',sf.col('priv')-sf.col('orig'))
     sparkDFWithAbsDiff = sparkDFWithDiff.withColumn('abs diff', sf.abs(sf.col('diff')))
     return sparkDFWithAbsDiff
@@ -494,7 +495,7 @@ def MattsMetrics(query, table_name, analysis, spark, geolevels, key, agekey, sex
         spark_df = sdftools.getFullWorkloadDF(spark_df, schema, queries,groupby=[AC.GEOCODE, AC.GEOLEVEL, AC.RUN_ID, AC.PLB, AC.BUDGET_GROUP])
 
     #spark_df.show(spark_df.count(), False)
-
+        # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         spark_df = sdftools.getL1(spark_df, colname = "L1", col1=AC.PRIV, col2=AC.ORIG)
         spark_df = sdftools.getL2(spark_df, colname = "L2", col1=AC.PRIV, col2=AC.ORIG)
     # apply bin functions for particular tables

@@ -17,6 +17,8 @@ import analysis.constants as AC
 
 from constants import CC
 
+EMPTY_TUPLE = ()
+
 
 class AccuracyMetrics(AbstractDASErrorMetrics):
     def __init__(self, **kwargs):
@@ -48,6 +50,35 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
         self.quantile_errors = self.getboolean("calculate_per_query_quantile_errors", default=True)
         self.quantile_signed_errors = self.getboolean("calculate_per_query_quantile_signed_errors", default=True)
 
+        return_all_levels = self.getboolean(CC.RETURN_ALL_LEVELS, default=False)
+        # Check if the geocodeDict in the nodes corresponds to the AIAN spine at county and above. This requires that the spine type is
+        # not non-AIAN spine, and either all levels were returned or short-circuiting was used to stop topdown before block but after county:
+        # TODO: The following if condition and the elif condition do assume the county geolevel was included on the spine. Is this always the case?
+        if return_all_levels:
+            aian_or_opt_spine_at_county = self.setup.spine_type != CC.NON_AIAN_SPINE
+        elif (self.setup.geo_bottomlevel is not None) and (self.setup.geo_bottomlevel != '') and (self.setup.geo_bottomlevel != self.setup.levels[0]):
+            # short circuiting was used. Make sure the geolevel that was stopped at is before block and is County or after:
+            at_least_county_and_before_block = self.setup.geo_bottomlevel in (CC.GEOLEVEL_COUNTY, CC.GEOLEVEL_TRACT, CC.GEOLEVEL_BLOCK_GROUP)
+            aian_or_opt_spine_at_county = (self.setup.spine_type != CC.NON_AIAN_SPINE) and at_least_county_and_before_block
+        else:
+            aian_or_opt_spine_at_county = False
+
+        self.print_county_total_and_votingage = self.getboolean(CC.PRINT_COUNTY_TOTAL_AND_VOTINGAGE, section=CC.ERROR_METRICS, default=False)
+        msg = f"The option {CC.PRINT_COUNTY_TOTAL_AND_VOTINGAGE} requires that county geounit IDs are in the format of either the AIAN or the optimized spine."
+        assert (self.print_county_total_and_votingage and aian_or_opt_spine_at_county) or (not self.print_county_total_and_votingage), msg
+
+        # Check to see if spine was an AIAN spine or opt-spine and topdown was short circuited at the state geolevel
+        aian_or_opt_spine_state_sc = (self.setup.geo_bottomlevel == CC.GEOLEVEL_STATE) and (self.setup.spine_type != CC.NON_AIAN_SPINE)
+        self.print_aian_state_total_L1_errors = self.getboolean(CC.PRINT_AIAN_STATE_TOTAL_L1_ERRORS, section=CC.ERROR_METRICS, default=False)
+        msg = f"The option {CC.PRINT_AIAN_STATE_TOTAL_L1_ERRORS} requires that top-down was short-circuited at the state geolevel and that an AIAN or optimized spine is used."
+        assert (self.print_aian_state_total_L1_errors and aian_or_opt_spine_state_sc) or (not self.print_aian_state_total_L1_errors), msg
+
+        # TODO: Add an assert for the schema being H1
+        self.print_H1_county_metrics = self.getboolean(CC.PRINT_H1_COUNTY_METRICS, section=CC.ERROR_METRICS, default=False)
+        aian_or_opt_spine_county_sc = (self.setup.geo_bottomlevel == CC.GEOLEVEL_COUNTY) and (self.setup.spine_type != CC.NON_AIAN_SPINE)
+        msg = f"The option {CC.PRINT_H1_COUNTY_METRICS} requires that top-down was short-circuited at the county geolevel and that an AIAN or optimized spine is used."
+        assert (self.print_H1_county_metrics and aian_or_opt_spine_county_sc) or (not self.print_H1_county_metrics), msg
+
         print(f'self.all_levels: {all_levels}')
         print(f'self.all_levels_reversed: {all_levels_reversed}')
         print(f'self.geolevels: {self.geolevels}')
@@ -55,6 +86,19 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
 
     def run(self, engine_tuple):
         """ Perform all accuracy metrics calculations"""
+        if self.print_aian_state_total_L1_errors:
+            self.printAIANStateTotalL1Errors(engine_tuple)
+
+        if self.print_H1_county_metrics:
+            self.printH1CountyMetrics(engine_tuple)
+
+        rel_tp_error = self.calculate_relative_total_pop_error(engine_tuple)
+
+        l1_relative = [self.calculate_l1_relative_errors(engine_tuple, population_cutoff=0, use_bins=True)]
+        population_cutoff = self.getint(CC.POPULATION_CUTOFF, section=CC.ERROR_METRICS, default=0)
+        if population_cutoff > 0:
+            l1_relative_pc_config = self.calculate_l1_relative_errors(engine_tuple, population_cutoff=population_cutoff, use_bins=False)
+            l1_relative = l1_relative + [l1_relative_pc_config]
 
         if self.getboolean(CC.DELETERAW, section=CC.ENGINE, default=True):
             self.log_and_print("[{}] {} is true, so accuracyMetrics will not be computed.".format(CC.ENGINE, CC.DELETERAW))
@@ -131,6 +175,8 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
             queries_L1_quantiles = {}
             pop_diff_rdd = rdd.map(lambda node: (self.popLowBound(node), (node.raw - node.syn).toDense())).persist()
             pop_diff_rdd_unit = rdd.map(lambda node: (self.popLowBound(node), (node.raw_housing - node.unit_syn).toDense() if (node.raw_housing is not None and node.unit_syn is not None) else None)).persist()
+            if self.print_county_total_and_votingage and geolevel == CC.GEOLEVEL_COUNTY:
+                county_diff_with_geocode = rdd.map(lambda node: (node.geocode, (node.raw - node.syn).toDense())).persist()
             for qname, q in qdict.items():
                 n_bins = 20
 
@@ -145,6 +191,13 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
                 #     # qL1rddsigned = pop_diff_rdd_unit.map(lambda d: (d[0], q.answerSparse(d[1].sparse_array.transpose())))
                 #     qL1rddsigned = pop_diff_rdd_unit.map(lambda d: (d[0], q.answer(d[1]))).persist()
                 #     # qL1rdd = rdd.map(lambda node: (self.popLowBound(node), np.abs(self.qL1unit(node, q, sparse=False)))).persist()
+
+                if ((qname == "total") or (qname == "votingage")) and self.print_county_total_and_votingage and (geolevel == CC.GEOLEVEL_COUNTY):
+                    if qname == "votingage":
+                        county_query_diff = list(county_diff_with_geocode.map(lambda row: (row[0], q.answer(row[1])[1])).collect())
+                    else:
+                        county_query_diff = list(county_diff_with_geocode.map(lambda row: (row[0], q.answer(row[1]))).collect())
+                    self.printCountyTotalAndVotingage(county_query_diff, qname)
 
                 qL1rdd = qL1rddsigned.map(lambda d: (d[0], np.abs(d[1]))).persist()
                 self.annotate(f"Calculating {geolevel} {qname} query errors")
@@ -240,17 +293,108 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
 
             error_geoleveldict[geolevel] = {'detailed_L1':total_L1_error, 'detailed_max':max_L1_error, 'detailed_maxZeroAdjusted':max_L1_error_zero_adjusted}, totals, queries, queries_L1_quantiles, queries_binned_py_pop
 
-        l1_relative = [self.calculate_l1_relative_errors(engine_tuple, population_cutoff=0, use_bins=True)]
-        population_cutoff = self.getint(CC.POPULATION_CUTOFF, section=CC.ERROR_METRICS, default=0)
-        if population_cutoff > 0:
-            l1_relative_pc_config = self.calculate_l1_relative_errors(engine_tuple, population_cutoff=population_cutoff, use_bins=False)
-            l1_relative = l1_relative + [l1_relative_pc_config]
-        self.printErrors(error_geoleveldict, total_population, l1_relative, population_cutoff)
+        self.printErrors(error_geoleveldict, total_population, l1_relative, population_cutoff, rel_tp_error)
 
         # self.printAndComputeQueryAccuracies(qdict, total_population,  error_geoleveldict, nodes_dict)
 
         if self.das.experiment:
             return error_geoleveldict, total_population
+
+    def printH1CountyMetrics(self, engine_tuple):
+        nodes, feas_dict = engine_tuple
+        county_data = list(nodes.map(lambda node: (node.geocode, node.getDenseRaw().ravel(), node.getDenseSyn().ravel())).collect())
+        county_query_diff = [(row[0][1:3] + row[0][5:8], row[1][1] - row[2][1], np.sum(row[2])) for row in county_data]
+        # Format: (county geoid (from geocode16 format), diff in occupied units, total units)
+
+        l1_errors = []
+        unique_counties = np.unique([row[0] for row in county_query_diff]).tolist()
+        for county in unique_counties:
+            included_l1s = [row[1] for row in county_query_diff if row[0] == county]
+            l1_errors.append(np.abs(np.sum(included_l1s)))
+        np.set_printoptions(threshold=50000)
+        print(f"The MAE of occupied counts for Counties is {np.mean(l1_errors)}")
+        print(f"County_Occupied_Counts_L1_Errors_Are:{np.array(l1_errors)}")
+
+    def printAIANStateTotalL1Errors(self, engine_tuple):
+        nodes, feas_dict = engine_tuple
+        aian_states = nodes.filter(lambda node: node.geocode[0] == "1")
+        l1_errors = np.array(aian_states.map(lambda node: np.abs(node.raw.sum() - node.syn.sum())).collect())
+        print(f"AIAN_State_Total_L1_Errors_Are:{l1_errors}")
+
+    def printCountyTotalAndVotingage(self, county_query_diff, qname):
+        # To find State + County fixed geocode16 ID, defined as first 5 digits of geocode16 block IDs:
+        county_query_diff = [(row[0][1:3] + row[0][5:8], row[1]) for row in county_query_diff]
+        l1_errors = []
+        unique_counties = np.unique([row[0] for row in county_query_diff]).tolist()
+        for county in unique_counties:
+            included_l1s = [row[1] for row in county_query_diff if row[0] == county]
+            l1_errors.append(np.abs(np.sum(included_l1s)))
+        thresh = 20 if qname == "total" else 15
+        proportion = np.mean([x <= thresh for x in l1_errors])
+        np.set_printoptions(threshold=50000)
+        print(f"The MAE of query {qname} for Counties is {np.mean(l1_errors)}")
+        print(f"The proportion of Counties with query {qname} that satisfy our accuracy goal is {proportion}")
+        print(f"County_{qname}_L1_Errors_Are:{np.array(l1_errors)}")
+
+    def calculate_relative_total_pop_error(self, engine_tuple, quantiles=None, threshold=0.05):
+        geolevels = list(self.gettuple(CC.TOTAL_POP_RELATIVE_ERROR_GEOLEVELS, section=CC.ERROR_METRICS, sep=CC.REGEX_CONFIG_DELIM, default=()))
+        quantiles = [xi / 20. for xi in np.arange(20)] + [.975, .99, 1.] if quantiles is None else quantiles
+        population_bin_starts = np.arange(51, dtype=int) * 50
+        if len(geolevels) == 0:
+            return EMPTY_TUPLE
+        cur_path = os.path.abspath(os.path.curdir)
+        os.chdir(os.path.join(cur_path, 'analysis'))
+
+        block_nodes, feas_dict = engine_tuple
+        spark = SparkSession.builder.getOrCreate()
+        block_nodes = block_nodes.map(lambda node: node.redefineGeocodes(self.setup.geocode_dict))
+        df = datatools.rdd2df(block_nodes, self.setup.schema_obj)
+        df = sdftools.aggregateGeolevels(spark, df, geolevels, verbose=False)
+        df = sdftools.remove_not_in_area(df, geolevels)
+
+        df = sdftools.answerQueries(df, self.setup.schema_obj, ["total"], verbose=False)
+        # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
+        df_l1 = df.withColumn("L1_error", F.abs(F.col(AC.ORIG) - F.col(AC.PRIV)))
+
+        rdd_rel = df_l1.rdd.map(lambda row: (float(row["L1_error"] / np.maximum(1., row[AC.ORIG])), int(np.digitize(row[AC.ORIG], population_bin_starts)), row[AC.GEOLEVEL]))
+        rdd_rel = rdd_rel.map(lambda row: (row[0], row[1], row[2], 1. if row[0] <= threshold else 0.))
+
+        df_prop_lt = rdd_rel.toDF(["tp_rel", "pop_bin", AC.GEOLEVEL, "prop_lt"])
+        df_prop_lt_grouped = df_prop_lt.groupBy(AC.GEOLEVEL, "pop_bin").agg({"tp_rel":"avg", "prop_lt": "avg", "*": "count"})
+        # The column format at this point is: (AC.GEOLEVEL, "pop_bin", "avg(tp_rel)", "avg(prop_lt)", "count(1)")
+
+        prop_lt_binned = df_prop_lt_grouped.collect()
+        n_bins = len(population_bin_starts) + 1
+        tp_rel_dict = {geolevel : [None] * n_bins for geolevel in geolevels}
+        prop_lt_dict = {geolevel : [None] * n_bins for geolevel in geolevels}
+        prop_lt_binned_final = {}
+        tp_rel_dict_final = {}
+        bin_counts = {}
+        prop_lt_counts = {geolevel: [0] * n_bins for geolevel in geolevels}
+        for row in prop_lt_binned:
+            tp_rel_dict[row[AC.GEOLEVEL]][int(row["pop_bin"])] = np.round(row["avg(tp_rel)"], 5)
+            prop_lt_dict[row[AC.GEOLEVEL]][int(row["pop_bin"])] = np.round(row["avg(prop_lt)"], 5)
+            prop_lt_counts[row[AC.GEOLEVEL]][int(row["pop_bin"])] = int(row["count(1)"])
+
+        population_bin_starts = np.concatenate(([-np.inf], population_bin_starts, [np.inf]))
+        ranges = list(zip(population_bin_starts[:-1], population_bin_starts[1:] - 1))
+        for geolevel in geolevels:
+            assert len(tp_rel_dict[geolevel]) == (len(population_bin_starts) - 1)
+            tp_rel_dict_final[geolevel] = list(zip(ranges, tp_rel_dict[geolevel]))
+            prop_lt_binned_final[geolevel] = list(zip(ranges, prop_lt_dict[geolevel]))
+            bin_counts[geolevel] = list(zip(ranges, prop_lt_counts[geolevel]))
+
+        n_quants = len(quantiles)
+        # Find unbinned results:
+        # Recall df_prop_lt has columns ["tp_rel", "pop_bin", AC.GEOLEVEL, "prop_lt"]
+        quantiles_df = sdftools.getGroupQuantiles(df_prop_lt, columns=["tp_rel"], groupby=[AC.GEOLEVEL], quantiles=quantiles).collect()
+
+        quantiles_dict_final = {geolevel: [None] * n_quants for geolevel in geolevels}
+        for row in quantiles_df:
+            quantiles_dict_final[row[AC.GEOLEVEL]][np.digitize(float(row["quantile"]), quantiles) - 1] = (float(row["quantile"]), np.round(row["tp_rel"], 5))
+
+        os.chdir(cur_path)
+        return bin_counts, prop_lt_binned_final, tp_rel_dict_final, quantiles_dict_final
 
     def calculate_l1_relative_errors(self, engine_tuple, quantiles=None, threshold=0.05, population_cutoff=None, use_bins=False):
         geolevels = list(self.gettuple(CC.L1_RELATIVE_ERROR_GEOLEVELS, section=CC.ERROR_METRICS, sep=CC.REGEX_CONFIG_DELIM, default=()))
@@ -259,7 +403,7 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
         population_bin_starts = np.arange(51, dtype=int) * 50
 
         if len(geolevels) == 0 or len(queries) == 0:
-            return ()
+            return EMPTY_TUPLE
 
         denom_query = self.getconfig(CC.L1_RELATIVE_DENOM_QUERY, section=CC.ERROR_METRICS, default="total")
         denom_level = self.getconfig(CC.L1_RELATIVE_DENOM_LEVEL, section=CC.ERROR_METRICS, default="total")
@@ -272,22 +416,7 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
         block_nodes = block_nodes.map(lambda node: node.redefineGeocodes(self.setup.geocode_dict))
         df = datatools.rdd2df(block_nodes, self.setup.schema_obj)
         df = sdftools.aggregateGeolevels(spark, df, geolevels, verbose=False)
-
-        if 'Place' in geolevels:
-            df = df.filter((df.geocode[2:7] != "99999") | (df.geolevel != "PLACE"))
-        if 'AIAN_AREAS' in geolevels:
-            df = df.filter((df.geocode != "9999") | (df.geolevel != "AIAN_AREAS"))
-        if 'OSE' in geolevels:
-            df = df.filter(
-                (F.col(AC.GEOCODE).substr(F.length(F.col(AC.GEOCODE)) - 4, F.length(F.col(AC.GEOCODE))) != "99999") | (F.col(AC.GEOLEVEL) != "OSE"))
-        if 'AIANTract' in geolevels:
-            df = df.filter((df.geocode != "9" * 11) | (df.geolevel != "AIANTract"))
-        if 'AIANState' in geolevels:
-            df = df.filter((df.geocode != "99") | (df.geolevel != "AIANState"))
-        if 'AIANBlock' in geolevels:
-            df = df.filter((df.geocode != "9" * 16) | (df.geolevel != "AIANBlock"))
-        if 'COUNTY_NSMCD' in geolevels:
-            df = df.filter((df.geocode != "999") | (df.geolevel != "COUNTY_NSMCD"))
+        df = sdftools.remove_not_in_area(df, geolevels)
 
         df = sdftools.answerQueries(df, self.setup.schema_obj, queries + [denom_query], verbose=False)
         df = sdftools.getL1Relative(df, colname="L1Relative", denom_query=denom_query, denom_level=denom_level).persist()
@@ -300,30 +429,26 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
             # The column format at this point is: (AC.QUERY, AC.GEOLEVEL, "pop_bin", "avg(prop_lt)", "count(1)")
 
             prop_lt_binned = df_prop_lt_grouped.collect()
-            n_bins = len(population_bin_starts)
-            prop_lt_dict = {geolevel: {query: {} for query in queries} for geolevel in geolevels}
-            prop_lt_binned_final = {geolevel: {query: {} for query in queries} for geolevel in geolevels}
+            n_bins = len(population_bin_starts) + 1
+            prop_lt_dict = {geolevel: {query: [None] * n_bins for query in queries} for geolevel in geolevels}
+            prop_lt_binned_final = {geolevel: {query: [None] * n_bins for query in queries} for geolevel in geolevels}
             # Note that the geounit counts do not depend on the query:
-            prop_lt_counts = {geolevel: {} for geolevel in geolevels}
+            prop_lt_counts = {geolevel: [0] * n_bins for geolevel in geolevels}
+            bin_counts = {}
             for row in prop_lt_binned:
                 prop_lt_dict[row[AC.GEOLEVEL]][row[AC.QUERY]][int(row["pop_bin"])] = np.round(row["avg(prop_lt)"], 5)
                 prop_lt_counts[row[AC.GEOLEVEL]][int(row["pop_bin"])] = int(row["count(1)"])
 
-            for geolevel in geolevels:
-                pop_bin_indices = list(prop_lt_counts[geolevel].keys())
-                for k in range(n_bins):
-                    if k not in pop_bin_indices:
-                        for query in queries:
-                            prop_lt_dict[geolevel][query][k] = None
-                        prop_lt_counts[geolevel][k] = 0
-
+            population_bin_starts = np.concatenate(([-np.inf], population_bin_starts, [np.inf]))
+            ranges = list(zip(population_bin_starts[:-1], population_bin_starts[1:] - 1))
             for query in queries:
                 for geolevel in geolevels:
-                    prop_lt_binned_final[geolevel][query] = [(population_bin_starts[k], prop_lt_dict[geolevel][query][k]) for k in range(n_bins)]
-            bin_counts = {geolevel:[(population_bin_starts[k], prop_lt_counts[geolevel][int(k)]) for k in range(n_bins)] for geolevel in geolevels}
+                    assert len(prop_lt_dict[geolevel][query]) == (len(population_bin_starts) - 1)
+                    prop_lt_binned_final[geolevel][query] = list(zip(ranges, prop_lt_dict[geolevel][query]))
+                    bin_counts[geolevel] = list(zip(ranges, prop_lt_counts[geolevel]))
         else:
-            bin_counts = ()
-            prop_lt_binned_final = ()
+            bin_counts = EMPTY_TUPLE
+            prop_lt_binned_final = EMPTY_TUPLE
 
         df = df.filter(df.orig >= population_cutoff)
 
@@ -354,7 +479,7 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
 
         for query in queries:
             for geolevel in geolevels:
-                quantiles_dict_final[geolevel][query] = [(quant, quantiles_dict[geolevel][query][quant]) for quant in quantiles]
+                quantiles_dict_final[geolevel][query] = list(zip(quantiles, quantiles_dict[geolevel][query]))
 
         for row in avg:
             avg_dict[row[AC.GEOLEVEL]][row[AC.QUERY]] = np.round(row["avg(L1Relative)"], 5)
@@ -425,7 +550,7 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
         self.log_and_print(f"# scalars in {geolevel} for {q.name} with {err_name_string} error==0: {num_zero_equals_zero}", cui=True)
         self.log_and_print(f"# scalars in {geolevel} for {q.name}, total: {num_geounits * query_size}", cui=True)
 
-    def printErrors(self, error_geoleveldict, total_population, l1_relatives, population_cutoff):
+    def printErrors(self, error_geoleveldict, total_population, l1_relatives, population_cutoff, rel_tp_error):
         # levels_to_print = list(reversed(self.geolevels))
         levels_to_print = list(error_geoleveldict.keys())
         self.log_and_print("########################################")
@@ -574,6 +699,29 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
                 self.log_and_print("########################################")
                 self.log_and_print("########################################")
 
+        if len(rel_tp_error) > 0:
+            bin_counts, prop_lt_binned_final, tp_rel_dict_final, quantiles_dict_final = rel_tp_error
+            geos = quantiles_dict_final.keys()
+
+            for geolevel in geos:
+                prop_lt_binned_i = prop_lt_binned_final[geolevel]
+                self.log_and_print(f"{geolevel} proportion with total population relative error less than 0.05, binned by CEF total population: {prop_lt_binned_i}", cui=True)
+                self.log_and_print("########################################")
+
+            for geolevel in geos:
+                bin_count = bin_counts[geolevel]
+                self.log_and_print(f"{geolevel} geounit counts in each total population bin: {bin_count}", cui=True)
+                self.log_and_print("########################################")
+
+            for geolevel in geos:
+                tp_rel = tp_rel_dict_final[geolevel]
+                self.log_and_print(f"{geolevel} average of total population relative error, binned by CEF total population: {tp_rel}", cui=True)
+                self.log_and_print("########################################")
+
+            for geolevel in geos:
+                quant = quantiles_dict_final[geolevel]
+                self.log_and_print(f"{geolevel} total population relative error quantiles: {quant}", cui=True)
+                self.log_and_print("########################################")
 
     def printAndComputeQueryAccuracies(self, queries_dict, total_pop, error_geoleveldict, nodes_dict):
         """

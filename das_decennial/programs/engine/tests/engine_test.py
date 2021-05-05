@@ -28,7 +28,7 @@ spark_fixture = spark  # This line is so that the previous import is formally us
 
 class TestEngines:
 
-    class MFURSetup(ds.DASDecennialSetup):
+    class MFURSetup:
         """
         Setup module just for this test. Only what is needed.
         """
@@ -61,8 +61,7 @@ class TestEngines:
             }
             self.levels = list(self.inv_con_by_level.keys())
             self.geo_bottomlevel = 'Block'
-            self.geolevel_prop_budgets = (Fraction(1 / 5), Fraction(1 / 5), Fraction(3 / 25),
-                                          Fraction(3 / 25), Fraction(3 / 25), Fraction(3 / 25), Fraction(3 / 25))
+            self.geolevel_prop_budgets = (Fraction(1 / 5), Fraction(1 / 5), Fraction(3 / 5))
             self.postprocess_only = False
             self.only_dyadic_rationals = False
 
@@ -145,8 +144,8 @@ class TestEngines:
                   global_scale: 1/1
                   epsilon_budget_total: 0.9
                   bounded_dp_multiplier: 2.0
-                  strategy: detailed
-                  query_ordering: detailed_only_ordering
+                  strategy: DetailedOnly
+                  query_ordering: DetailedOnly_Ordering
                   # DPqueries: detailed
                   # queriesprop: 1/1
 

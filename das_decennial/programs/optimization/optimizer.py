@@ -12,7 +12,7 @@ import subprocess
 import socket
 import inspect
 import resource
-import boto3
+#import boto3
 import random
 import os.path
 
@@ -448,7 +448,7 @@ class GeoOptimizer(Optimizer, metaclass=ABCMeta):
 
         # Add constraints on joined children (e.g. so that AIAN and non-AIAN areas totals sum to the invariant state total)
         if self.child_groups is not None:
-            self.addGroupedChildTotalConstraint(model, parent_mask, two_d_vars,
+            self.addGroupedChildTotalConstraint(model, self.hist_sizes[0], two_d_vars,
                                                 child_groups=self.child_groups, main_n=n_list[0], rounder=self.rounder, child_floor=child_floor)
 
         # If in backup, build backup feasibility 2ndary optimization function, & optimize to build degree-of-infeasibility constraint
@@ -553,7 +553,7 @@ class GeoOptimizer(Optimizer, metaclass=ABCMeta):
             model.addMConstrs(A=matrix_rep, x=two_d_vars[:, child_num], sense=sense, b=rhs, name=st_con.name)
 
     @staticmethod
-    def addGroupedChildTotalConstraint(model, parent_mask, two_d_vars, child_groups, main_n, rounder=False, child_floor=None) -> None:
+    def addGroupedChildTotalConstraint(model, main_hist_size, two_d_vars, child_groups, main_n, rounder=False, child_floor=None) -> None:
         """
         Ands total constraint for each group of children in child_groups.
         Inputs:
@@ -578,7 +578,7 @@ class GeoOptimizer(Optimizer, metaclass=ABCMeta):
             for child_num in group:
                 if rounder:  # Make constraint to work on the leftovers
                     # Find the right hand side for leftovers
-                    accounted4byl2opt = child_floor[parent_mask][:main_n, child_num].sum()  # Accounted for by L2 Optimizer
+                    accounted4byl2opt = child_floor[:main_hist_size, child_num].sum()  # Accounted for by L2 Optimizer
                     rhs = rhs - accounted4byl2opt  # Left for the Rounder
                 cons_expr += two_d_vars[:main_n, child_num].sum()
             model.addConstr(cons_expr == rhs, name=f"State_total#{groupnum}")
@@ -647,6 +647,8 @@ class GeoOptimizer(Optimizer, metaclass=ABCMeta):
         :return: the path as an s3:// URL.
         """
 
+        import gurobipy as gb
+
         s3prefix = os.path.join(self.do_expandvars(val=self.save_lp_path, expandvars=True), self.identifier)
         s3prefix = s3prefix.replace(' ','_')
         s3path   = (os.path.join(s3prefix , self.identifier + "_" + str(uuid.uuid4()) + ".zip")).replace(' ','_')
@@ -662,12 +664,20 @@ class GeoOptimizer(Optimizer, metaclass=ABCMeta):
         # Compress the LP file locally into a .zip file and upload it.
 
         with tempfile.TemporaryDirectory(dir='/mnt/tmp') as td:
-            zfname = os.path.join(td, self.identifier+".zip")
-            lpname = os.path.join(td, self.identifier+".lp")
-            model.write( lpname )
+            basename = os.path.join(td, self.identifier)
+            zfname = basename + ".zip"
+            lpname = basename + ".lp"
+            model.write(lpname)
+            zip_call_cmd = ['zip', os.path.basename(zfname), os.path.basename(lpname)]
+            if model.Status in [gb.GRB.INFEASIBLE, gb.GRB.INF_OR_UNBD]:
+                ilpname = basename + ".ilp"
+                model.computeIIS()
+                model.write(ilpname)
+                model.write("iis.ilp")
+                zip_call_cmd.append(os.path.basename(ilpname))
 
             # Add it to the zip file. Crash if zip fails (it shouldn't)
-            subprocess.check_call(['zip',os.path.basename(zfname),os.path.basename(lpname)],cwd=td)
+            subprocess.check_call(zip_call_cmd, cwd=td)
 
             # Upload the file boto3 to s3
             p  = urlparse( s3path )
@@ -676,7 +686,6 @@ class GeoOptimizer(Optimizer, metaclass=ABCMeta):
             print("saveModelToS3: {s3path}")
             s3.meta.client.upload_file( zfname, p.netloc, p.path[1:])
             return s3path
-
 
     def setObjAndSolve(self, model, obj_fxn):
         """

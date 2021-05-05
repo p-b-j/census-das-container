@@ -7,7 +7,6 @@ sys.path.append(os.path.join(os.environ['SPARK_HOME'],'python'))
 sys.path.append(os.path.join(os.environ['SPARK_HOME'],'python','lib', 'py4j-src.zip'))
 
 from configparser import ConfigParser
-import pytest
 from copy import deepcopy
 import numpy as np
 from fractions import Fraction
@@ -15,7 +14,6 @@ from fractions import Fraction
 from programs.engine.topdown_engine import TopdownEngine
 from programs.nodes.nodes import GeounitNode
 from programs.queries.querybase import QueryFactory
-import programs.das_setup as das_setup
 from programs.sparse import multiSparse
 from programs.schema.schemas.schemamaker import SchemaMaker
 from programs.schema.attributes.sex import SexAttr
@@ -30,11 +28,11 @@ spark_fixture = spark  # This line is so that the previous import is formally us
 
 class TestEngines:
 
-    class Setup(das_setup.DASDecennialSetup):
+    class Setup:
         """
             Setup module just for this test. Only what is needed.
         """
-        def __init__(self, engine):
+        def __init__(self):
             self.privacy_framework = "zcdp"
             self.schema = "TEST"
             self.hist_shape = (2,)
@@ -49,7 +47,7 @@ class TestEngines:
             self.inv_con_by_level = {
                             'Block': empty_dict,
                         }
-            self.levels = list(self.inv_con_by_level.keys())
+            self.levels =  CC.GEOLEVEL_BLOCK, CC.GEOLEVEL_BLOCK_GROUP, CC.GEOLEVEL_TRACT, "Tract_Group", CC.GEOLEVEL_COUNTY, CC.GEOLEVEL_STATE, CC.GEOLEVEL_US
             self.geo_bottomlevel = 'Block'
             self.spine_type = 'non_aian_spine'
             self.plb_allocation = None
@@ -62,7 +60,7 @@ class TestEngines:
             self.only_dyadic_rationals = True  # Doesn't matter true or false because the budgets are assigned directly
 
 
-    def Data(self, setup_instance):
+    def Data(self):
         """
             Data in the shape of histograms for 1 Block. Hist shape (2,) (for, e.g., Male, Female).
         """
@@ -82,8 +80,8 @@ class TestEngines:
                   approx_dp_delta: 1/10000000000
                   bounded_dp_multiplier: 2.0
                   geolevel_budget_prop: 1/5, 1/5, 3/25, 3/25, 3/25, 3/25, 3/25
-                  strategy: detailed
-                  query_ordering: detailed_only_ordering
+                  strategy: DetailedOnly
+                  query_ordering: DetailedOnly_Ordering
                   # DPqueries: detailed
                   # queriesprop: 1/1
 
@@ -93,12 +91,11 @@ class TestEngines:
         engine_instance = engine(config=engine_config, setup=setup_instance, name='engine', das=das_stub)
         return engine_instance
 
-    #@pytest.mark.parametrize("engine", [TopdownEngine])
     def test_engines(self):
         engine = TopdownEngine
         das_stub = DASStub()
-        setup_instance = self.Setup(engine)
-        geounit_nodes = self.Data(setup_instance)
+        setup_instance = self.Setup()
+        geounit_nodes = self.Data()
         engine_instance = self.getEngine(engine, setup_instance, das_stub)
         engine_instance.geolevel_prop_budgets = (Fraction(1,5), Fraction(1,5), Fraction(3,25), Fraction(3,25),
                                                     Fraction(3,25), Fraction(3,25), Fraction(3,25))

@@ -621,9 +621,10 @@ class DASDecennialReader(AbstractDASReader):
                 entity_threshold = self.getint(CC.ENTITY_THRESHOLD, section=CC.GEODICT, default=9)
                 bypass_cutoff = self.getint(CC.BYPASS_CUTOFF, section=CC.GEODICT, default=150)
                 fanout_cutoff = self.getint(CC.FANOUT_CUTOFF, section=CC.GEODICT, default=12)
+                ignore_gqs_in_block_groups = self.getboolean(CC.IGNORE_GQS_IN_BLOCK_GROUPS, section=CC.GEODICT, default=False)
 
                 gq_types_query = self.setup.unit_schema_obj.getQuery(CC.HHGQ_SPINE_TYPES)
-                geocode16 = join_data.map(lambda row: (row[0][0], gq_off_spine_entities(gq_types_query.answer(row[1][1].toarray().flatten()))))
+                geocode16 = join_data.map(lambda row: (row[0][0], gq_off_spine_entities(ignore_gqs_in_block_groups, gq_types_query.answer(row[1][1].toarray().flatten()))))
 
                 geocode16_to_DASGeoid, plb_dict, new_widths = call_opt_spine(user_plbs, geocode16, self.modified_geocode_dict, fanout_cutoff, epsilon_delta, aian_areas, entity_threshold, redefine_counties, bypass_cutoff, grfc_path, aian_ranges_path, strong_mcd_states)
                 join_data = join_data.map(lambda row: ((geocode16_to_DASGeoid[row[0][0]],), row[1]))

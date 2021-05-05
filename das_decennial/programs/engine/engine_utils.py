@@ -184,7 +184,7 @@ class DASEngineHierarchical(AbstractDASEngine, metaclass=ABCMeta):
 
         # total_budget is now a derived quantity. global_scale is specified in the configuration file.
 
-        self.budget = Budget(self.levels, self.setup, config=self.config, das=self.das)
+        self.budget = Budget(self.all_levels, self.setup, config=self.config, das=self.das)
 
         self.optimization_query_ordering = OptimizationQueryOrdering(self.budget, self.setup.schema_obj, self.unit_hist_shape, config=self.config, das=self.das)
 
@@ -199,7 +199,7 @@ class DASEngineHierarchical(AbstractDASEngine, metaclass=ABCMeta):
         Run the engine.
         The prototype does not do anything to the data, just sets up engine configuration
         :param original_data: lowest (block) level Geounit nodes RDD
-        :return: unchanged original data (privatization of data is implemented in subclasses)
+        :return: unchanged original data (protection of data is implemented in subclasses)
         """
         self.annotate(f"{self.__class__.__name__} run")
 

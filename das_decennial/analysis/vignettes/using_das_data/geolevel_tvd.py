@@ -112,6 +112,7 @@ if __name__ == "__main__":
     # 3. Calculate Geolevel 1-TVD
     colname_tvd = "1-TVD"
     groupby = [AC.GEOLEVEL, AC.BUDGET_GROUP, AC.PLB, AC.RUN_ID, AC.QUERY]
+    # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     df = sdftools.getGeolevelTVD(querydf, colname=colname_tvd, col1=AC.PRIV, col2=AC.ORIG, groupby=groupby)
        
     # 4. Save Geolevel 1-TVD data and create graphics

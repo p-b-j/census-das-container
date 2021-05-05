@@ -1,10 +1,9 @@
 from fractions import Fraction
 import math
 from typing import List, Tuple, Union
-from functools import reduce
-from operator import mul
-from constants import CC
 
+# Last modified by P. Zhuravlev. 8/4/2021. Removed RationalBernolli and RationalDiscreteUniform, inlining appropriate rng.integer calls. Removed application of limit_denominator to sigma_sq
+# Last modified by P. Zhuravlev. 29/3/2021. Removed RationalBernolliExpFactors implementation
 # Last modified by P. Zhuravlev. 15/1/2021. RationalBernolliExpFactors implementation
 # Last modified by P. Zhuravlev. 11/3/2020. Shortcuts for Fraction arithmetic via integers.
 # Last modified by P. Leclerc. Module contains an exact/rational implementation
@@ -20,10 +19,6 @@ from constants import CC
 # ---
 # Exact Discrete Gaussian with fractional arithmetic (loosely modeled on https://github.com/IBM/discrete-gaussian-differential-privacy/blob/master/discretegauss.py) (see programs.engine.tests.test_eps_delta_utility.py for other implementations)
 # ---
-
-INT64_LIMIT = 1 << 63   # Numpy generators use 63 bits for signed int64
-# INT64_LIMIT is actually 1 larger than np.iinfo(np.int64).max, as discrete uniform is right-exclusive
-SMALL_DENOM_LIMIT = 1 << 59
 
 
 def RationalSimpleDiscreteGaussian(*, sigma_sq: Union[Fraction, int] = 1, size=1, rng) -> List[int]:
@@ -62,18 +57,14 @@ def RationalScalarDiscreteGaussian(*, sigma_sq: Tuple[int, int] = (1, 1), rng) -
         Output:
                 y: int, scalar Discrete Gaussian sample
     """
-    # The next line will check the type/value compliance of sigma_sq
-    ssqn, ssqd = limit_denominator(sigma_sq, CC.PRIMITIVE_FRACTION_DENOM_LIMIT, mode="upper")  # To avoid exceeding int64 size in rng
+    ssqn, ssqd = sigma_sq
     t: int = floorsqrt(ssqn, ssqd) + 1
     c: bool = False
     while not c:
         y: int = RationalScalarDiscreteLaplace(s=1, t=t, rng=rng)
         aux1n: int = abs(y) * t * ssqd - ssqn
-        # aux1d: int = ssqd * t
-        # gamma = (aux1n * aux1n * ssqd, aux1d * aux1d * ssqn * 2)t
         gamma = (aux1n * aux1n, t * ssqd * t * ssqn * 2)
-        # c: bool = bool(RationalScalarBernoulliExp(gamma=gamma, rng=rng))
-        c: bool = bool(RationalScalarBernoulliExpFactors(numer=gamma[0], denom_factors=(t, t, ssqd, ssqn, 2), rng=rng))
+        c: bool = bool(RationalScalarBernoulliExp(gamma=gamma, rng=rng))
         if c:
             return y
 
@@ -119,18 +110,16 @@ def RationalScalarDiscreteLaplace(*, s=1, t=1, rng) -> int:
     while True:
         d: bool = False
         while not d:
-            u: int = RationalDiscreteUniform(low=0, high=t, rng=rng)
-            # d = bool(RationalScalarBernoulliExp(gamma=(u, t), rng=rng))
-            d = bool(RationalScalarBernoulliExpFactors(numer=u, denom_factors=(t,), rng=rng))
+            u: int = rng.integers(low=0, high=t)
+            d = bool(RationalScalarBernoulliExp(gamma=(u, t), rng=rng))
         v: int = 0
         a: bool = True
         while a:
-            # a = bool(RationalScalarBernoulliExp(gamma=(1, 1), rng=rng))
-            a = bool(RationalScalarBernoulliExpFactors(numer=1, denom_factors=(1,), rng=rng))
+            a = bool(RationalScalarBernoulliExp(gamma=(1, 1), rng=rng))
             v = v+1 if a else v
         x: int = u + t*v
         y: int = x // s
-        b: int = RationalBernoulli(p=(1, 2), rng=rng)
+        b: int = rng.integers(low=0, high=2) < 1  # Rational Bernoulli with p=1/2
         if not (b == 1 and y == 0):
             return (1 - 2 * b) * y
 
@@ -157,141 +146,38 @@ def RationalSimpleBernoulliExp(*, gamma: Union[Fraction, int] = 0, size=1, rng) 
         n, d = gamma.numerator, gamma.denominator
     except AttributeError as err:
         raise AttributeError(f"Argument to RationalSimpleBernoulliExp should be a Fraction or int, got {gamma} ({type(gamma)})") from err
-    # bernoulli_exp_samples = [RationalScalarBernoulliExp(gamma=(n, d), rng=rng) for _ in range(size)]
-    bernoulli_exp_samples = [RationalScalarBernoulliExpFactors(numer=n, denom_factors=(d,), rng=rng) for _ in range(size)]
+    bernoulli_exp_samples = [RationalScalarBernoulliExp(gamma=(n, d), rng=rng) for _ in range(size)]
     return bernoulli_exp_samples
 
 
-def RationalScalarBernoulliExpFactors(numer: int, denom_factors: Tuple[int, ...], rng):
-    """  Bernoulli(exp(-gamma)) with factorized gamma denominator"""
-
-    # assert isinstance(numer, int)
-    # assert isinstance(denom_factors, tuple)
-    denom = reduce(mul, denom_factors)
-    # assert isinstance(denom, int)
-    # denom_factors = tuple(sorted(denom_factors))
-
-    if 0 <= numer <= denom:  # gamma <= 1
-
-        single_factor = len(denom_factors) == 1
-
-        max_factor = max(denom_factors) if not single_factor else denom_factors[0]
-
-        if single_factor or denom < SMALL_DENOM_LIMIT:  # product of denom_factors is small enough (e.g., maxint64 / 16) # if k ever gets to 16, buy a lottery ticket
-            factors = (denom,)
-        elif numer <= max_factor:  # numerator is really small, we can decompose the fraction (the first factor, with numerator, will be < 1)
-            factors = tuple(sorted(denom_factors))
-        else:  # reduce this to multiple BernoulliExp calls
-            multiple, remainder = divmod(numer, max_factor)  # note remainder is less than largest factor
-
-            # sampling Bern(exp(-numerator/denom)) is the same as
-            # sampling Bern(exp(-(multiple * denom_factors[-1] + remainder)/denom)
-            # which is the same is (a) sampling Bern(exp(-(multiple * Factors[-1]/denom))
-            #  then (b) sampling Bern(exp(-remainder/denom))
-            # and returning True if both are True. Now (b)  will fall into the elsif branch above and
-            # (a) is the same as sampling Bern(exp(-multiple/prod(denom_factors[0:-1]))
-
-            if not RationalScalarBernoulliExpFactors(multiple, denom_factors=tuple(sorted(denom_factors)[:-1]), rng=rng):  # recursive call, smaller denominator
-                return False
-            if not RationalScalarBernoulliExpFactors(remainder, denom_factors=denom_factors, rng=rng):  # remainder is smaller than largest factor
-                return False
-            return True
-
+def RationalScalarBernoulliExp(*, gamma: Tuple[int, int] = (0, 1), rng) -> int:
+    """
+        Draw an exact Bernoulli(exp(-gamma)) scalar.
+        Inputs:
+                gamma: Fraction >= 0, used to define Pr[X = 1] = exp(-gamma)
+                rng: pseudo-random number generator (see programs.engine.rngs)
+        Output:
+                c: int in {0,1}, Bernoulli(exp(-gamma)) distributed scalar
+    """
+    try:
+        gn, gdn = gamma
+    except (TypeError, ValueError) as err:
+        errclass = TypeError if isinstance(err, TypeError) else ValueError
+        raise errclass(f"Argument to RationalScalarBernoulliExp should be a fraction represented as tuple(int, int), got {gamma} ({type(gamma)})") from err
+    if 0 <= gn <= gdn:
         k: int = 1
         a: bool = True
         while a:
-            a = bool(RationalBernoulliFactors(numer, factors, k, rng))
-            k = k + 1 if a else k
+            a = rng.integers(low=0, high=gdn * k) < gn  # Bernoulli with p = gn/(gdn*k) == gamma/k
+            k = k+1 if a else k
         return k % 2
-
-    # gamma > 1
-    multiple, remainder = divmod(numer, denom)
-    for k in range(1, multiple + 1):
-        # b: bool = bool(RationalScalarBernoulliExp(gamma=(1, 1), rng=rng))
-        b: bool = bool(RationalScalarBernoulliExpFactors(numer=1, denom_factors=(1,), rng=rng))
-        if not b:
-            return 0
-    c: int = RationalScalarBernoulliExpFactors(numer=remainder, denom_factors=denom_factors, rng=rng)
-    return c
-
-
-def RationalBernoulliFactors(numer, denom_factors: Tuple[int], k, rng) -> int:
-    """
-    Denominator is the product of all factors times k. So factoring the probability and return true iff individual Bernoullis for each factor
-    returns True. (Replace one flip of coin with multiple flips of different coins)
-    Last element of :factors: must be < numer. If :factors: is sortec in ascending order, the function will work faster
-    """
-    # we can reorder them and short circuit so that Bern(1/factor[-2]) is run first as it is more
-    # likely to return a False
-    if not RationalBernoulli(p=(numer, denom_factors[-1] * k), rng=rng):
-        return False
-    if len(denom_factors) == 1:
-        return True
-    for factor in reversed(denom_factors[:-1]):
-        if not RationalBernoulli(p=(1, factor), rng=rng):  # note, no k
-            return False
-    return True
-
-
-def RationalBernoulli(*, p: Tuple[int, int] = (5, 10), rng) -> int:
-    r"""
-        Sample a scalar from a Bernoulli(p) distribution; assumes p is a rational number in [0,1]. See:
-        https://github.com/IBM/discrete-gaussian-differential-privacy/blob/cb190d2a990a78eff6e21159203bc888e095f01b/discretegauss.py#L17-L26
-        That is, a scalar is sampled from the distribution with mass fxn:
-                                                    Pr[X = 1] = p
-                                                    Pr[X = 0] = 1 - Pr[X = 1]
-        Inputs:
-                p: Fraction, probability of returning 1
-                rng: pseudo-random number generator (see programs.engine.rngs)
-        Output:
-                0 or 1
-    """
-    try:
-        pn, pd = p
-    except (TypeError, ValueError) as err:
-        errclass = TypeError if isinstance(err, TypeError) else ValueError
-        raise errclass(f"Argument to RationalBernoulli should be a fraction represented as tuple(int, int), got {p} ({type(p)}) ") from err
-    assert 0 <= pn <= pd, "p must be in [0,1]."
-
-    # pn, pd = limit_denominator(p, CC.PRIMITIVE_FRACTION_DENOM_LIMIT)
-    if pd > INT64_LIMIT:  # To avoid exceeding int64 size in rng
-        # Try to reduce
-        gcd = math.gcd(pn, pd)
-        pn //= gcd
-        pd //= gcd
-
-    if pd > INT64_LIMIT:  # Reduction didn't help; this event is so unlikely that we regard it as strong evidence of a bug, and throw an exception
-        raise ValueError(f"The fraction {pn} / {pd} represented with denominator larger than int64 limit of {INT64_LIMIT}, "
-                         f"uniform sampling with that upper bound not possible")
-
-    m: int = RationalDiscreteUniform(low=0, high=pd, rng=rng)
-    if m < pn:
-        return 1
     else:
-        return 0
-
-
-def RationalDiscreteUniform(*, low=0, high=100, rng) -> int:
-    r"""
-        This function isolates use of the rng Discrete Uniform, which requires trusting the input generator, rng. It
-        draws a single numpy.int64 (for most choice of rng; or a single Python int of the byte size determined by :high:) integer,
-        and returns the number, which is drawn from a distribution with mass function
-                                            Pr[X = x] = 1/(high - low), for x in {low, low+1, ..., high-1}
-        Inputs:
-                low: int, inclusive lower bound on value to be drawn
-                high: int > low+1, exclusive upper bound on value to be drawn
-                rng: pseudo-random (or maybe not pseudo?) number generator (see programs.engine.rngs)
-        Output:
-                rng.randint: int (specific type of int depends on rng) uniformly drawn from {low, low+1, ..., high-1}
-    """
-    # assert isinstance(low, int) and isinstance(high, int) and high > low
-    try:
-        # This works with DASRandom
-        return int(rng.integers(low=low, high=high))
-    except AttributeError:
-        # This works with other systems
-        return int(rng.randint(low=low, high=high))
-    # Otherwise throw whichever error there is if there is one
+        for k in range(1, gn // gdn + 1):
+            b: bool = bool(RationalScalarBernoulliExp(gamma=(1, 1), rng=rng))
+            if not b:
+                return 0
+        c: int = RationalScalarBernoulliExp(gamma=(gn % gdn, gdn), rng=rng)
+        return c
 
 
 def floorsqrt(num, denom) -> int:

@@ -74,13 +74,15 @@ def make_aian_ranges_dict(aian_ranges_path, aian_areas):
 
 
 
-def gq_off_spine_entities(gqs):
+def gq_off_spine_entities(ignore_gqs_in_block_groups, gqs):
     """
     Creates a string that can uniquely identify each combination of group quarters (GQs) types (or a subset)
     within a block.
 
     :return prefix: a string that indicates the combination of GQ types in the block
     """
+    if ignore_gqs_in_block_groups:
+        return "0000000"
     error_message = f"Array of major GQ types is length {len(gqs)} rather than 7."
     assert len(gqs) == 7, error_message
     return ''.join(["1" if gq > 0 else "0" for gq in gqs])

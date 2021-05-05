@@ -13,15 +13,29 @@ from programs.engine.tests.test_cannoneEtAl_exactDiscGauss_benchmark_implementat
 import programs.engine.primitives as primitives
 import programs.engine.discrete_gaussian_utility as discrete_gaussian_utility
 import programs.engine.tests.test_eps_delta_utility as test_eps_delta_utility
-from programs.engine.rngs import DASRandom
+# from programs.engine.rngs import DASRandom
 from fractions import Fraction
 
-from scipy.stats import anderson
+#from scipy.stats import anderson
+
+RNG_FIXED_SEED = 3141592653
 
 logging.warning("TEST CODE! NOT SUITABLE FOR PRODUCTION USE. NUMPY MT19937 IN USE")
 
-rng = np.random.RandomState() # Used in fixed-seed tests below. *Not* used in main DAS.
-rng_fixed_seed = 3141592653
+class MT19937Wrapper:
+
+    def __init__(self, seed=None):
+        self.rng = np.random.RandomState(seed=seed)
+
+    def integers(self, low=0, high=0):
+        return self.rng.randint(low=low, high=high)
+
+    def binomial(self, *args, **kwargs):
+        return self.rng.binomial(*args, **kwargs)
+
+
+rng = MT19937Wrapper() # Used in fixed-seed tests below. *Not* used in main DAS.
+
 
 num_samples = 10000             # Number of samples for comparisons
 num_bins = 10                   # num_bins for empirical histogram comparisons (edges automatically chosen by numpy)
@@ -121,7 +135,7 @@ def test_DiscreteGaussian():
     #    simpleDiscreteGaussian = test_eps_delta_utility.DiscreteGaussianMechanism
     #    for stddev in [0.1, 1.0, 10.0, 100.0]:
     #        print("\n < --- [1] exact vector DiscreteGaussian VS [2] exact simple scalar DiscreteGaussian --- >")
-    #        primitives._rng_factory = np.random.RandomState
+    #        primitives._rng_factory = lambda: MT19937Wrapper()
     #        exactVecDiscGauss_samples = exactVecDiscGaussian(variance=stddev**2.0,
     #                                                        true_answer=np.zeros(num_samples)).protected_answer
     #        exactVecDiscGauss_counts, exactVecDiscGauss_bins = np.histogram(exactVecDiscGauss_samples, bins=num_bins)
@@ -140,7 +154,8 @@ def test_DiscreteGaussian():
             exactSimpDiscGauss_samples = simpleDiscreteGaussian(variance=float(stddev**2.0), size=num_samples, rng=np.random.RandomState())
             exactSimpDiscGauss_counts, exactSimpDiscGauss_bins = np.histogram(exactSimpDiscGauss_samples, bins=num_bins)
 
-            primitives._rng_factory = np.random.RandomState
+            primitives._rng_factory = lambda: MT19937Wrapper()
+            primitives._rng_factory = lambda: MT19937Wrapper()
             rationalDiscreteGauss_samples = rationalDiscreteGaussian(inverse_scale=1/(stddev**2), true_answer=np.zeros(num_samples)).protected_answer
             rationalDiscGauss_counts, rationalDiscGauss_bins = np.histogram(rationalDiscreteGauss_samples,
                                                                                 bins=exactSimpDiscGauss_bins)
@@ -152,17 +167,17 @@ def test_DiscreteGaussian():
         for sigma in [Fraction(1,10), Fraction(1,1), Fraction(10,1)]:
             print(f"\n < --- with sigma {sigma}, [1] Cannone et al DiscreteGaussian VS [2] exact rational DiscreteGaussian --- >")
             sigma2 = Fraction(sigma**2)
-            rng = np.random.RandomState(seed=rng_fixed_seed)
+            rng = MT19937Wrapper(seed=RNG_FIXED_SEED)
             cannoneDiscGauss_samples = np.array([cannoneDiscreteGaussian(sigma2=sigma2, rng=rng) for _ in range(num_samples)])
             cannoneDiscGauss_counts, cannoneDiscGauss_bins = np.histogram(cannoneDiscGauss_samples, bins=num_bins)
 
-            primitives._rng_factory = lambda: np.random.RandomState(seed=rng_fixed_seed)
+            primitives._rng_factory = lambda: MT19937Wrapper(seed=RNG_FIXED_SEED)
             rationalDiscGauss_samples = rationalDiscreteGaussian(inverse_scale=1/sigma2, true_answer=np.zeros(num_samples)).protected_answer
             rationalDiscGauss_counts, cannoneDiscGauss_bins = np.histogram(rationalDiscGauss_samples, bins=cannoneDiscGauss_bins)
             printComparisons(cannoneDiscGauss_counts, rationalDiscGauss_counts, cannoneDiscGauss_bins)
 
             cannone_computed_variance = cannone_variance(sigma2)
-            primitives._rng_factory = lambda: np.random.RandomState(seed=rng_fixed_seed)
+            primitives._rng_factory = lambda: MT19937Wrapper(seed=RNG_FIXED_SEED)
             rational_computed_variance = primitives.computeDiscreteGaussianVariance(sigma2)
             print(f"Cannone variance vs exact rational DiscreteGaussian variance: {cannone_computed_variance}, {rational_computed_variance}")
             assert abs(cannone_computed_variance - rational_computed_variance) < variance_test_threshold
@@ -186,7 +201,7 @@ def AD_test_DiscreteGaussian():
         rationalDiscreteGaussian = primitives.RationalDiscreteGaussianMechanism
         for sigma in [1.0, 10.0, 100.0]:
             print(f"\n < --- with sigma {sigma}, exact rational DiscreteGaussian --- >")
-            primitives._rng_factory = lambda: np.random.RandomState()
+            primitives._rng_factory = lambda: MT19937Wrapper()
             rationalDiscreteGauss_samples = np.array([rationalDiscreteGaussian(inverse_scale=Fraction(1./sigma**2.0),
                                                 true_answer=np.zeros(1)).protected_answer[0] for _ in range(num_samples)])
             bound = int(max(4. * sigma, 1.))

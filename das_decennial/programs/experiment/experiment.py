@@ -114,6 +114,7 @@ class experiment(AbstractExperiment):
 
                 # run the engine
                 # privatized_data_i is an rdd of block nodes
+                # (privatized means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production)
                 # feas_dict_i is a spark accumulator / dict of infeasibility stats
                 self.das = DAS(config=config)
                 t0 = time.time()

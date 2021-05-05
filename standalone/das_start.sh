@@ -7,6 +7,11 @@ then
     exit 1
 fi
 
+if [ -f ${HOME}/das_log.release.zip ]
+then
+    rm ${HOME}/das_log.release.zip
+fi
+
 singularity exec \
     --home $HOME \
     --bind singularity_tmp:/tmp \

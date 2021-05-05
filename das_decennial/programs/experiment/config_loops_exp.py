@@ -62,6 +62,7 @@ class ConfigLoopsExperimentEngineWriter(ConfigLoopsExperiment):
             exp_params, exp_params_str = self.getParamStr()
 
             self.das.writer.setOutputFileDataName(f"{self.odfname}-{exp_params_str}")
+            # privatized means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
             privatized_data = self.das.runEngine(original_data)
             # Added error metrics as a sanity check
             error_metrics_data = self.das.runErrorMetrics(privatized_data)
@@ -94,7 +95,7 @@ class ConfigLoopsExperimentByLevel(ConfigLoopsExperiment):
             self.substitute_config()
 
             exp_params, exp_params_str = self.getParamStr()
-
+            # privatized means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
             privatized_data = self.das.runEngine(original_data)
 
             error_metrics_data = self.das.runErrorMetrics(privatized_data)

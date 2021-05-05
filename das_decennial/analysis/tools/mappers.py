@@ -35,6 +35,7 @@ def getDenseDF_mapper(node, schema):
     import numpy as np
     if isinstance(node, dict):
         orig = node['raw'].toDense()
+        # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         priv = node['syn'].toDense()
         geocode = node['geocode']
     else: # assume GeounitNode    
@@ -47,6 +48,7 @@ def getDenseDF_mapper(node, schema):
         rowdict = {}
         rowdict['geocode'] = str(geocode)
         rowdict['orig'] = int(orig[cell])
+        # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         rowdict['priv'] = int(priv[cell])
         for dim, level in enumerate(cell):
             rowdict[schema.dimnames[dim]] = str(level)
@@ -106,6 +108,7 @@ def getSparseDF_mapper(node, schema):
     for d in data.values():
         nz_indices_list += d.indices.tolist()
     nz_indices = np.unique(nz_indices_list).tolist()
+    # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     key_dict = {'raw': 'orig', 'syn': 'priv'}
 
     for ind in nz_indices:
@@ -129,7 +132,7 @@ def getSparseDF_mapper(node, schema):
 
 
 
-
+# privatized means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
 def getMicrodataDF_mapper(node, schema, privatized=True, mangled_names=True, recoders=None):
     # TODO: provide support for node = GeounitNode, in addition to node = dict
     GEOCODE = "geocode"

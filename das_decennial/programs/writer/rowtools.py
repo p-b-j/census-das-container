@@ -12,11 +12,11 @@ def makeHistRowsFromMultiSparse(node: Union[GeounitNode, dict],
                                 run_id: int = None,
                                 row_recoder: Callable = None,
                                 add_schema_name: bool = True,
-                                microdata_field: str = 'priv',
+                                microdata_field: str = 'priv', # priv means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
                                 geocode_dict = None) -> List[Row]:
     """
     Converts a node's raw and/or private histogram into a list of Spark Rows, where columns are the dimensions of the histogram
-    and 'priv' and 'orig' are column names containing private and raw counts respectively. If :microdata_field: is set ('priv'/'orig'), then
+    and 'priv' and 'orig' are column names containing protected and raw counts respectively. If :microdata_field: is set ('priv'/'orig'), then
     instead of having count in that field, the corresponding number (i.e. equal to the count) is inserted in the Row list,
     and the field is discarded.
     :param node: GeounitNode or dict, the node, whose histograms are converted to list or Rows (to then convert to DataFrame)
@@ -28,11 +28,12 @@ def makeHistRowsFromMultiSparse(node: Union[GeounitNode, dict],
     :return:
     """
 
-    data_present = []  # The list that tells whether the node has raw data, privatized data or both. If yes, the data is in this list.
+    data_present = []  # The list that tells whether the node has raw data, protected data or both. If yes, the data is in this list.
     if hasNodeAttr(node, RAW):
         orig = getNodeAttr(node, RAW).sparse_array
         data_present.append((orig, 'orig'))
     if hasNodeAttr(node, SYN):
+        # priv means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         priv = getNodeAttr(node, SYN).sparse_array
         data_present.append((priv, 'priv'))
 
@@ -68,7 +69,7 @@ def makeHistRowsFromMultiSparse(node: Union[GeounitNode, dict],
         # Add geocode
         rowdict[GEOCODE] = getNodeAttr(node, GEOCODE)
 
-        # And privatized count, or raw count, or both
+        # And protected count, or raw count, or both
         for dataset in data_present:
             rowdict[dataset[1]] = int(dataset[0][0, ind])
 
@@ -84,7 +85,7 @@ def makeHistRowsFromMultiSparse(node: Union[GeounitNode, dict],
 
         # Produce microdata (i.e. remove the count column and instead have that number of identical rows)
         if microdata_field is not None:
-            # Number of identical rows to add equal to the count (taking either private count in field 'priv', or raw count in field 'orig')
+            # Number of identical rows to add equal to the count (taking either protected count in field 'priv', or raw count in field 'orig')
             nrows2add = rowdict[microdata_field]
             # Remove the 'priv' or 'orig' count column, that has been used to calculate number of rows to add
             rowdict.pop(microdata_field, None)
@@ -111,7 +112,7 @@ def makeHistRowsFromUnitMultiSparse(node: Union[GeounitNode, dict],
                                 run_id: int = None,
                                 row_recoder: Callable = None,
                                 add_schema_name: bool = True,
-                                microdata_field: str = 'priv',
+                                microdata_field: str = 'priv', # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
                                 geocode_dict = None) -> List[Row]:
     """
     Converts a node's raw and/or private histogram into a list of Spark Rows, where columns are the dimensions of the histogram
@@ -149,7 +150,7 @@ def makeHistRowsFromUnitMultiSparse(node: Union[GeounitNode, dict],
         # Add geocode
         rowdict[GEOCODE] = getNodeAttr(node, GEOCODE)
 
-        # And privatized count, or raw count, or both
+        # And protected count, or raw count, or both
         rowdict["priv"] = int(unit_syn_priv[0, ind])
 
         # Add all the histogram variables from the schema

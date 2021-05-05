@@ -53,6 +53,7 @@ class _DAS_CONSTANTS:
     GLOBAL_SCALE = "global_scale"
     APPROX_DP_DELTA = "approx_dp_delta"
     GEOLEVEL_BUDGET_PROP = "geolevel_budget_prop"
+    ZERO_ERROR_GEOLEVELS = "zero_error_geolevels"
     ONLY_DYADIC_RATIONALS = "only_dyadic_rationals"
     PRINT_PER_ATTR_EPSILONS = "print_per_attr_epsilons"
 
@@ -281,6 +282,15 @@ class _DAS_CONSTANTS:
     SPINE_TYPE_ALLOWED = (OPT_SPINE, AIAN_SPINE, NON_AIAN_SPINE)
     AIAN_RANGES_PATH = "aian_ranges_path"
     STRONG_MCD_STATES = "strong_mcd_states"
+    IGNORE_GQS_IN_BLOCK_GROUPS = "ignore_gqs_in_block_groups"
+
+    NOT_AN_AIAN_AREA = "9" * 4
+    NOT_AN_AIAN_STATE = "99"
+    NOT_A_PLACE = "9" * 5
+    NOT_AN_OSE = "9" * 5
+    NOT_AN_AIAN_TRACT = "9" * 11
+    NOT_AN_AIAN_BLOCK = "9" * 16
+    STRONG_MCD_COUNTY = "9" * 3
 
     ## Geolevel names:
     GEOLEVEL_TRACT = "Tract"
@@ -353,7 +363,7 @@ class _DAS_CONSTANTS:
     # BLANK = ""
     GIT_EXECUTABLE = "git"
     UTF_8 = "utf-8"
-    GIT_COMMIT = "git-commit"
+    GIT_COMMIT = "git_commit"   # must be the dashboard das_runs column name, not the command
     SAVE_GIT_COMMIT = "save_git_commit"
     S3CAT = 's3cat'
     S3CAT_DEFAULT = True
@@ -955,6 +965,10 @@ class _DAS_CONSTANTS:
     POPULATION_CUTOFF = "population_cutoff"
     L1_RELATIVE_DENOM_QUERY = "l1_relative_denom_query"
     L1_RELATIVE_DENOM_LEVEL = "l1_relative_denom_level"
+    TOTAL_POP_RELATIVE_ERROR_GEOLEVELS = "total_pop_relative_error_geolevels"
+    PRINT_AIAN_STATE_TOTAL_L1_ERRORS = "print_aian_state_total_l1_errors"
+    PRINT_COUNTY_TOTAL_AND_VOTINGAGE = "print_county_total_and_votingage"
+    PRINT_H1_COUNTY_METRICS = "print_h1_county_metrics"
 
     ###########################################
     # Config Constants (DAS)

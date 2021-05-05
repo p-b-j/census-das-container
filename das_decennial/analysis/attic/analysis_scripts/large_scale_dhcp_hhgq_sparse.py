@@ -43,6 +43,7 @@ def L1_avg_age(sdf, geolevels):
             .sum(groupby=[AC.GEOCODE, AC.GEOLEVEL])
             .show(n=200)
         )
+        # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         geosdf.df = geosdf.df.withColumn(f"average_{AC.ORIG}", sf.col(AC.ORIG) / sf.lit(age_query_len)).persist()
         geosdf.df = geosdf.df.withColumn(f"average_{AC.PRIV}", sf.col(AC.PRIV) / sf.lit(age_query_len)).persist()
         geosdf = geosdf.L1(col1=f"average_{AC.PRIV}", col2=f"average_{AC.ORIG}")
@@ -53,6 +54,7 @@ def L1_avg_age(sdf, geolevels):
 
 def L1_avg_age_fillMissingRows(sdf, geolevels, queries):
     sdf = sdf.getGeolevels(geolevels).getQueryAnswers(queries).fill(queries).sum(groupby=[AC.GEOCODE, AC.GEOLEVEL])
+    # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     sdf.df = sdf.df.groupBy([AC.GEOCODE, AC.GEOLEVEL]).agg(sf.avg(AC.ORIG), sf.avg(AC.PRIV)).persist()
     sdf = sdf.L1(col1=f"avg({AC.PRIV})", col2=f"avg({AC.ORIG})")
     return sdf
@@ -66,6 +68,7 @@ def L1_expected_age(sdf, geolevels):
         geosdf = sdf.clone().getGeolevels(geolevel).answerQueries(query).show(n=1000)
         geosdf.df = geosdf.df.withColumn("age_index", age_udf(sf.col(AC.LEVEL))).persist()
         geosdf.df = geosdf.df.withColumn(f"ev_part_{AC.ORIG}", sf.col("age_index") * sf.col(AC.ORIG)).persist()
+        # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         geosdf.df = geosdf.df.withColumn(f"ev_part_{AC.PRIV}", sf.col("age_index") * sf.col(AC.PRIV)).persist()
         geosdf = geosdf.sum(groupby=[AC.GEOCODE, AC.GEOLEVEL])
         geosdf.df = geosdf.df.withColumn(f"ev_{AC.ORIG}", sf.col(f"ev_part_{AC.ORIG}") / sf.col(AC.ORIG)).persist()

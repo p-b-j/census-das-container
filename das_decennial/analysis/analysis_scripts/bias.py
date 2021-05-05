@@ -49,6 +49,7 @@ queries = ['total']
 
 def NEbias(spark,df,geolevels,queries,schema):
     u=sdftools.getAnswers(spark,df,geolevels,schema,queries)
+    # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     u=u.withColumn('diff',sf.col('priv')-sf.col('orig'))
     z=u.groupby(['geolevel']).avg()
     return u,z
@@ -66,6 +67,7 @@ def TAES(spark,df,geolevels,queries,schema,u):
     q=u.join(z, on=['geolevel','run_id'])
     columnstodrop=['plb','budget_group']
     q=q.drop(*columnstodrop)
+    # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     q=q.withColumn('MDF/sum',sf.col('priv')/sf.col('sum(priv)'))
     q=q.withColumn('CEF/sum',sf.col('orig')/sf.col('sum(orig)'))
     q=q.withColumn('difference',sf.col('MDF/sum')-sf.col('CEF/sum'))

@@ -113,6 +113,7 @@ export DAS_OBJECT_CACHE=$(get_ci DAS_S3MGMT)/$(get_ci DAS_OBJECT_CACHE_BASE)
 export DVS_OBJECT_CACHE=$(get_ci DAS_S3MGMT)/$(get_ci DVS_OBJECT_CACHE_BASE)
 export DAS_S3MGMT_ACL=$(get_ci DAS_S3MGMT_ACL)
 export DVS_AWS_S3_ACL=$(get_ci DAS_S3MGMT_ACL)
+MISSION_REPORT="https://dasexperimental.ite.ti.census.gov/app/mission"
 
 
 # Command to send things to the dashboard:
@@ -417,6 +418,7 @@ save_yarn_logs() {
 }
 
 upload_logs() {
+    echo upload_logs
     # nicely format the DFXML file for viewing
     DFXML_FILE=logs/$(basename $LOGFILE_NAME .zip).dfxml
     DFXML_PP_FILE=logs/$(basename $LOGFILE_NAME .zip).pp.dfxml
@@ -430,15 +432,32 @@ upload_logs() {
     echo
     unzip -l logs/$ZIP_FILENAME
 
+    # These individual POINTs may seem odd, but when I took them out the mission report didn't
+    # show up. I think that it's some buffer not getting flushed before the monitoring program
+    # exists. So just leave them in. There is so much other junk.
+
+    echo POINT1
+
     # Upload to s3
     aws s3 cp --no-progress logs/$ZIP_FILENAME $DAS_S3ROOT/rpc/upload/logs/
 
+    echo POINT2
+
     DAS_S3=$(echo $DAS_S3ROOT | sed 's;s3://;;')
+
+    echo POINT3
 
     END_TIME=$(date -Iseconds)
 
+    echo POINT4
+
     # Get S3 errors from AWS CloudWatch, print them, and optionally send them to the log
     python3 programs/aws_errors.py $START_TIME $END_TIME --upload
+    echo ===
+    echo ===
+    echo mission report:   $MISSION_REPORT/$MISSION_NAME/report
+    echo ===
+    echo ===
 }
 
 ##
@@ -459,6 +478,7 @@ mission_failure() {
     upload_logs
     echo
     send_dashboard --exit_code=$1
+    echo mission report:   $MISSION_REPORT/$MISSION_NAME/report
     exit 1
 }
 
@@ -472,7 +492,6 @@ runcluster() {
 
     echo $0: PID $$ done at `date`. DAS is finished. Uploading Yarn logs...
     upload_logs
-
     echo runcluster finished
 }
 

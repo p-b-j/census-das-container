@@ -132,6 +132,7 @@ def Qualbins(rows, column, bins):
         
 
 # Call function here and specify number of bins,
+# 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
 rdd = rdd.flatMapValues(lambda rows: Qualbins(rows, AC.PRIV, 5)).persist()
 rdd = rdd.map(lambda row: Row(**row[1]))
 df = rdd.toDF().persist()

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 usage() {
-    echo please specify pl94 fast fast_mdf dry small or pdf
+    echo please specify pl94 full fast fast_mdf dry small or pdf
     exit 1
 }
 
@@ -15,6 +15,10 @@ config=configs/PL94/topdown_RI.ini
 if [ $1 = fast ]; then
     echo making data but not writing out MDF
     export NUM_EXECUTORS=4	# for speed
+
+elif [ $1 = full ]; then
+    config=configs/PL94/topdown_US.ini
+    echo running for the full US
 
 elif [ $1 = fast_mdf ]; then
     echo making data and writing out MDF

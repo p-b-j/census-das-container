@@ -27,12 +27,8 @@ def sample_uniform(m, rng):
     assert isinstance(m, int)  # python 3
     # assert isinstance(m,(int,long)) #python 2
     assert m > 0
-    try:
-        # This works with DASRandom
-        return int(rng.integers(low=0, high=m, size=1)[0])
-    except AttributeError:
-        # This works with other systems
-        return int(rng.randint(low=0, high=m, size=1)[0])  # Cast from np.int64 to Python int
+    return rng.integers(low=0, high=m)
+
     # Otherwise throw whichever error there is if there is one
     # return rng.randrange(m)  # Not available in DAS RNGs.
 

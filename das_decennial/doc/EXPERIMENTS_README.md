@@ -11,7 +11,7 @@ To run an experiment we need the following:
     * `budget_groups`: Provide a comma-separated list of names for the algorithm settings (a.k.a. budget groups).
     * `num_runs`: Expects an integer that states how many times to run each of the algorithm settings groups.
     * `experiment_saveloc`: the directory where the experiment will be saved.
-    * Include `save_original_data_flag: 0` and `original_data_saveloc: some_path`. The current version of the analysis code does not expect the original data to be saved separate from the privatized data, so we almost always leave `save_original_data_flag` in the 0 ('off') position.
+    * Include `save_original_data_flag: 0` and `original_data_saveloc: some_path`. The current version of the analysis code does not expect the original data to be saved separate from the protected data, so we almost always leave `save_original_data_flag` in the 0 ('off') position.
 3. For each of the algorithm settings (i.e. `budget_groups`), specify the following attributes:
     * `group.epsilon_budget_total`: The total budget used for each run in this algorithm settings group.
     * `group.geolevel_budget_prop`: A comma-separated list indicating how to split the total budget across the geolevels. The order of the proportions should follow the order of the geolevels as they were listed in the **[geodict] section**. _The proportions must sum to one._

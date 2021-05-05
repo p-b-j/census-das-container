@@ -77,9 +77,12 @@ class TestGeoOpt:
     @pytest.mark.parametrize("main_n, rounder, child", [
         (1, False, None),
         (2, False, None),
-        (2, True, np.array([[20.5, 46.5, 47.5, 23.5, 22.,  12.],
-                            [26.5, 52.5, 53.5, 29.5, 28.,  18.],
-                            [12.,  13.,  14.,  15.,  16.,  17.]])),
+        (2, True, np.array([[20.5, 46.5, 47.5, 21.5, 22.,  12.],
+                            [26.5, 52.5, 53.5, 26.5, 28.,  18.],
+                            [  0.,   0.,   0.,   5.,  0.,   0.]])),
+        (2, True, np.array([[20.5, 46.5, 47.5, 23.5, 22., 12.],
+                            [26.5, 52.5, 53.5, 29.5, 28., 18.],
+                            [   0.,  0.,    0.,   0., 0.,  0.]])),
         (3, False, None),
         (3, True, np.array([[9.16666667, 26.83333333, 27.83333333, 12.16666667, 10.66666667,  4.],
                            [15.16666667, 32.83333333, 33.83333333, 18.16666667, 16.66666667, 10.],
@@ -94,11 +97,11 @@ class TestGeoOpt:
         if rounder:
             child_floor = np.floor(child)
             child_leftover = child - child_floor
-            two_d_vars: gb.MVar = m.addMVar((nvar, nchild), vtype=gb.GRB.BINARY, lb=0, ub=1)
+            two_d_vars: gb.MVar = m.addMVar((main_n, nchild), vtype=gb.GRB.BINARY, lb=0, ub=1)
         else:
             child_floor = None
             child_leftover = None
-            two_d_vars: gb.MVar = m.addMVar((nvar, nchild), vtype=gb.GRB.CONTINUOUS, lb=0)
+            two_d_vars: gb.MVar = m.addMVar((main_n, nchild), vtype=gb.GRB.CONTINUOUS, lb=0)
 
         # Let's group children 0 and 3, children 1 and 2, and leave 4 and 5 in a group alone each
         # (e.g. children 0 and 3 are AIAN/non-AIAN for state0, 1 and 2 of state1, and 4 and 5 are state2 and state4 which don't have AIAN)
@@ -112,8 +115,8 @@ class TestGeoOpt:
         multiindices = [
             sorted(np.ravel_multi_index(i, (nvar, nchild)) for i in ((v, c) for v in range(nvar)[:main_n] for c in child_group[0])) for child_group in child_groups
         ]
-        parent_mask = np.ones((nvar), dtype=bool)
-        GeoOptimizer.addGroupedChildTotalConstraint(m, parent_mask, two_d_vars, child_groups, main_n=main_n, rounder=rounder, child_floor=child_floor)
+        #parent_mask = np.ones((nvar), dtype=bool)
+        GeoOptimizer.addGroupedChildTotalConstraint(m, nvar, two_d_vars, child_groups, main_n=main_n, rounder=rounder, child_floor=child_floor)
         m.update()
         with tempfile.NamedTemporaryFile(suffix='.lp', mode='w') as tf:
             # Output model into LP file
@@ -142,7 +145,7 @@ class TestGeoOpt:
             assert lhs == f"State_total#{group_num}: " + " + ".join(f"C{i}" for i in indices)
             rhs_from_invariant = child_group[1]
             if rounder:
-                rhs_from_invariant -= child_floor.ravel()[indices].sum()
+                rhs_from_invariant -= child_floor[:, np.array(child_group[0])].sum()
             assert rhs == rhs_from_invariant
 
         # Set objective and optimize model
@@ -150,16 +153,17 @@ class TestGeoOpt:
             t = gb.MVar(two_d_vars.vararr.ravel())
         except AttributeError:
             t = gb.MVar(np.array(two_d_vars.tolist()).ravel())
-        b = np.arange(nvar * nchild) if not rounder else child_leftover.ravel()
+        b = np.arange(main_n * nchild) if not rounder else child_leftover[:main_n, :].ravel()
         m.setObjective(t @ t - 2 * b @ t)
         m.update()
         m.optimize()
 
         # Get answer and add child_floor if it's rounder
-        ans = t.X
+        ans = np.zeros((nvar, nchild))
+        ans[:main_n, :] = t.X.reshape((main_n, nchild))
         if child_floor is not None:
-            ans += child_floor.ravel()
+            ans += child_floor
 
         # Check that the constraints hold for the total solution
-        for child_group, indices in zip(child_groups, multiindices):
-            assert abs(np.sum(ans[np.fromiter(indices, dtype=int)]) - child_group[1]) < 1e-7
+        for (ch_indices, total), indices in zip(child_groups, multiindices):
+            assert abs(np.sum(ans[:, np.array(ch_indices)]) - total) < 1e-7

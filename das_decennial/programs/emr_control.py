@@ -8,7 +8,8 @@ import urllib.error
 import json
 import logging
 from urllib.parse import urlencode
-import boto3
+# import boto3
+# import botocore
 
 
 try:
@@ -23,10 +24,14 @@ import das_framework.ctools.aws as aws
 import das_framework.ctools.emr as emr
 
 SANE_MAXIMUM=100
-CORE_MIN=1
+CORE_MIN=2
 
 RUNNING_INSTANCE_COUNT='RunningInstanceCount'
 REQUESTED_INSTANCE_COUNT='RequestedInstanceCount'
+
+def boto3_config():
+    return botocore.config.Config(
+        proxies={'https':os.environ['BCC_HTTPS_PROXY'].replace("https://","")})
 
 def user_in_group(user, group):
     try:
@@ -36,11 +41,8 @@ def user_in_group(user, group):
     return (user in users)
 
 def getInstanceGroups():
-    ret = {}
-    clusterId = emr.clusterId()
-    with aws.Proxy():
-        info = emr.describe_cluster( clusterId )
-    return info['InstanceGroups']
+    emr_client = boto3.client('emr', config = boto3_config())
+    return emr_client.list_instance_groups(ClusterId=emr.clusterId())['InstanceGroups']
 
 def print_info():
     for ig in getInstanceGroups():
@@ -62,7 +64,7 @@ def requestInstanceCounts(core, task, background=False, dry_run=False):
             if core > SANE_MAXIMUM:
                 raise ValueError("May not request more than %d core and task nodes" % SANE_MAXIMUM)
             if core < CORE_MIN:
-                raise ValueError("Must request at least 1 CORE instances (requested %d)" % CORE_MIN)
+                raise ValueError(f"Must request at least {CORE_MIN} CORE instances (requested {core})")
             if core!=ig[RUNNING_INSTANCE_COUNT]:
                 willResize = True
 
@@ -84,11 +86,10 @@ def requestInstanceCounts(core, task, background=False, dry_run=False):
             """Running in the background (this is slow), so fork"""
             if os.fork()!=0:
                 return
-        with aws.Proxy():
-            emr_client = boto3.client('emr')
-            emr_client.modify_instance_groups(
-                ClusterId=emr.clusterId(),
-                InstanceGroups=instanceGroups)
+        emr_client = boto3.client('emr', config = boto3_config())
+        emr_client.modify_instance_groups(
+            ClusterId=emr.clusterId(),
+            InstanceGroups=instanceGroups)
     return willResize
 
 if __name__=="__main__":

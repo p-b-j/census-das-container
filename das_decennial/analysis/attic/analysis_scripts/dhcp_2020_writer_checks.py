@@ -84,6 +84,7 @@ if __name__ == "__main__":
     
     recoder = dhcp_to_mdf2020.DHCPToMDF2020Recoder().recode
     mdf = (
+        # privatized means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         rdd.flatMap(lambda node: mappers.getMicrodataDF_mapper(node, schema, privatized=True, mangled_names=True, recoders=recoder))
            .zipWithIndex()
            .map(addIndexToRow)
@@ -91,13 +92,13 @@ if __name__ == "__main__":
            .toDF()
            .persist()
     )
-    sdftools.print_item(mdf, "DF of Microdata (privatized)")
+    sdftools.print_item(mdf, "DF of Microdata (protected)")
     
     #mdf = mdf.withColumn("EPNUM", sf.monotonically_increasing_id()).persist()
     #mdf = mdf.withColumn("EPNUM", sf.row_number().over(Window.orderBy(sf.monotonically_increasing_id())) - 1)
     mdf = mdf.drop('data_type').persist()
     
-    sdftools.print_item(mdf, "DF of Microdata (privatized)", show=1000)
+    sdftools.print_item(mdf, "DF of Microdata (protected)", show=1000)
 
     ###################################################################
     # Converting back to histogram form

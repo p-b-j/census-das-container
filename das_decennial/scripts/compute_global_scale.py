@@ -2,13 +2,8 @@
     Simple script for computing the global_scale equivalent to a given epsilon at a given delta.
 """
 
-import numpy as np
-from fractions import Fraction
-import scipy.optimize
 import sys
-#sys.path.append(".")
 sys.path.append("..")
-#from ..programs.engine.curve import zCDPEpsDeltaCurve as zCDPCurve
 import programs.engine.curve as curve
 
 queries = {}
@@ -23,8 +18,10 @@ if __name__ == "__main__":
     geolevels = ["US", "State", "County", "Tract", "Block_Group", "Block"]
     geolevel_props = [20/100, 16/100, 16/100, 16/100, 16/100, 16/100]
     geolevel_props = [g**2 for g in geolevel_props] # Needed if computing for DGM with old accounting
-
-    gaussian_mechanism_curve = curve.zCDPEpsDeltaCurve(geo_prop=geolevel_props, query_prop=query_props, verbose=False)
+    geo_allocations_dict = {}
+    for geolevel, gprop in zip(geolevels, geolevel_props):
+        geo_allocations_dict[geolevel] = gprop, query_props
+    gaussian_mechanism_curve = curve.zCDPEpsDeltaCurve(geo_allocations_dict, verbose=False)
     computed_global_scale = gaussian_mechanism_curve.get_scale(epsilon, delta, bounded=True,
                                                                                     tol=1e-7, zcdp=True)
     gs_msg = f"strat: {strat_name}, epsilon: {epsilon}, delta: {delta}"

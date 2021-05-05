@@ -110,6 +110,7 @@ schema_dict["H1"] = "H1_SCHEMA"         # For H1-only internal runs as of 4/2/20
 
 def getSparkDFWithAbsDiff(spark, df, geolevels, queries, schema):
     sparkDFWithAnswers = sdftools.getAnswers(spark, df, geolevels, schema, queries)
+    # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     sparkDFWithDiff = sparkDFWithAnswers.withColumn('diff',sf.col('priv')-sf.col('orig'))
     sparkDFWithAbsDiff = sparkDFWithDiff.withColumn('abs diff', sf.abs(sf.col('diff')))
     return sparkDFWithAbsDiff
@@ -241,6 +242,7 @@ def analyzeQuery(query, table_name, analysis, spark, geolevels, buckets=default_
 
     spark_df.show()
 
+    # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     u=spark_df.withColumn('diff',sf.col('priv')-sf.col('orig'))
     u=u.withColumn('abs diff', sf.abs(sf.col('diff')))
     u = getCountBins(u, column=AC.ORIG, bins=[0,1000,5000,10000,50000,100000]).persist()

@@ -54,6 +54,7 @@ mapper = sdftools.makeHistRows
 # node, runid, schema, sparse=False
 blockdf = blockrdd.flatMap(lambda node: mapper(node, node['run_id'], schema=schema, sparse=False)).toDF()
 
+# 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
 sparse = blockdf.filter((sf.col('orig') != 0) | (sf.col('priv') != 0))
 sparse = sparse.sort(schema.dimnames + ['run_id']).persist()
 

@@ -78,6 +78,7 @@ if __name__ == "__main__":
     sdftools.print_item(rdd, "RDD of random geounits")
     
     df = datatools.rdd2df(rdd, schema)
+    # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     df = df.select(['geocode'] + schema.dimnames + ['orig', 'priv'])
     sdftools.print_item(df, "DF of random geounit data", 1000)
     

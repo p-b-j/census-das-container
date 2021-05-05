@@ -90,7 +90,7 @@ EOF
                           --merge_conflicts \
                           --pylint_check \
                           --unit_tests \
-                          --check_behind_master
+                          --check_behind_master \
                 """
             }
         }

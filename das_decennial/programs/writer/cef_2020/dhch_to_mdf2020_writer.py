@@ -82,7 +82,7 @@ class DHCH_MDF2020_Writer(MDF2020HouseholdWriter):
 
 
 def greedyTenureRecode(node: GeounitNode, rows: List[Row]) -> List[Row]:
-    # Find the relevant detailed tenure values from the privatized unit row
+    # Find the relevant detailed tenure values from the protected unit row
     unit_syn_array = node.unit_syn.sparse_array
     #unit_syn_array = node.raw_housing.sparse_array
     mortgage_remaining = unit_syn_array[0, 0]

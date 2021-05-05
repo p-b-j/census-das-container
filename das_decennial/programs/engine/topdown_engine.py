@@ -140,7 +140,7 @@ class TopdownEngine(DASEngineHierarchical):
 
         Inputs:
             nodes:  a dictionary containing RDDs of node objects for each of the geolevels.
-                        No DP measurement or privatized data are present on input
+                        No DP measurement or protected data are present on input
 
         Output:
             nodes: a dictionary containing RDDs of node objects for each of the geolevels
@@ -162,7 +162,7 @@ class TopdownEngine(DASEngineHierarchical):
 
         Inputs:
             nodes_dict:  a dictionary containing RDDs of node objects for each of the geolevels.
-                         No DP measurement or privatized data are present on input
+                         No DP measurement or protected data are present on input
 
         Output:
             nodes_dict: a dictionary containing RDDs of node objects for each of the geolevels
@@ -198,10 +198,10 @@ class TopdownEngine(DASEngineHierarchical):
         else:
             saved_optimized_app_id = self.getconfig("saved_optimized_app_id")
             nodes_dict[self.optimization_start_from_level] = self.loadNoisyAnswers(saved_optimized_app_id, postfix="Optimized", levels2load=(self.optimization_start_from_level,))[self.optimization_start_from_level]
-            level_ind = self.levels_reversed.index(self.optimization_start_from_level)
-            if level_ind == len(self.levels_reversed):
+            if self.optimization_start_from_level == self.levels[0]:
                 return nodes_dict, {}
-
+            
+            level_ind = self.levels_reversed.index(self.optimization_start_from_level)
             level_pairs = zip(self.levels_reversed[level_ind:-1], self.levels_reversed[level_ind+1:])
 
         self.das.delegate.log_testpoint('T05-001S')

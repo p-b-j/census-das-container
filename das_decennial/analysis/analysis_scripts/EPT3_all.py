@@ -131,6 +131,7 @@ if __name__ == "__main__":
     schema = experiment.schema
     df = experiment.getDF()
     def ABSD(u):
+        # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         u=u.withColumn('diff',sf.col('priv')-sf.col('orig'))
         u=u.withColumn('abs diff', sf.abs(sf.col('diff')))
         return u

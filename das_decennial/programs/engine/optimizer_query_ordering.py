@@ -2,14 +2,13 @@
 Module that acquires (extracts from config or otherwise) DP query orderings (both for use and to constrain) in the optimization passes
 (both L2 and Rounder)
 """
-from collections import defaultdict
-from configparser import NoOptionError
+from configparser import NoOptionError, NoSectionError
 from functools import reduce
 from operator import add
 
 import numpy as np
 
-from exceptions import DASConfigValdationError, DASConfigError
+from exceptions import DASConfigError
 from programs.schema.schema import sortMarginalNames
 import programs.queries.querybase as querybase
 import programs.queries.constraints_dpqueries as cons_dpq
@@ -82,34 +81,13 @@ class OptimizationQueryOrdering(AbstractDASModule):
 
         optimizers = (seq_opt_name, l2_optimization_approach, rounder_optimization_approach)
 
-        if self.config.has_option(CC.BUDGET, "query_ordering"):
-            query_ordering = QueryOrderingSelector.query_orderings[self.getconfig("query_ordering", section=CC.BUDGET)].make(levels)
-        else:
-            # TODO: Uncomment this line to deprecate support to old configs. And remove or comment the code below, within "else"
+        try:
+            query_ordering_name = self.getconfig("query_ordering", section=CC.BUDGET)
+        except (NoOptionError, NoSectionError):
             #  Or just return empty query_ordering?
             raise DASConfigError("", "query_ordering", CC.BUDGET)
 
-            # ## GETTING
-            # l2_optimizer_name = "L2" if l2_optimization_approach == CC.DATA_IND_USER_SPECIFIED_QUERY_NPASS else None
-            # generic_l2_dp_query_ordering = self.getQueryOrdering(mode=(l2_optimizer_name, outer_pass))
-            #
-            # if seq_opt_name == CC.L2_PLUS_ROUNDER_WITH_BACKUP_INTERLEAVED:
-            #     generic_l2_constrain_to_query_ordering = self.getQueryOrdering(mode=("ConstrainL2", outer_pass))
-            #     if generic_l2_constrain_to_query_ordering == {}:
-            #         generic_l2_constrain_to_query_ordering = generic_l2_dp_query_ordering
-            # else:
-            #     generic_l2_constrain_to_query_ordering = generic_l2_dp_query_ordering
-            #
-            # rounder_name = "Rounder" if rounder_optimization_approach in (CC.MULTIPASS_ROUNDER, CC.MULTIPASS_QUERY_ROUNDER) else None
-            # generic_rounder_dp_query_ordering = self.getQueryOrdering(mode=(rounder_name, outer_pass))
-            #
-            # query_ordering = {}
-            # for geolevel in self.budget.levels:
-            #     query_ordering[geolevel] = {
-            #         CC.L2_QUERY_ORDERING: generic_l2_dp_query_ordering,
-            #         CC.L2_CONSTRAIN_TO_QUERY_ORDERING: generic_l2_constrain_to_query_ordering,
-            #         CC.ROUNDER_QUERY_ORDERING: generic_rounder_dp_query_ordering,
-            #     }
+        query_ordering = QueryOrderingSelector.query_orderings[query_ordering_name].make(levels)
 
         # Fill rounder_queries
         rounder_query_names = {}
@@ -122,6 +100,11 @@ class OptimizationQueryOrdering(AbstractDASModule):
             else:
                 rounder_query_names[geolevel] = reduce(add, map(lambda opd: reduce(add, opd.values()), rounder_query_ordering.values()))
 
+        # Fill constrain_to ordering if empty
+        for geolevel, qo_glev in query_ordering.items():
+            if CC.L2_CONSTRAIN_TO_QUERY_ORDERING not in qo_glev or not qo_glev[CC.L2_CONSTRAIN_TO_QUERY_ORDERING]:
+                query_ordering[geolevel][CC.L2_CONSTRAIN_TO_QUERY_ORDERING] = query_ordering[geolevel][CC.L2_QUERY_ORDERING]
+
         ### CHECKING
         assert len(query_ordering) == len(levels), "Query ordering geolevels lengths is different from engine/budget geolevels, check the strategy"
         for geolevel, qo_dict_geolevel in query_ordering.items():
@@ -131,7 +114,10 @@ class OptimizationQueryOrdering(AbstractDASModule):
             l2_target_queries = []
             options_list = []
 
+            print(l2_dp_query_ordering)
+
             if not outer_pass:
+                print("HERE")
                 for pn, qnames in l2_dp_query_ordering.items():
                     l2_target_queries.extend(qnames)
                     options_list.append(f"L2_DPqueryPart{pn}")
@@ -140,6 +126,7 @@ class OptimizationQueryOrdering(AbstractDASModule):
                     for ipn, qnames in l2_dp_query_ordering[opn].items():
                         l2_target_queries.extend(qnames)
                         options_list.append(f"L2_DPqueryPart{opn}_{ipn}")
+            print(l2_target_queries)
             l2_target_queries = sortMarginalNames(l2_target_queries)
 
             # if len(l2_target_queries) > len(set(l2_target_queries)):
@@ -151,53 +138,14 @@ class OptimizationQueryOrdering(AbstractDASModule):
             measured_dp_queries = sortMarginalNames(self.budget.query_budget.dp_query_names[geolevel])
 
             if len(set(measured_dp_queries) - set(l2_target_queries)) > 0:
-                raise DASConfigValdationError(
-                    f"Some of the measured DP queries ({measured_dp_queries}) are not targeted in L2 optimization {l2_target_queries}",
-                    section=CC.BUDGET, options=options_list)
+                raise ValueError(
+                    f"In query ordering {query_ordering_name}, geolevel {geolevel}, some of the measured DP queries ({measured_dp_queries}) are not targeted in L2 optimization {l2_target_queries}")
 
             print(f"Detected {geolevel} l2_dp_query_ordering: {query_ordering[geolevel][CC.L2_QUERY_ORDERING]}")
             print(f"Detected {geolevel} l2_ConstrainTo_dp_query_ordering: {query_ordering[geolevel][CC.L2_CONSTRAIN_TO_QUERY_ORDERING]}")
             print(f"Detected {geolevel} rounder_dp_query_ordering: {query_ordering[geolevel][CC.ROUNDER_QUERY_ORDERING]}")
 
         return optimizers, query_ordering, rounder_query_names
-
-    def getQueryOrdering(self, mode=None):
-        """
-            If a multipass optimization approach was specified, this fxn is used to build a dictionary mapping query names to
-            the pass number in which they should be optimized
-
-            Inputs:
-                mode : string (current options are "L2" or "Rounder")
-        """
-        optimizer_name, outer_pass = mode
-        if optimizer_name is None:
-            return None
-
-        dp_query_ordering = {} if not outer_pass else defaultdict(dict)
-
-        outer_pass_found = True
-        outer = 0
-        while outer_pass_found:
-            inner = 0
-            while True:
-                match_str = f"{optimizer_name}_DPqueryPart{inner}" if not outer_pass else f"{optimizer_name}_DPqueryPart{outer}_{inner}"
-                try:
-                    current_pass_dpqs = self.gettuple(match_str, section=CC.BUDGET)
-                except NoOptionError:
-                    msg = f"{match_str} not in config. Concluding search for inner DPquery passes."
-                    print(msg)
-                    if inner == 0 or not outer_pass:
-                        outer_pass_found = False  # If we failed to find even a single inner pass, abort outer pass search
-                    break
-                if not outer_pass:
-                    dp_query_ordering[inner] = current_pass_dpqs
-                    print(f"Setting {optimizer_name}_DPqueryOrdering[{inner}] = {dp_query_ordering[inner]}")
-                else:
-                    dp_query_ordering[outer][inner] = current_pass_dpqs
-                    print(f"Setting {optimizer_name}_DPqueryOrdering[{outer}][{inner}] = {dp_query_ordering[outer][inner]}")
-                inner += 1
-            outer += 1
-        return dp_query_ordering
 
     def makeOptQueries(self, dp_geounit_node):
         """

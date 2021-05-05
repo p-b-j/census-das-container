@@ -10,6 +10,7 @@ from operator import add
 
 from pyspark.sql import SparkSession
 
+from constants import CC
 import analysis.constants as AC
 import constants as C
 import analysis.tools.crosswalk as crosswalk
@@ -322,6 +323,25 @@ def leveldict(schema, query, level2index=True, column=AC.LEVEL):
     return sql
 
 
+def remove_not_in_area(df, geolevels):
+    if 'Place' in geolevels:
+        df = df.filter((df.geocode[2:7] != CC.NOT_A_PLACE) | (df.geolevel != "PLACE"))
+    if 'AIAN_AREAS' in geolevels:
+        df = df.filter((df.geocode != CC.NOT_AN_AIAN_AREA) | (df.geolevel != "AIAN_AREAS"))
+    if 'OSE' in geolevels:
+        df = df.filter(
+            (sf.col(AC.GEOCODE).substr(sf.length(sf.col(AC.GEOCODE)) - 4, sf.length(sf.col(AC.GEOCODE))) != CC.NOT_AN_OSE) | (sf.col(AC.GEOLEVEL) != "OSE"))
+    if 'AIANTract' in geolevels:
+        df = df.filter((df.geocode != CC.NOT_AN_AIAN_TRACT) | (df.geolevel != "AIANTract"))
+    if 'AIANState' in geolevels:
+        df = df.filter((df.geocode != CC.NOT_AN_AIAN_STATE) | (df.geolevel != "AIANState"))
+    if 'AIANBlock' in geolevels:
+        df = df.filter((df.geocode != CC.NOT_AN_AIAN_BLOCK) | (df.geolevel != "AIANBlock"))
+    if 'COUNTY_NSMCD' in geolevels:
+        df = df.filter((df.geocode != CC.STRONG_MCD_COUNTY) | (df.geolevel != "COUNTY_NSMCD"))
+    return df
+
+
 def levelsql(leveldict, column=AC.LEVEL, join="\n", sqlelse="-1"):
     sql_when = ["case"]
     sql_when += [f"when {column} = '{sql_from}' then '{sql_to}'" for sql_from, sql_to in leveldict.items()]
@@ -540,7 +560,7 @@ def get_columns(df, ignore=None):
     return cols
 
 
-
+# AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
 def getTableCV(df, run_id, groupby=[AC.GEOCODE, AC.GEOLEVEL, AC.LEVEL, AC.QUERY], column=AC.PRIV, colname="CV"):
     # if fill=0.0 in class TableCV, then we can assume all of the rows and runs exists
     # as such, we can use the built-in SparkSQL 'var_samp' agg function
@@ -755,7 +775,7 @@ def getQuantiles(df, column, quantiles=None, relative_error=0.01):
     quantiles = setQuantiles(quantiles)
     return df.approxQuantile(column, quantiles, relative_error)
 
-
+# AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
 def getL1(df, colname="L1", col1=AC.PRIV, col2=AC.ORIG):
     return df.withColumn(colname, sf.abs(sf.col(col1) - sf.col(col2))).persist()
 
@@ -790,20 +810,31 @@ def mapL1Relative(grouped_values):
         result.append(2.)
     return result
 
+# AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
 def getL1Relative(df, colname="L1Relative", col1=AC.PRIV, col2=AC.ORIG, denom_query="total", denom_level="total"):
     spark = SparkSession.builder.getOrCreate()
     groupby = [AC.GEOLEVEL, AC.GEOCODE]
 
-    rdd_queries = df.rdd.filter(lambda row: row[AC.QUERY] != "total") \
-                        .map(lambda row: (tuple(row[x] for x in groupby), (row[col1], row[col2], row[AC.QUERY])))
+    rdd_queries = (df.rdd.filter(lambda row: row[AC.QUERY] != denom_query)
+                        .map(lambda row: (tuple(row[x] for x in groupby), (row[col1], row[col2], row[AC.QUERY]))))
     # Format: (tuple_key, ((priv_query_val, orig_query_val, query_name))
 
-    rdd_denoms = df.rdd.filter(lambda row: row[AC.QUERY] == denom_query and row[AC.LEVEL] == denom_level) \
-                       .map(lambda row: (tuple(row[x] for x in groupby), (row[col1], row[col2])))
+    n_numerators = rdd_queries.count()
+    assert n_numerators > 0, "There are no queries in the dataframe to define the numerator of L1 relative error."
+
+    rdd_denoms = (df.rdd.filter(lambda row: row[AC.QUERY] == denom_query and row[AC.LEVEL] == denom_level)
+                       .map(lambda row: (tuple(row[x] for x in groupby), (row[col1], row[col2]))))
     # Format: (tuple_key, (priv_sum, orig_sum))
+
+    n_denoms = rdd_denoms.count()
+    assert n_denoms > 0, f"The query {denom_query} with level {denom_level} is not available in the dataframe."
 
     rdd = rdd_queries.join(rdd_denoms)
     # Format: (tuple_key, ((priv_query_val, orig_query_val, query_name), (priv_sum, orig_sum)))
+
+    n_full_frac = rdd.count()
+    msg = f"Before join, there were {n_numerators} numerator rows, but after join there is {n_full_frac} rows"
+    assert (n_full_frac == n_numerators), msg
 
     rdd = rdd.map(lambda row: (row[0] + (row[1][0][2],), row[1][0][:-1] + row[1][1]))
     # Format: (tuple_key_with_query_name, (priv_query_val, orig_query_val, priv_sum, orig_sum))
@@ -821,6 +852,7 @@ def getL1Relative(df, colname="L1Relative", col1=AC.PRIV, col2=AC.ORIG, denom_qu
     df_out = spark.createDataFrame(grouped_rdd, StructType(schema_list))
     return df_out
 
+# AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
 def getSignedError(df, colname="signed_error", col1=AC.PRIV, col2=AC.ORIG):
     return df.withColumn(colname, sf.col(col1) - sf.col(col2)).persist()
 
@@ -1031,6 +1063,7 @@ def getAvgSignedErrorByTrueCountRuns(df, bins=[0,1,10,100,1000,10000],
     df = getCountBins(df, column=AC.ORIG, bins=bins).persist()
     print_item(df, "after assigning bins")
 
+    # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     df = getSignedError(df, colname="signed_error", col1=AC.PRIV, col2=AC.ORIG).persist()
     print_item(df, "after getting signed error")
 
@@ -1250,6 +1283,7 @@ def getQuantilesOverPersonAges(df, schema, groupby, quantiles, labels):
 
 def getRowGroupQuantilesOverPersonAges(rows, schema, quantiles, labels):
     """
+    # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     creates microdata from the row counts and calcualtes the quantiles across the ages in the 'orig' microdata and the 'priv' microdata
     ex)
         rows = [
@@ -1460,6 +1494,7 @@ def votingMetricsSummary(spark, df,geolevels,queries,queries2,schema):
     v.show()
     #u_df = u.df
     #v_df = v.df
+    # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     v = v.select(['geocode', 'geolevel', 'run_id', 'plb', 'orig', 'priv'])
     v = v.withColumnRenamed('orig', 'orig_total')
     v = v.withColumnRenamed('priv', 'priv_total')

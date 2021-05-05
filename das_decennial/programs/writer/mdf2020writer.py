@@ -174,6 +174,7 @@ class DHCP_MDF2020_Writer(MDF2020Writer):
 
         rdd = rdd.repartition(min(rdd.count(), 20000))
         rdd = rdd.flatMap(node2SparkRows)
+        # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         rdd = rdd.flatMap(lambda r: [r] * r['priv'])
         rdd = rdd.repartition(20000)
         df = rdd.zipWithIndex().map(addIndexAsEPNUM).toDF()
@@ -348,6 +349,7 @@ class MDF2020H1HistogramWriter(MDF2020PersonWriter):
 
         rdd = rdd.repartition(min(rdd.count(), 20000))
         rdd = rdd.flatMap(node2SparkRows)
+        # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         rdd = rdd.flatMap(lambda r: [r] * r['priv'])
         rdd = rdd.repartition(20000)
         df = rdd.toDF()
@@ -391,6 +393,7 @@ def addGroupQuarters(node: Union[GeounitNode, dict],
     if to_microdata:
         rows.extend([Row(**unit_rowdict)] * group_quarters)
     else:
+        # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         unit_rowdict['priv'] = int(group_quarters)
         rows.extend([Row(**unit_rowdict)])
 

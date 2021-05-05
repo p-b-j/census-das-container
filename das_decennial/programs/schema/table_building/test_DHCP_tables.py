@@ -280,6 +280,7 @@ das_utils.ship_files2spark(spark,subdirs=('programs','das_framework','analysis')
 # build the Spark DataFrame (note that a row only exist if that cell's orig count > 0 OR priv count > 0)
 df = sdftools.getExperimentSparseDF(spark, runs, schema).persist()
 
+# 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
 column_order = ['geocode', 'algset', 'run_id', 'plb', 'orig', 'priv'] + schema.dimnames
 df = df.select(column_order)
 print("Print the DF")
@@ -303,6 +304,7 @@ def main(experiments, schema_name, accuracy_saveloc, querynames, geolevels):
 
 
         # reorder to the df so it's easier to look at manually
+        # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         column_order = ['geocode', 'algset', 'run_id', 'plb', 'orig', 'priv'] + schema.dimnames
         df = df.select(column_order)
         print("Print the DF")

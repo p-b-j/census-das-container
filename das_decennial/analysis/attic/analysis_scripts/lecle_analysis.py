@@ -38,6 +38,7 @@ def L1_expected_age_manual_addCustom(sdf, geolevels, groupby=[]):
         geosdf = sdf.clone().getGeolevels(geolevel).answerQueries(query).show(n=1000)
         geosdf.df = geosdf.df.withColumn("age_index", age_udf(sf.col(AC.LEVEL))).persist()
         geosdf.df = geosdf.df.withColumn(f"ev_part_{AC.ORIG}", sf.col("age_index") * sf.col(AC.ORIG)).persist()
+        # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         geosdf.df = geosdf.df.withColumn(f"ev_part_{AC.PRIV}", sf.col("age_index") * sf.col(AC.PRIV)).persist()
         geosdf = geosdf.sum(groupby=groupby)
         geosdf.df = geosdf.df.withColumn(f"ev_{AC.ORIG}", sf.col(f"ev_part_{AC.ORIG}") / sf.col(AC.ORIG)).persist()
@@ -137,6 +138,7 @@ def L1_quantile_rdd(sdf, geolevels, sex="male"):
         geosdf.show(n=1000)
         print(f"^^^ {datetime.datetime.now()} --- geosdf after cloning (but lazy, so..) ^^^")
         df = geosdf.df.withColumn("age_index", age_udf(sf.col(AC.LEVEL)))
+        # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         df = df.select([AC.GEOCODE, AC.RUN_ID, AC.PLB, AC.ORIG, AC.PRIV, AC.LEVEL, "age_index", "age", "sex"])
         df.show(1000)
         print(f"^^^ {datetime.datetime.now()} --- Showing RDD after we drop back to just the 7 variables we need for geolevel {geolevel} ^^^")

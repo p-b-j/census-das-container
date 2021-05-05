@@ -1,7 +1,7 @@
 """
     This module contains primitive operations used in differential privacy.
 """
-from programs.engine.rngs import DASRandom
+from programs.engine.rngs import DASRandom, DASRDRandIntegers
 import numpy as np
 import scipy.stats
 import time
@@ -22,7 +22,8 @@ from fractions import Fraction
 from constants import CC
 
 _called_from_test = False  # Used to disallow overriding of rngs except in unit tests.
-_rng_factory = DASRandom
+# _rng_factory = DASRandom  # RDRand draws wrapped in numpy.random module
+_rng_factory = DASRDRandIntegers  # RDRand draws unlimited int, with OpenBSD rejection sampling unbiasing
 
 
 class DPMechanism:
@@ -181,6 +182,12 @@ class RationalGeometricMechanism(DPMechanism):
 
 class RationalDiscreteGaussianMechanism(DPMechanism):
     r"""
+    IMPORTANT:
+        This mechanism can only be used for queries with the following properties:
+            1) Coefficients are integer (since it's Discrete Gaussian)
+            2) sum of squares in each column to add up to 1 (which, with integer coefficients means they are 1 or 0 and sum to one),
+               which guarantees unbounded L2 sensitibity of 1 (as checked in basic_dp_answer function above)
+
     Implements Canonne, Kamath, & Steinke's Discrete Gaussian Mechanism, with perturbations drawn from:
 
                                     exp( -x^2 inverse_scale / 2 )

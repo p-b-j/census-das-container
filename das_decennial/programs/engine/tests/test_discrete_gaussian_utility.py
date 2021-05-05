@@ -1,10 +1,10 @@
 import pytest
-from functools import reduce
-from operator import mul
+# from functools import reduce
+# from operator import mul
 from fractions import Fraction
 import numpy as np
 from programs.engine.discrete_gaussian_utility import limit_denominator, RationalSimpleDiscreteGaussian, \
-    RationalScalarDiscreteLaplace, RationalSimpleBernoulliExp, RationalDiscreteUniform, RationalBernoulli, floorsqrt, RationalScalarBernoulliExpFactors
+    RationalScalarDiscreteLaplace, RationalSimpleBernoulliExp, floorsqrt, RationalScalarBernoulliExp
 
 
 @pytest.mark.parametrize("num, denom, limit", [
@@ -83,34 +83,12 @@ def test_RationalSimpleBernoulliExp_errors(gamma, size):
         RationalSimpleBernoulliExp(gamma=1, size=size, rng=None)
 
 
-# @pytest.mark.skip  # Commented this function out and replaced by RationalScalarBernoulliExpFactors
-# @pytest.mark.parametrize("gamma", [1.0, [], 'sdf', {}])
-# def test_RationalScalarBernoulliExp_errors(gamma):
-#     errmsg_match = r"Argument to RationalScalarBernoulliExp should be a fraction represented as tuple"
-#     with pytest.raises((TypeError, ValueError), match=errmsg_match):
-#         RationalScalarBernoulliExp(gamma=gamma, rng=None)
-
-
-@pytest.mark.skip  # Asserts in RationalDiscreteUniform are commented out
-@pytest.mark.parametrize("low, high, size", [
-    (2, 1, 1),
-    (1.0, 2, 2),
-    (1, 2.0, 2),
-    (1, 10, 2.0),
-    (1, 10, 0)
-])
-def test_RationalDiscreteUniform_errors(low, high, size):
-    with pytest.raises(AssertionError):
-        RationalDiscreteUniform(low=low, high=high, rng=None)
-
-
-@pytest.mark.parametrize("p", [1.0, [], 'sdf', {}])
-def test_RationalBernoulli_errors(p):
-    errmsg_match = r"Argument to RationalBernoulli should be a fraction represented as tuple"
+@pytest.mark.skip  # Commented this function out and replaced by RationalScalarBernoulliExpFactors
+@pytest.mark.parametrize("gamma", [1.0, [], 'sdf', {}])
+def test_RationalScalarBernoulliExp_errors(gamma):
+    errmsg_match = r"Argument to RationalScalarBernoulliExp should be a fraction represented as tuple"
     with pytest.raises((TypeError, ValueError), match=errmsg_match):
-        RationalBernoulli(p=p, rng=None)
-    with pytest.raises(AssertionError):
-        RationalBernoulli(p=(7,3), rng=None)
+        RationalScalarBernoulliExp(gamma=gamma, rng=None)
 
 
 @pytest.mark.parametrize("num, denom", [
@@ -125,21 +103,21 @@ def test_floorsqrt_errors(num, denom):
         floorsqrt(num, denom)
 
 
-@pytest.mark.parametrize("factors", [
-    (42534523, 325532345234, 2345324, 234534523),
-    (2342, 45894856, 2345587976896, 22143),
-
-])
-@pytest.mark.parametrize("fract", [
-    (1, 2),
-    (1, 3),
-    (4, 3),
-
-])
-def test_RationalScalarBernoulliExpFactors(factors, fract):
-    denom = reduce(mul, factors)
-    num = fract[0] * denom // fract[1] + 1
-    rng = np.random.RandomState()
-    p = np.exp(-float(fract[0])/ (fract[1]))
-    N = 100000
-    assert abs(np.mean([RationalScalarBernoulliExpFactors(numer=num, denom_factors=factors, rng=rng) for _ in range(N)]) - p) < 4 * np.sqrt(p * (1-p)/N)
+# @pytest.mark.parametrize("factors", [
+#     (42534523, 325532345234, 2345324, 234534523),
+#     (2342, 45894856, 2345587976896, 22143),
+#
+# ])
+# @pytest.mark.parametrize("fract", [
+#     (1, 2),
+#     (1, 3),
+#     (4, 3),
+#
+# ])
+# def test_RationalScalarBernoulliExpFactors(factors, fract):
+#     denom = reduce(mul, factors)
+#     num = fract[0] * denom // fract[1] + 1
+#     rng = np.random.RandomState()
+#     p = np.exp(-float(fract[0])/ (fract[1]))
+#     N = 100000
+#     assert abs(np.mean([RationalScalarBernoulliExpFactors(numer=num, denom_factors=factors, rng=rng) for _ in range(N)]) - p) < 4 * np.sqrt(p * (1-p)/N)

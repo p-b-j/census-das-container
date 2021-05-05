@@ -6,7 +6,7 @@ import pytest
 import zipfile
 
 DDECDIR =os.path.dirname(os.path.dirname(__file__))
-CONFIG_FILE = os.path.join(DDECDIR, "configs/DHC_Household_Tenure/unit.ini")
+CONFIG_FILE = os.path.join(DDECDIR, "configs/DHCH2020/MUD.ini")
 CONFIG_FILE1 = os.path.join(DDECDIR, "configs/PL94/topdown_RI.ini")
 RELEASE_ZIP = 'config.zip'
 NEWCONFIG1 = 'newconfig1.ini'
@@ -40,7 +40,7 @@ def test_config_dump():
             if line[0]=='#':
                 continue
             line = line.strip().lower()
-            if line=="include=default.ini":
+            if "include" in line:
                 continue
             if line not in newconfig1_lines:
                 print("NOT FOUND: ",line,file=sys.stderr)

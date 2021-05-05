@@ -236,6 +236,7 @@ class PickledDASExperiment:
                 self.df = self.df.persist()
 
         # reorder the columns for easier reading
+        # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         selection = [AC.GEOCODE, AC.RUN_ID, AC.PLB, AC.BUDGET_GROUP] + self.schema.dimnames + [AC.ORIG, AC.PRIV]
         selection = [x for x in selection if x in self.df.columns]
         self.df = self.df.select(selection).persist()
@@ -536,6 +537,7 @@ def getJoinedDF(priv_experiment, orig_experiment):
         # get the run's information for replacing null values coming from the full outer join
         label = { k: getattr(run, k) for k in [AC.PLB, AC.RUN_ID, AC.BUDGET_GROUP] }
         label[AC.ORIG] = 0
+        # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         label[AC.PRIV] = 0
 
         # define the join / sort columns
@@ -561,7 +563,7 @@ def getJoinedDF(priv_experiment, orig_experiment):
 
         df = df.persist()
 
-
+    # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     column_order = [AC.GEOCODE, AC.RUN_ID, AC.PLB, AC.BUDGET_GROUP] + priv_experiment.schema.dimnames + [AC.ORIG, AC.PRIV]
     df = df.select(column_order).persist()
 
@@ -724,6 +726,7 @@ class Recode2020CensusMDFToSparseHistogramDF():
             AC.RUN_ID: self.run_id,
             AC.BUDGET_GROUP: self.budget_group,
             AC.ORIG: 0,
+            # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
             AC.PRIV: 0
         }
         order_cols = [AC.GEOCODE] + self.schema.dimnames
@@ -731,6 +734,7 @@ class Recode2020CensusMDFToSparseHistogramDF():
         df = self.priv_df.join(self.orig_df, on=order_cols, how="full_outer").persist()
         df = df.fillna(label).persist()
 
+        # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         column_order = [AC.GEOCODE, AC.RUN_ID, AC.PLB, AC.BUDGET_GROUP] + self.schema.dimnames + [AC.ORIG, AC.PRIV]
         df = df.select(column_order).persist()
 
@@ -747,6 +751,7 @@ class Recode2020CensusMDFToSparseHistogramDF():
 
     def _get_counts(self, df):
         df = df.groupBy(df.columns).count().persist()
+        # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         df = df.withColumnRenamed("count", AC.PRIV).persist()
         return df
 
@@ -770,7 +775,7 @@ class Recode2020CensusMDFToSparseHistogramDF():
             df = df.withColumn(colname, sf.expr(sql)).persist()
         return df
 
-
+# privatized means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
 def getMicrodataDF(spark, dasrun, schema, privatized=True, metadata_columns=[AC.PLB, AC.RUN_ID, AC.BUDGET_GROUP], mangled_names=True, recoders=None):
     """
     Takes a pickled experiment run RDD and transforms it into a Microdata Spark DataFrame
@@ -783,8 +788,8 @@ def getMicrodataDF(spark, dasrun, schema, privatized=True, metadata_columns=[AC.
 
     schema : programs.schema.schema.Schema
 
-    privatized : bool
-        If True, then create records from the privatized data (i.e. 'syn' or AC.PRIV; aka DAS output)
+    privatized : bool (privatized means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production)
+        If True, then create records from the protected data (i.e. 'syn' or AC.PRIV; aka DAS output)
         If False, then create records from the original data (i.e. 'raw' or AC.ORIG; aka CEF)
 
     metadata_columns : list of strings; default is [AC.PLB, AC.RUN_ID, AC.BUDGET_GROUP]
@@ -805,6 +810,7 @@ def getMicrodataDF(spark, dasrun, schema, privatized=True, metadata_columns=[AC.
     """
     rdd = spark.sparkContext.pickleFile(dasrun.data_path)
     df = (
+        # privatized means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         rdd.flatMap(lambda node: mappers.getMicrodataDF_mapper(node, schema, privatized=privatized, mangled_names=mangled_names, recoders=recoders))
            .map(lambda rowdict: Row(**rowdict))
            .toDF()

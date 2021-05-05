@@ -70,7 +70,7 @@ class GeounitNode:
         checkSameAttr - checks that attribute values of two GeounitNodes are identical
         sumAttr - returns sum of attr of two GeounitNodes, checking for existence in both first
         stripForSave - removes invariants, constraints and dp_queries (and syn_unrounded) to save pickled node
-        deleteTrueArray - delete raw and raw_housing histograms, to save private data
+        deleteTrueArray - delete raw and raw_housing histograms, to save protected data
         checkTrueArrayIsDeleted - check that there is no raw data
         shiftGeocodesUp - replace geocode with parent geocode (and then recalculate parent geocode)
                           after geolevel-aggregation into an upper level node

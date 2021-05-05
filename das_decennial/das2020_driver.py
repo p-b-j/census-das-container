@@ -165,7 +165,7 @@ class DASDelegate():
         Log to .err or .info as specified by the last character in the testpoint.
         Automatically adds mission name
         """
-
+        return
         priority = syslog.LOG_ERR if testpoint.endswith('F') else syslog.LOG_NOTICE
         with open( get_testpoint_filename(), "r") as csvfile:
             for row in csv.reader(csvfile, delimiter=','):
@@ -220,32 +220,30 @@ class DASDelegate():
                 logging.warn("DVSException: %s",str(e))
 
 
-def check_git_hash(git_folder: Path):
+def get_git_hash(git_folder: Path):
     """Returns a string of the git_folder name, a space, and the commit point
     :param git_folder: root of the git folder. May be a string or a Path object.
     TODO: - clean this up so that it returns a tuple of the (remote URL,commit point).
     - We have code in DVS that does this now.
     """
-    commit_point     = subprocess.run([CC.GIT_EXECUTABLE, "show"],
-                                      stdout=subprocess.PIPE,
-                                      cwd=git_folder, check=True).stdout.decode(CC.UTF_8).split("\n")[0]
+    commit_point     = subprocess.check_output([CC.GIT_EXECUTABLE, "show"],encoding='utf8').split('\n')[0]
     try:
-        # TODO: How can this even work? It returns the file descriptor, not the output.
-        # Change this to a call to check_output
-        porcelaingit = subprocess.run([CC.GIT_EXECUTABLE, "status", "--porcelain", "--untracked-files=no"],
-                                      stdout=subprocess.PIPE, cwd=git_folder).stdout
-    except (ValueError, subprocess.CalledProcessError) as e:
+        porcelaingit = subprocess.check_output(
+            [CC.GIT_EXECUTABLE, "status", "--porcelain", "--untracked-files=no"],
+            encoding='utf-8',cwd=git_folder)
+    except (subprocess.CalledProcessError) as e:
         logging.error(f"Git porcelain-no-untracked-files failed: subprocess returned error {e}, {sys.exc_info()}")
         commit_point = commit_point + " -- Git to check whether commit is clean hasn't run! --"
         porcelaingit = ""
+
     if len(porcelaingit) > 0:
         commit_point = commit_point + " (modifications from commit present at run time)"
     else:
         try:
-            porcelaingit_wfiles = subprocess.run([CC.GIT_EXECUTABLE, "status", "--porcelain"],
-                                                 check=True,
-                                                 stdout=subprocess.PIPE).stdout
-        except (ValueError, subprocess.CalledProcessError) as e:
+            porcelaingit_wfiles = subprocess.check_output(
+                [CC.GIT_EXECUTABLE, "status", "--porcelain"],
+                encoding='utf-8')
+        except (subprocess.CalledProcessError) as e:
             logging.error(f"Git porcelain failed: subprocess returned error {e}, {sys.exc_info()}")
             commit_point = commit_point + " -- Git to check the presence of untracked files hasn't run! --"
             porcelaingit_wfiles = ""
@@ -264,7 +262,7 @@ def generate_certificate( config, certificate_path ):
                    "TITLE1" : config[CC.WRITER_SECTION].get(CC.CERTIFICATE_TITLE1, ''),
                    "PERSON2": config[CC.WRITER_SECTION].get(CC.CERTIFICATE_PERSON2, ''),
                    "TITLE2" : config[CC.WRITER_SECTION].get(CC.CERTIFICATE_TITLE2, ''),
-                   "GIT_COMMIT" : ctools.latex_tools.latex_escape(check_git_hash( Path(abspath(__file__)).parent ))
+                   "GIT_COMMIT" : ctools.latex_tools.latex_escape(get_git_hash( Path(abspath(__file__))))
                })
     cp.add_config(config)
     cp.typeset(certificate_path)
@@ -291,8 +289,8 @@ def add_git_commit_to_config(das):
                       all_submodules if submodule.strip()]
     all_submodules.append(Path(working_folder_path))
 
-    # Call check_git_hash on all the repos including the root repo.
-    repo_info = [check_git_hash(git_folder=submodule) for submodule in all_submodules]
+    # Call get_git_hash on all the repos including the root repo.
+    repo_info = [get_git_hash(git_folder=submodule) for submodule in all_submodules]
     repo_info = "|".join(repo_info)
 
     # Add all the git has repo information to the das config. This is later used to add the info to the metatadata file.
@@ -506,15 +504,19 @@ if __name__=="__main__":
     ###
 
     # put the applicationId into the environment and log it
-    git_commit = check_git_hash( Path(__file__).parent).strip().split(' ')[-1]
+    git_commit = get_git_hash( Path(dirname(abspath(__file__))))
+    try:
+        git_hash   = git_commit.split()[2]
+    except (ValueError,TypeError,KeyError) as e:
+        pass
     try:
         num_geolevels = config[CC.GEODICT][CC.GEODICT_GEOLEVELS].count(",") + 1
     except KeyError:
         num_geolevels = None
     dashboard.das_log(extra={CC.APPLICATIONID: applicationId,
                              CC.NUM_GEOLEVELS: num_geolevels,
-                             CC.GIT_COMMIT: git_commit},
-                      log_spark=True)
+                             CC.GIT_COMMIT: git_hash},
+                      log_spark=True, debug=True)
     logging.info(json.dumps({CC.APPLICATIONID: applicationId,
                              CC.START: time.time(),
                              CC.FUNC: ' __main__' }))

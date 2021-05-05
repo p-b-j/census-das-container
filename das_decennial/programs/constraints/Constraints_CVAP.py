@@ -14,7 +14,7 @@ class ConstraintsCreator(AbstractConstraintsCreator):
     schemaname = CC.SCHEMA_CVAP
 
     # This constraint is imposed in the writer. But could be imposed in the optimizer. However, raw CVAP counts are probabilistic
-    # and PL94 counts are privatized, so there is no guarantee the constraint even holds in the input data.
+    # and PL94 counts are protected, so there is no guarantee the constraint even holds in the input data.
     def cvap_ub(self, name):
         """
         Upper bound on CVAP comes from PL94 tables. Experimental.

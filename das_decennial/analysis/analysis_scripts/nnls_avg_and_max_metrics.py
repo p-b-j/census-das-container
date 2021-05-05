@@ -52,6 +52,7 @@ def AvgSqError(spark,df,geolevels,queries,schema):
     u=sdftools.getAnswers(spark,df,geolevels,schema,queries)
     print("u is")
     u.show()
+    # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     u=u.withColumn('diff',sf.col('priv')-sf.col('orig'))
     u=u.withColumn('sq',sf.lit(2))
     u=u.withColumn('sq diff', sf.pow(sf.col('diff'),sf.col('sq')))
@@ -64,6 +65,7 @@ def MaxSqError(spark,df,geolevels,queries,schema):
     u=sdftools.getAnswers(spark,df,geolevels,schema,queries)
     print("u is")
     u.show()
+    # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     u=u.withColumn('diff',sf.col('priv')-sf.col('orig'))
     u=u.withColumn('sq',sf.lit(2))
     u=u.withColumn('sq diff', sf.pow(sf.col('diff'),sf.col('sq')))

@@ -23,3 +23,10 @@ PERCENTILES = [x/100 for x in range(0,101)]
 
 EXPERIMENT_FRAMEWORK_NESTED = "experiment_framework_nested"
 EXPERIMENT_FRAMEWORK_FLAT = "experiment_framework_flat"
+
+NOT_AN_AIAN_STATE = "99"
+NOT_A_PLACE = "9" * 5
+NOT_AN_OSE = "9" * 5
+NOT_AN_AIAN_TRACT = "9" * 11
+NOT_AN_AIAN_BLOCK = "9" * 16
+NOT_A_COUNTY_NSMCD = "9" * 3

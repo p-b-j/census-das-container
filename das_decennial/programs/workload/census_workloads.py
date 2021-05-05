@@ -1,6 +1,6 @@
 import numpy as np
 import das_utils
-from constants import DHCP, CC
+from constants import CC
 
 def marginal(*margstrings):
     """ Given a sequence of recode strings, return a string that denotes their marginal """
@@ -503,20 +503,18 @@ def getWorkloadByKey(workload_keyword):
 
     workload_1940 = [
         CC.GENERIC_RECODE_TOTAL,
-        "race",
-        "gqlevels",
-        "hispanic",
-        "household",
-        "institutionalized",
-        "votingage",
-        "citizen",
-        "hispanic * race",
-        "citizen * race",
-        "citizen * votingage",
-        "citizen * hispanic",
-        "votingage * race",
-        "votingage * hispanic",
-        "votingage * hispanic * race"
+        "cenrace1940",
+        "hispanic1940",
+        "hhgq1940",
+        "age1940",
+        "citizen1940",
+        "hispanic1940 * cenrace1940",
+        "citizen1940 * cenrace1940",
+        "citizen1940 * age1940",
+        "citizen1940 * hispanic1940",
+        "age1940 * cenrace1940",
+        "age1940 * hispanic1940",
+        "age1940 * hispanic1940 * cenrace1940"
     ]
 
 

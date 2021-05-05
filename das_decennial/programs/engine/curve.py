@@ -9,7 +9,7 @@ import mpmath
 class BaseGeoCurve:
     """ Geometric Mechanism advanced composition with rational allocations having a common denominator
 
-    Given a single histogram query answered with the geometric mechansim with privacy parameter eps,
+    Given a single histogram query answered with the geometric mechanism with privacy parameter eps,
     the privacy loss random variable depends on whether we are dealing with bounded neighbors ("modify a record")
     or unbounded neighbors ("add or remove a record").
 
@@ -312,11 +312,15 @@ class zCDPEpsDeltaCurve(BaseCurve):
         allocations are assumed to be given as squares in config file, so that zCDP rho is linear in 1/(p*g), not in
         1/(p*g)^2.
     """
-    def __init__(self, geo_props, query_props_dict, verbose=True):
+    def __init__(self, geo_allocations_dict, verbose=True):
         self.verbose = verbose
         scales = []
-        for geoprop, geolevel in zip(geo_props, query_props_dict.keys()):
-            scales += [float(1.0/(geoprop * q)) for q in query_props_dict[geolevel]]
+        # assert len(geo_props) == len(query_props_dict), f"geo_props ({geo_props}) and query_prop_dict ({query_props_dict}) of unequal length sent to Curve"
+        # for geoprop, geolevel in zip(geo_props, query_props_dict.keys()):
+        for geolevel, (geoprop, qprops) in geo_allocations_dict.items():
+            if geoprop < 1e-7:  # supposed to check "== 0", but can be a float
+                continue
+            scales += [float(1.0 / (geoprop * q)) for q in qprops]
         super().__init__(scales)
 
 

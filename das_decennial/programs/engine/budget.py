@@ -45,6 +45,7 @@ class Budget(AbstractDASModule):
 
         # Fractions of how the total <engine> privacy budget is split between geolevels (for pure DP; more complicated allocation for zCDP)
         self.geolevel_prop_budgets: tuple = setup.geolevel_prop_budgets                                      # Shares of budget designated to each geolevel
+        assert len(self.levels_reversed) == len(self.geolevel_prop_budgets), f"Length of geolevels ({self.levels_reversed} unequal to length of proportions vector ({self.geolevel_prop_budgets}))"
         self.geolevel_prop_budgets_dict: dict = dict(zip(self.levels_reversed, self.geolevel_prop_budgets))
         self.checkAndPrintGeolevelBudgets()
 
@@ -62,19 +63,29 @@ class Budget(AbstractDASModule):
         if self.getboolean(CC.PRINT_PER_ATTR_EPSILONS, default=False):
             self.per_attr_epsilons, self.per_geolevel_epsilons = self.computeAndPrintPerAttributeEpsilon()
 
+    def epsilonzCDPCalculator(self, verbose=True):
+        """A closure returning function that gets epsilon from a zCDP curve"""
+        return lambda geo_allocations_dict: Fraction(zCDPEpsDeltaCurve(geo_allocations_dict, verbose=verbose).get_epsilon(float(self.delta), self.global_scale, bounded=True, tol=1e-7, zcdp=True))
+
+    def epsilonPureDPCalculator(self, verbose=True):
+        """A closure returning function that calculates total PLB by summing all the proportions"""
+        return lambda geo_allocations_dict: self.total_budget * sum(gprop * sum(qprops)  for gprop, qprops in geo_allocations_dict.values())
+
     def computeTotal(self):
         """
             Computes global epsilon in use, based on global_scale, delta (if applicable), & query, geolevel proportions.
         """
         dp_query_prop = self.query_budget.dp_query_prop
         self.log_and_print(f"Computing total budget using privacy (accounting) framework {self.privacy_framework}")
-        if self.privacy_framework in (CC.ZCDP,):
-            print(f"Sending geolevel_prop_budgets to Curve: {self.geolevel_prop_budgets}")
-            print(f"Sending dp_query_prop to Curve: {dp_query_prop}")
-            positive_error_geolevel_props = [prop for prop in self.geolevel_prop_budgets if prop != 0.0]  # TODO: Make less brittle
-            gaussian_mechanism_curve = zCDPEpsDeltaCurve(geo_props=positive_error_geolevel_props, query_props_dict=dp_query_prop)
-            total_budget = Fraction(gaussian_mechanism_curve.get_epsilon(float(self.delta), self.global_scale, bounded=True,
-                                                                         tol=1e-7, zcdp=True))
+        if self.privacy_framework == CC.ZCDP:
+            print(f"Sending geolevel_prop_budgets to Curve: {TupleOfFractions(self.geolevel_prop_budgets)}")
+            qprop_string = "\n".join((f"{k}:\t\t{TupleOfFractions(v)}" for k, v in dp_query_prop.items()))
+            print(f"Sending dp_query_prop to Curve:\n{qprop_string}")
+            geo_allocations_dict = {}
+            for geolevel, gprop in self.geolevel_prop_budgets_dict.items():
+                geo_allocations_dict[geolevel] = gprop, dp_query_prop[geolevel]
+                # TODO: add unit_dp_query_props accordingly, and vacancy_dp_query_props in a separate call, for separate budget
+            total_budget = self.epsilonzCDPCalculator()(geo_allocations_dict)
             total_budget_n, total_budget_d = dg_limit_denominator((total_budget.numerator, total_budget.denominator),
                                                                   max_denominator=CC.PRIMITIVE_FRACTION_DENOM_LIMIT,
                                                                   mode="upper")
@@ -84,7 +95,7 @@ class Budget(AbstractDASModule):
                 self.log_and_print(f"Noise 'precision' for {geolevel}: {geolevel_noise_precision}")
 
             self.log_and_print(f"Delta: {self.delta}")
-        elif self.privacy_framework in (CC.PURE_DP,):
+        elif self.privacy_framework == CC.PURE_DP:
             total_budget = 1 / self.global_scale
         else:
             raise NotImplementedError(f"DP primitives/composition rules for {self.privacy_framework} not implemented.")
@@ -103,7 +114,7 @@ class Budget(AbstractDASModule):
         budget_names = {CC.PURE_DP: "epsilon", CC.ZCDP: "rho"}
         if self.privacy_framework in (CC.PURE_DP, CC.ZCDP):
             budget_msg = f"{self.privacy_framework} {budget_names[self.privacy_framework]} is split between geolevels"
-            budget_msg += f" with proportions: {self.geolevel_prop_budgets}"
+            budget_msg += f" with proportions: {TupleOfFractions(self.geolevel_prop_budgets)}"
             self.log_and_print(budget_msg)
         else:
             raise NotImplementedError(f"Formal privacy primitives/composition rules for {self.privacy_framework} not implemented.")
@@ -127,109 +138,87 @@ class Budget(AbstractDASModule):
         # TODO: add support for Bottomup? No geolevel calculations, then; attr calculations the same
         #       before then, throw an exception if Bottomup used?
 
-        dp_query_prop = self.query_budget.dp_query_prop  # Only iterate over keys below, should be able to use just self.levels? Or the ones filtered to non-zero
+        # TODO: This is only for dp_queries. A similar loop over unit_schema_obj dimnames for vacancy queries. And unit_qp_queries to be integrated in this loop.
+        #  Those will use self.unit_schema_obj.dimnames and self.query_budget.unitQueryPropPairs() and self.query_budget.vacancyQueryPropPairs()
+        attr_query_props = self.getAttrQueryProps(self.levels, self.schema_obj.dimnames, lambda gl: self.query_budget.queryPropPairs(gl))
 
-        attr_query_props: Dict[str, Dict[str, Dict[str, Fraction]]] = defaultdict(lambda: defaultdict(dict))
-        for i, dimname in enumerate(self.schema_obj.dimnames):
-            for geolevel in dp_query_prop:
-                for query, qprop in self.query_budget.queryPropPairs(geolevel):
+        for attr, gl_q_dict in attr_query_props.items():
+            for geolevel, q_dict in gl_q_dict.items():
+                self.log_and_print(f"Found queries for dim {attr} in {geolevel}:")
+                max_qname_len = max(map(len, q_dict))
+                for qname, prop in q_dict.items():
+                    qstr = qname + ':' + ' ' * (max_qname_len - len(qname))
+                    self.log_and_print(f"\t\t\t\t\t{qstr}  {prop}")
+
+        if self.privacy_framework == CC.ZCDP:
+            eps_type_printout = " zCDP-implied"
+            eps_getter = self.epsilonzCDPCalculator(verbose=False)
+            msg_end = f" in (eps, {self.delta})-DP)\n"
+        elif self.privacy_framework == CC.PURE_DP:
+            eps_type_printout = "pure-DP"
+            eps_getter = self.epsilonPureDPCalculator(verbose=False)
+            msg_end = "\n"
+        else:
+            raise NotImplementedError(f"DP primitives/composition rules for {self.privacy_framework} not implemented.")
+
+        per_attr_epsilons, per_geolevel_epsilons = self.getPerAttrEpsilonFromProportions(attr_query_props, eps_getter, self.levels, self.geolevel_prop_budgets_dict, self.query_budget.dp_query_prop)
+
+        msg = []
+        for attr, eps in per_attr_epsilons.items():
+            msg.append(f"For single attr/dim {attr} semantics, {eps_type_printout} epsilon: {eps} (approx {float(eps):.2f})")
+        for level, eps in per_geolevel_epsilons.items():
+            msg.append(f"For geolevel semantics protecting {self.levels[0]} within {level}, {eps_type_printout} epsilon: {eps} (approx {float(eps):.2f})")
+        self.log_and_print(",\n".join(msg) + msg_end)
+
+        return per_attr_epsilons, per_geolevel_epsilons
+
+    @staticmethod
+    def getAttrQueryProps(levels, dimnames, query_iter) -> Dict[str, Dict[str, Dict[str, Fraction]]]:
+        """ Packs proportions of the queries that use an attribute into by-attribute-by-geolevel-by-query nested dicts"""
+        # Note: This nested dict is used to print it's contents, otherwise there is no need for it, and the accounting
+        # can be done in the same loop that makes this nested dict (essentially take this loop and move it into
+        # self.getPerAttrEpsilonFromProportions replacing the nested loops over the dict)
+        attr_query_props = defaultdict(lambda: defaultdict(dict))
+        for i, dimname in enumerate(dimnames):
+            for geolevel in levels:
+                for query, qprop in query_iter(geolevel):
                     assert isinstance(query, querybase.SumOverGroupedQuery), f"query {query.name} is of unsupported type {type(query)}"
                     q_kron_facs = query.kronFactors()
                     if q_kron_facs[i].shape[1] >= 2:  # Need at least two kron_factors for a record change in this dim to affect query
                         if (q_kron_facs[i].sum(axis=1) > 0).sum() >= 2:  # At least two kron_facs require at least 1 True for sens>0
                             # TODO: this assumes mutually exclusive kron_fracs; keep SumOverGroupedQuery assert until this is lifted
-                            attr_query_props[dimname][query.name][geolevel] = qprop
+                            attr_query_props[dimname][geolevel][query.name] = qprop
+        return attr_query_props
 
-        for dimname in attr_query_props:
-            # This list query proportions by geolevel and then by query. Loops should be switched for doing the other way
-            for geolevel in dp_query_prop:
-                self.log_and_print(f"Found queries for dim {dimname} in {geolevel}:")
-                for qname in attr_query_props[dimname]:
-                    self.log_and_print(f"{geolevel}\t{qname} : {attr_query_props[dimname][qname][geolevel]}\n")
+    @staticmethod
+    def getPerAttrEpsilonFromProportions(attr_query_props, eps_getter: Callable, levels: List[str], geolevel_prop_budgets_dict: dict, dp_query_prop):
+        """
+        Takes the nested dict with query proportions by attribute and geolevel and composes those into a total PLB for that attribute.
+        Then does similar accounting for the geographic attribute (bottom level / Block)
+        """
+        per_attr_epsilons = {}
+        per_geolevel_epsilons = {}
 
-        if self.privacy_framework in (CC.ZCDP,):
+        for attr, gl_q_props_dict in attr_query_props.items():
+            # gl_q_props_dict is dict with {key=geolevel, value={dict with key=query_name, value=proportion}}
+            # convert it to a dict with key=geolevel, value = (geoprop, list of qprops)
+            geo_allocations_dict = {}
+            for geolevel, q_dict in gl_q_props_dict.items():
+                if geolevel not in geo_allocations_dict:
+                    geo_allocations_dict[geolevel] = geolevel_prop_budgets_dict[geolevel], []
+                for prop in q_dict.values():
+                    geo_allocations_dict[geolevel][1].append(prop)
+            per_attr_epsilons[attr] = eps_getter(geo_allocations_dict)
 
-            def getAttrBudgetFromCurve(gaussian_mechanism_curve):
-                return Fraction(gaussian_mechanism_curve.get_epsilon(float(self.delta), self.global_scale, bounded=True, tol=1e-7, zcdp=True))
+        geo_allocations_dict = {}
+        for geolevel, upper_level in zip(levels[:-1], levels[1:]):  # Start from bottom level, end at second from top
+            # Accounting is labeled as "Block-within-Some_higher_level" budget where budget expended on Block up to (excluding) that level is composed
+            # hence the need to shift level labels by one
+            # TODO: unit_dp_queries should be added. And vacancy queries in a separate call
+            geo_allocations_dict[geolevel] = geolevel_prop_budgets_dict[geolevel], dp_query_prop[geolevel]
+            per_geolevel_epsilons[upper_level] = eps_getter(geo_allocations_dict)
 
-            per_attr_epsilons, per_geolevel_epsilons, msg = self.zCDPgetPerAttrEpsilonFromProportions(attr_query_props,
-                                                        getAttrBudgetFromCurve, self.geolevel_prop_budgets_dict,
-                                                        self.schema_obj.dimnames, self.geolevel_prop_budgets, dp_query_prop)
-            msg += f" in eps, {self.delta}-DP)\n"
-        elif self.privacy_framework in (CC.PURE_DP,):
-            per_attr_epsilons, per_geolevel_epsilons, msg = self.pureDPgetPerAttrEpsilonFromProportions(attr_query_props,
-                                                        self.schema_obj.dimnames, self.geolevel_prop_budgets_dict, self.total_budget)
-        else:
-            raise NotImplementedError(f"DP primitives/composition rules for {self.privacy_framework} not implemented.")
-        self.log_and_print(msg)
         return per_attr_epsilons, per_geolevel_epsilons
-
-    @staticmethod
-    def zCDPgetPerAttrEpsilonFromProportions(attr_query_props, getAttrBudgetFromCurve: Callable, geolevel_prop_budgets_dict, dimnames, geolevel_prop_budgets, dp_query_prop):
-        per_attr_epsilons = {}
-        per_geolevel_epsilons = {}
-
-        positive_error_geolevel_props = [prop for prop in geolevel_prop_budgets if prop != 0.0]
-
-        msg = ""
-        for i, dimname in enumerate(dimnames):
-
-            # attr_query_props is dict with key=queryname, value=dict with key=geolevel, value=proportion
-            # convert it to a dict with key=geolevel, value = list of proportions
-            query_props_geolevel_dict = defaultdict(list)
-            for d in attr_query_props[dimname].values():
-                for geolevel, prop in d.items():
-                    query_props_geolevel_dict[geolevel].append(prop)
-
-            gaussian_mechanism_curve = zCDPEpsDeltaCurve(geo_props=positive_error_geolevel_props,
-                                                         query_props_dict=query_props_geolevel_dict,
-                                                         verbose=False)
-            attr_budget = getAttrBudgetFromCurve(gaussian_mechanism_curve)
-            per_attr_epsilons[dimname] = attr_budget
-            msg += f"For single attr/dim {dimname} semantics, zCDP-implied epsilon: {attr_budget} (approx {float(attr_budget)}, "
-
-        bottom_geolevel = list(geolevel_prop_budgets_dict.keys())[-1]  # TODO This is only correct because of the way the dict is built. Make less brittle.
-        for i, cur_geolevel in enumerate(geolevel_prop_budgets_dict.keys()):
-            if cur_geolevel != bottom_geolevel:
-                # The following seems to assume order within a dict? Maybe we should take the list of levels, and iterate over that as keys, and access the dict
-                # Although this dict if formed from that list, in that order, so this is fine but not clean
-                float_nz_gprops_below_curlevel = [gprop for gprop in list(geolevel_prop_budgets_dict.values())[i + 1:] if gprop != 0.0]
-                gaussian_mechanism_curve = zCDPEpsDeltaCurve(geo_props=float_nz_gprops_below_curlevel,
-                                                             query_props_dict=dp_query_prop,
-                                                             verbose=False)
-                attr_budget = getAttrBudgetFromCurve(gaussian_mechanism_curve)
-
-                per_geolevel_epsilons[cur_geolevel] = attr_budget
-                msg += f"For geolevel semantics protecting {bottom_geolevel} within {cur_geolevel}, \nzCDP-implied epsilon: "
-                msg += f"{attr_budget} (approx {float(attr_budget)}, "
-
-        return per_attr_epsilons, per_geolevel_epsilons, msg
-
-    @staticmethod
-    def pureDPgetPerAttrEpsilonFromProportions(attr_query_props, dim_names, geolevel_prop_budgets_dict, total_budget):
-        per_attr_epsilons = {}
-        per_geolevel_epsilons = {}
-        msg = ""
-
-        for i, dimname in enumerate(dim_names):
-            attr_budget = 0.
-            for qname in attr_query_props[dimname].keys():
-                for geolevel, qprop in attr_query_props[dimname][qname].items():
-                    attr_budget += qprop * geolevel_prop_budgets_dict[geolevel]
-            attr_budget *= float(total_budget)
-            per_attr_epsilons[dimname] = attr_budget
-            msg += f"For single attr/dim {dimname} semantics, pure-DP epsilon: {attr_budget}\n"
-        bottom_geolevel = list(geolevel_prop_budgets_dict.keys())[-1]
-        for i, cur_geolevel in enumerate(geolevel_prop_budgets_dict.keys()):
-            if cur_geolevel != bottom_geolevel:
-                # The following seems to assume order within a dict? Maybe we should take the list of levels, and iterate over that as keys, and access the dict
-                # Although this dict if formed from that list, in that order, so this is fine but not clean
-                relevant_geoprops = [gprop for gprop in list(geolevel_prop_budgets_dict.values())[i + 1:] if gprop != 0.0]
-                attr_budget = float(total_budget) * sum(relevant_geoprops)
-                per_geolevel_epsilons[cur_geolevel] = attr_budget
-                msg += f"For geolevel semantics protecting {bottom_geolevel} within {cur_geolevel}, pure-DP epsilon: {attr_budget}\n"
-
-        return per_attr_epsilons, per_geolevel_epsilons, msg
 
     def checkDyadic(self, *args, **kwargs):
         """ Wrapper that adds denom_max_power"""
@@ -243,10 +232,10 @@ class Budget(AbstractDASModule):
         """
 
         dp_query_prop: Dict[str, Union[Tuple[Fraction], List[Fraction]]]               # Per geolevel, shares of within-geolevel budgets dedicated to each query
-        dp_query_names: Dict[str, Union[Tuple[Fraction], List[str]]]                   # Queries by name, per geolevel
-        unit_dp_query_names: Dict[str, Union[Tuple[Fraction], List[str]]]              # Queries for unit histogram by name, per geolevel
+        dp_query_names: Dict[str, Union[Tuple[str], List[str]]]                   # Queries by name, per geolevel
+        unit_dp_query_names: Dict[str, Union[Tuple[str], List[str]]]              # Queries for unit histogram by name, per geolevel
         unit_dp_query_prop: Dict[str, Union[Tuple[Fraction], List[Fraction]]]          # Per geolevel, shares of within-geolevel budgets dedicated to each query
-        vacancy_dp_query_names: Dict[str, Union[Tuple[Fraction], List[str]]]           # Queries for unit histogram that use separate (vacancy) budget by name, per geolevel
+        vacancy_dp_query_names: Dict[str, Union[Tuple[str], List[str]]]           # Queries for unit histogram that use separate (vacancy) budget by name, per geolevel
         vacancy_dp_query_prop: Dict[str, Union[Tuple[Fraction], List[Fraction]]]       # Per geolevel, shares of within-geolevel budgets dedicated to each query
         queries_dict: Dict[str, querybase.AbstractLinearQuery]                         # Dictionary with actual query objects
 
@@ -255,66 +244,15 @@ class Budget(AbstractDASModule):
 
             try:
                 strategy = StrategySelector.strategies[budget.getconfig("strategy")].make(budget.levels)
-                self.dp_query_names = strategy[CC.DPQUERIES]
-                self.dp_query_prop = strategy[CC.QUERIESPROP]
-                self.unit_dp_query_names = strategy[CC.UNITDPQUERIES]
-                self.unit_dp_query_prop = strategy[CC.UNITQUERIESPROP]
-                self.vacancy_dp_query_names = strategy[CC.VACANCYDPQUERIES]
-                self.vacancy_dp_query_prop = strategy[CC.VACANCYQUERIESPROP]
-
             except (NoOptionError, NoSectionError):
                 raise DASConfigError("DPQuery strategy has to be set", section=CC.BUDGET, option="strategy")
 
-            # ### GETTING
-            #
-            # try:
-            #     dp_query_names = budget.gettuple(CC.DPQUERIES, sep=CC.REGEX_CONFIG_DELIM)
-            # except (NoOptionError, NoSectionError):
-            #     msg = f"For manual workload setup, [{CC.BUDGET}]/{CC.DPQUERIES} has to be set, but it is empty."
-            #     raise DASConfigError(msg, section=CC.BUDGET, option=f"{CC.DPQUERIES}")
-            #
-            # unit_dp_query_names = budget.gettuple(CC.UNITDPQUERIES, sep=CC.REGEX_CONFIG_DELIM, default=())
-            # vacancy_dp_query_names = budget.gettuple(CC.VACANCYDPQUERIES, sep=CC.REGEX_CONFIG_DELIM, default=())
-            #
-            # self.dp_query_names = defaultdict(list)
-            # self.unit_dp_query_names = defaultdict(list)
-            # self.vacancy_dp_query_names = defaultdict(list)
-            # for geolevel in budget.geolevel_prop_budgets_dict:
-            #     self.dp_query_names[geolevel] = dp_query_names
-            #     self.unit_dp_query_names[geolevel] = unit_dp_query_names
-            #     self.vacancy_dp_query_names[geolevel] = vacancy_dp_query_names
-            #
-            # self.dp_query_prop = {}
-            # self.unit_dp_query_prop = {}
-            # self.vacancy_dp_query_prop = {}
-            #
-            # for geolevel in budget.geolevel_prop_budgets_dict:
-            #
-            #
-            #     budget.log_and_print(f"Finding budget for geolevel {geolevel}...")
-            #     if budget.config.has_option(CC.BUDGET, CC.QUERIESPROP + '|' + geolevel):
-            #         self.dp_query_prop[geolevel] = budget.gettuple_of_fractions(f"{CC.QUERIESPROP}|{geolevel}", section=CC.BUDGET,
-            #                                                                     sep=CC.REGEX_CONFIG_DELIM)
-            #     elif budget.config.has_option(CC.BUDGET, CC.QUERIESPROP):
-            #         self.dp_query_prop[geolevel] = budget.gettuple_of_fractions(CC.QUERIESPROP, section=CC.BUDGET, sep=CC.REGEX_CONFIG_DELIM)
-            #     else:
-            #         raise NoOptionError(f"{CC.QUERIESPROP + '|' + geolevel} or {CC.QUERIESPROP}", section=CC.BUDGET)
-            #
-            #     print(f"{geolevel} DPquery names: {self.dp_query_names[geolevel]}")
-            #
-            #     budget_split_log_msg = f"The sequential-composition budget allocation between queries in a geolevel is:"
-            #     budget_split_log_msg += f"{geolevel} \nDPQueries: {self.dp_query_prop[geolevel]} "
-            #     budget_split_log_msg += f"({','.join(map(str, map(float, self.dp_query_prop[geolevel])))})"
-            #
-            #     if self.unit_dp_query_names[geolevel]:
-            #         self.unit_dp_query_prop[geolevel] = budget.gettuple_of_fractions(CC.UNITQUERIESPROP, section=CC.BUDGET, sep=CC.REGEX_CONFIG_DELIM)
-            #         print(f"Unit DPquery names: {self.unit_dp_query_names[geolevel]}")
-            #
-            #     if self.vacancy_dp_query_names[geolevel]:
-            #         self.vacancy_dp_query_prop[geolevel] = budget.gettuple_of_fractions(CC.VACANCYQUERIESPROP, section=CC.BUDGET, sep=CC.REGEX_CONFIG_DELIM)
-            #         print(f"Unit DPquery names (Vacancy): {self.vacancy_dp_query_names}")
-            #
-            #     budget.log_and_print(budget_split_log_msg)
+            self.dp_query_names = strategy[CC.DPQUERIES]
+            self.dp_query_prop = strategy[CC.QUERIESPROP]
+            self.unit_dp_query_names = strategy[CC.UNITDPQUERIES]
+            self.unit_dp_query_prop = strategy[CC.UNITQUERIESPROP]
+            self.vacancy_dp_query_names = strategy[CC.VACANCYDPQUERIES]
+            self.vacancy_dp_query_prop = strategy[CC.VACANCYQUERIESPROP]
 
             # FILL QUERY DICT
             self.queries_dict = {}
@@ -324,6 +262,15 @@ class Budget(AbstractDASModule):
                 self.queries_dict.update(budget.unit_schema_obj.getQueries(self.vacancy_dp_query_names[geolevel]))
 
             ## CHECKING
+
+            assert len(self.dp_query_names) == len(budget.levels)
+            print(self.dp_query_prop)
+            print(len(budget.levels))
+            assert len(self.dp_query_prop) == len(budget.levels)
+            assert len(self.unit_dp_query_names) in (0, len(budget.levels))
+            assert len(self.unit_dp_query_prop) in (0, len(budget.levels))
+            assert len(self.vacancy_dp_query_names) in (0, len(budget.levels))
+            assert len(self.vacancy_dp_query_prop) in (0, len(budget.levels))
 
             for geolevel in budget.geolevel_prop_budgets_dict:
 
@@ -463,3 +410,19 @@ def assertEachPositive(values: Iterable, msg=""):
     """ Assert that each element of values iterable is positive"""
     error_msg = f"Negative proportion factor present in {msg} budget allocation: {values}"
     assert np.all(np.array(values) >= 0), error_msg  # f-string won't evaluate properly if is in assert
+
+
+class TupleOfFractions(tuple):
+    def __new__(cls, t):
+        ft = super().__new__(cls, t)
+
+        from math import gcd
+        lcm = t[0].denominator
+        for f in t[1:]:
+            d = f.denominator
+            lcm = lcm * d // gcd(lcm, d)
+        ft.lcm = lcm
+        return ft
+
+    def __repr__(self):
+        return ", ".join(f"{self.lcm // f.denominator * f.numerator}/{self.lcm}" for f in self)

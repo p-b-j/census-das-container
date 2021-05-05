@@ -118,6 +118,7 @@ if __name__ == "__main__":
     
     # Calculate the quantiles for each (geolevel, query) group for the orig, priv, and L1 columns
     # i.e. look at the distributions of geocode/geounit (orig, priv, L1) values for each unique (geolevel, query) tuple
+    # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     columns = [AC.ORIG, AC.PRIV, "L1"]
     groupby = [AC.GEOLEVEL, AC.QUERY]
     quantiles = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]

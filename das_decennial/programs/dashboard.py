@@ -34,8 +34,8 @@ import urllib.request
 import json
 import logging
 import uuid
-import boto3
-import botocore.config
+# import boto3
+# import botocore.config
 import socket
 import queue
 import threading
@@ -138,6 +138,7 @@ def bcc_https_proxy():
 
 def das_object_cache_loc():
     return os.path.join(JCR().get_config('DAS_S3MGMT'), JCR().get_config('DAS_OBJECT_CACHE_BASE'))
+
 
 def das_object_cache_acl():
     return JCR().get_config('DAS_S3MGMT_ACL')
@@ -316,8 +317,9 @@ def send_obj(*, obj, sender=DASLOG_SENDER):
     This code also runs on the Spark workers to send data to the dashboard for Gurobi license retries.
     """
 
+    return
     if 'instanceId' not in obj:
-        if CC.INSTANCEID in os.environ:
+        if CC.INSTANCEID not in os.environ:
             os.environ[CC.INSTANCEID] = aws.instanceId()
         obj['instanceId']   = os.environ[CC.INSTANCEID]
 

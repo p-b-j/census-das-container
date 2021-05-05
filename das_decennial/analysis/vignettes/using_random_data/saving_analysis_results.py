@@ -86,6 +86,7 @@ if __name__ == "__main__":
 
     # perform analyses
     # L1
+    # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     df = sdftools.getL1(df, colname="L1_cell", col1='priv', col2='orig')
     sdftools.show(df, "Toy example L1", 300)
     
