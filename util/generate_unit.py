@@ -18,7 +18,7 @@ new_row = {
     "TEN_A"         : '2',
     "TEN_R"         : '2',
     "VACS"          : '0',
-    "QGQTYP"        : '000',
+    "QGQTYP"        : '   ',
     "GQSEX"         : '1',
     "OIDTB"         : '27659836057514',
     "HHT"           : '5',

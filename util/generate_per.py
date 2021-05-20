@@ -15,7 +15,7 @@ new_row_template = {
     "QDOB_MONTH"    : '1',
     "QDOB_DAY"      : '1',
     "QDOB_YEAR"     : '1996',
-    "QSPAN"         : '1',
+    "QSPAN"         : '1000',
     "QSPANX"        : '1',
     "CENHISP"       : '1',
     "QRACE1"        : '1000',
@@ -30,7 +30,7 @@ new_row_template = {
     "CENRACE"       : '11',
     "RACE2010"      : '11',
     "RELSHIP"       : '21',
-    "QGQTYP"        : '000',
+    "QGQTYP"        : '   ',
     "LIVE_ALONE"    : '0',
 }
 
