@@ -1,7 +1,0 @@
-[submodule "das_framework"]
-	path = das_framework
-	branch = master
-	url = https://github.ti.census.gov/CB-DAS/das_framework
-[submodule "programs/python-dvs"]
-	path = programs/python_dvs
-	url = https://github.ti.census.gov/CB-DAS/python-dvs
