@@ -1,0 +1,149 @@
+% Certificate of disclosure avoidance
+% Originally from https://github.com/harishkumarholla/Certificate.git
+% Note: This should be a generic certificate that is then customized
+\documentclass[14pt]{scrartcl}              %class
+\usepackage{times}
+\usepackage[landscape,left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry} %for layout
+\usepackage{longtable}
+\usepackage{setspace}         % for spacing between lines
+\usepackage{graphicx}         % for including images
+\usepackage{eso-pic}          % package for including background image
+\usepackage{color}
+\usepackage{fancyhdr}
+\usepackage{eforms}             % acrobat signatures
+\usepackage{array}
+\usepackage{fancyvrb}
+\usepackage[T1]{fontenc}
+\usepackage[lighttt]{lmodern}
+\definecolor{acolor}{rgb}{0,0.08,0.45}
+\definecolor{red}{rgb}{0.5,0,0}
+\definecolor{linkbordercolor}{rgb}{0,0,0}
+
+\newcommand{\censusDirectorate}{Research and Methodology Directorate}
+\newcommand{\personOne}{@@PERSON1@@}
+\newcommand{\titleOne}{@@TITLE1@@}
+\newcommand{\personTwo}{@@PERSON2@@}
+\newcommand{\titleTwo}{@@TITLE2@@}
+\newcommand{\name}{@@NAME@@}
+\newcommand{\theDate}{@@DATE@@}
+
+%---------------------------------------------------------------
+\newcommand\BackgroundPic{
+ \put(0,0){
+ \parbox[b][\paperheight]{\paperwidth}{%
+ \vfill
+ \centering
+ % here include background image
+ \includegraphics[width=\paperwidth,height=\paperheight,keepaspectratio]{background1.jpg}
+ \vfill
+}}}
+
+\begin{document}
+\setlength{\parindent}{0pt}
+\AddToShipoutPicture{\BackgroundPic}     % here background image is called
+\cfoot{}
+
+%
+% Here include left side image
+%
+\noindent
+\begin{minipage}[l]{1.5in}
+\includegraphics[width=.92\linewidth]{Seal_of_the_United_States_Census_Bureau.pdf}  
+\end{minipage}
+\\
+\vspace{-1in}
+
+
+\noindent
+\begin{minipage}[l]{1.5in}
+\end{minipage}
+\hfill
+
+
+\begin{minipage}[c]{8.5in}
+{\centering
+{\doublespacing
+{\Large\bfseries\color{acolor}\censusDirectorate}}\\
+{\Large\bfseries\color{acolor} Certificate of Disclosure Avoidance}\\
+}
+\end{minipage}
+\hfill
+
+\begin{minipage}[r]{1.0in}
+\end{minipage}
+\hfill
+
+\vspace{4cm}
+\begin{minipage}[c]{10in}
+  \setlength{\parindent}{0pt}
+  \setlength{\parskip}{16pt}
+  \doublespacing
+
+  {{\bfseries This is to certify that {{\underline{\name}}} has
+      been produced in accordance with the disclosure avoidance requirements of the 2020
+      Census of Population and Housing at \underline{\theDate}.}}
+
+  Disclosure Review Board Clearance: CBDRB-FY20-DSEP-002
+
+  Configuration File: @@CONFIG_FILENAME@@
+
+  Git Commit: @@GIT_COMMIT@@
+\end{minipage}
+
+
+\noindent
+{\singlespacing 
+\vfill
+\begin{minipage}[l]{2.8in}
+\centering
+\sigField{Signature1}{2.8in}{2.5cm}\\
+\titleOne
+\end{minipage}
+\hfill
+\begin{minipage}[r]{2.8in}
+\centering
+\sigField{Signature2}{2.8in}{2.5cm}\\
+\titleTwo
+\end{minipage}}
+\begin{center}
+Page 1 of \pageref{LastPage}
+\end{center}
+\clearpage
+\def\BackgroundPic{}            % erase the background picture
+\fontsize{8}{8}\selectfont
+\pagestyle{fancy}
+\lhead{\name}
+\chead{@@DATE@@}
+\rhead{page \thepage~of \pageref{LastPage}}
+\cfoot{}
+\clearpage
+Config file: @@CONFIG_FILENAME@@
+
+@@CONFIG@@
+\clearpage
+
+% https://tex.stackexchange.com/questions/569720/allow-line-breaking-after-slashes-in-all-cases-without-having-to-use-a-macro/570096
+\makeatletter
+{\catcode`\/=\active
+  \gdef\slashbreak{
+    \catcode`\/=\active
+    \def/{\char`\/\penalty\z@}}
+}
+\makeatother
+
+\clearpage
+Below is the ``Bill of Materials'' (BOM) for this execution of the
+Disclosure Avoidance System. Each file name ending with \emph{.py}
+indicates a python file that was imported into the python
+interpreter's memory footprint on the driver node at the time that
+this certificate was generated. The other files (e.g. files ending
+\emph{.md} and named \emph{Makefil}) are files that are included in
+the zipfile that was distributed to the worker nodes and included with
+the source code release associated with the data release.
+\begin{slashbreak}
+@@BOM@@
+\label{LastPage}
+\end{slashbreak}
+\end{document}
+
+%%  LocalWords:  FILENAME LastPage BOM CONFIG

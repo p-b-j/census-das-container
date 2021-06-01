@@ -1,0 +1,2 @@
+[report]
+omit = */_attic/*,*/das_framework/tests/spark_sql_das_engine_test.py*,*/hdmm/*,*/tests/*,*_test.py,*/test_*.py
