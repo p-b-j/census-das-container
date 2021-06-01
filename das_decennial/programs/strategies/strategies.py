@@ -87,10 +87,6 @@ class Strategies1:
                 "votingage",
                 "hhinstlevels",
                 "hhgq",
-                "hispanic * cenrace",
-                "votingage * cenrace",
-                "votingage * hispanic",
-                "votingage * hispanic * cenrace",
                 "detailed")
 
 
@@ -110,14 +106,9 @@ class StandardRedistrictingRounderOrdering:
     @staticmethod
     def get():
         return {
-                    0: {
-                        0: ('total',
-                            'hhgq',
-                            'hhgq * hispanic',
-                            'hhgq * hispanic * cenrace',
-                            'hhgq * votingage * hispanic * cenrace',
-                            'detailed')
-                    },
+                0: ('total',
+                    'hhgq',
+                    'detailed')
                 }
 
 
@@ -129,7 +120,7 @@ class Strategy1a:
             CC.GEODICT_GEOLEVELS: levels,
             CC.DPQUERIES + "default": Strategies1.getDPQNames(),
 
-            CC.QUERIESPROP + "default": tuple([Fr(1, 11)] * 11),
+            CC.QUERIESPROP + "default": tuple([Fr(1, 7)] * 7),
         })
         for level in strategy1a[CC.GEODICT_GEOLEVELS]:
             strategy1a[CC.DPQUERIES][level] = strategy1a[CC.DPQUERIES + "default"]
@@ -1199,27 +1190,17 @@ class RedistrictingStrategiesRegularOrdering1a:
         # levels = USGeolevelsNoTractGroup.getLevels()
         ordering = {
             CC.L2_QUERY_ORDERING: {
-                0: {
-                    0: ('total',
-                         'cenrace',
-                         'hispanic',
-                         'votingage',
-                         'hhinstlevels',
-                         'hhgq',
-                         'votingage * hispanic'),
-                    1: ('hhgq', 'hispanic * cenrace', 'votingage * cenrace', 'votingage * hispanic'),
-                    2: ("votingage * hispanic * cenrace",),
-                    3: ("detailed",),
-                },
+                0: ('total',
+                        'cenrace',
+                        'hispanic',
+                        'votingage',
+                        'hhinstlevels',
+                        'hhgq'),
+                1: ("detailed",),
             },
             CC.L2_CONSTRAIN_TO_QUERY_ORDERING: {
-                0: {
-                    0: ('total', 'cenrace', 'hispanic', 'votingage', 'hhinstlevels'),
-                    1: ('hhgq', 'hispanic * cenrace', 'votingage * cenrace', 'votingage * hispanic'),
-                    2: ("votingage * hispanic * cenrace",),
-                    3: ("detailed",),
-                },
-
+                0: ('total', 'cenrace', 'hispanic', 'votingage', 'hhinstlevels'),
+                1: ("detailed",),
             },
             CC.ROUNDER_QUERY_ORDERING: StandardRedistrictingRounderOrdering.get()
         }

@@ -414,7 +414,9 @@ class DASEngineHierarchical(AbstractDASEngine, metaclass=ABCMeta):
             elif das_utils.isS3Path(path):
                 level_rdd = spark.sparkContext.pickleFile(path)
             else:
-                level_rdd = spark.sparkContext.parallelize(pickle.load(path))
+                level_rdd = spark.sparkContext.pickleFile(das_utils.expandPathRemoveHdfs(path))
+                # with open(path, "rb") as f:
+                #     level_rdd = spark.sparkContext.parallelize(pickle.load(f))
             # level_rdd = level_rdd.map(lambda node: node.unzipNoisy())
             nodes_dict[level] = level_rdd if self.use_spark else RDDLikeList(level_rdd.collect())
 

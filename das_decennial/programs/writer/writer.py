@@ -114,7 +114,7 @@ class DASDecennialWriter(driver.AbstractDASWriter, metaclass=ABCMeta):
 
 
         self.annotate(f"writing metadata to {path} {now} count={count}")
-        with s3open(path, "w", fsync=True) as f:
+        with open(path, "w") as f:
             classification_level = self.getconfig(CC.CLASSIFICATION_LEVEL, section=CC.WRITER, default=CC.DEFAULT_CLASSIFICATION_LEVEL)
             classification_level = classification_level.replace("_","")
             f.write("# Classification: {}\n".format(classification_level))

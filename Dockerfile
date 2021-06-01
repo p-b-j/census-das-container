@@ -21,5 +21,9 @@ RUN mkdir -p /etc/rsyslog.d/
 RUN for f in *.sh; do mv ${f} sudo${f} && sed 's/sudo //g' sudo${f} > ${f} && rm sudo${f}; done
 RUN chmod +x *.sh
 RUN bash -c "source ./standalone_prep.sh"
+RUN bash -c "/usr/local/anaconda3/bin/python3.6 -m pip install msgpack"
+RUN bash -c "/usr/local/anaconda3/bin/python3.6 -m pip install --upgrade pip"
+RUN bash -c "/usr/local/anaconda3/bin/python3.6 -m pip install numpy --upgrade"
+RUN bash -c "/usr/local/anaconda3/bin/python3.6 -m pip install randomgen"
 
 ENTRYPOINT ./start_das.sh

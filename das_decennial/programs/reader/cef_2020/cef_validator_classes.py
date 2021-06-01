@@ -470,6 +470,8 @@ class CEF20_UNIT:
     def parse_line(line):
         # Read a line and return it as a dictionary.
         inst: CEF20_UNIT = CEF20_UNIT()
+        if '|' in line:
+            return inst.parse_piped_line(line)
         inst.parse_column_specified(line)
         assert inst.validate(), f'A line is invalid!! line: {line}, validate_reason: {inst.validate_reason()}'
         row = inst.SparkSQLRow()
@@ -977,6 +979,8 @@ class CEF20_PER:
     def parse_line(line):
         # Read a line and return it as a dictionary.
         inst: CEF20_PER = CEF20_PER()
+        if '|' in line:
+            return inst.parse_piped_line(line)
         inst.parse_column_specified(line)
         assert inst.validate(), f'A line is invalid!! line: {line}, validate_reason: {inst.validate_reason()}'
         row = inst.SparkSQLRow()

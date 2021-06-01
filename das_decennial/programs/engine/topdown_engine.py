@@ -150,7 +150,9 @@ class TopdownEngine(DASEngineHierarchical):
         # for each geolevel take noisy measurements
         for level in self.levels:
             self.annotate(f"Taking noisy measurements at {level}")
+            print("NOISY MESUREMENT MAP")
             nodes_dict[level] = nodes_dict[level].map(lambda node: self.makeDPNode(node)).persist()
+            print("NOISY MESUREMENT LOGINV")
             self.logInvCons(nodes_dict[level])
 
         return nodes_dict

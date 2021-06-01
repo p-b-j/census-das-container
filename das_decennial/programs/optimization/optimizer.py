@@ -103,7 +103,7 @@ class AbstractOptimizer(AbstractDASModule, metaclass=ABCMeta):
         self.save_lp_seconds     = self.getfloat(CC.SAVE_LP_SECONDS, section=CC.GUROBI_SECTION, default=CC.SAVE_LP_SECONDS_DEFAULT)
         self.gurobi_path         = self.getconfig(CC.GUROBI_PATH, section=CC.GUROBI_SECTION, default=None, expandvars=True)
 
-        ## gurobi_lic_fail_rate allows us to simulate contention on the license server to test the retry logic.
+        ## gurobi_lic_fail_rate allows us to simulate contention on the license server to test the retry po0oc.
         ## In a production enviornment this should be zero.
         self.gurobi_lic_fail_rate= self.getfloat(CC.GUROBI_LIC_FAIL_RATE, section=CC.GUROBI, default=CC.GUROBI_LIC_FAIL_DEFAULT)
         os.environ[CC.PYTHON_VERSION] = f'python{sys.version_info.major}.{sys.version_info.minor}'
@@ -209,7 +209,6 @@ class AbstractOptimizer(AbstractDASModule, metaclass=ABCMeta):
 
         clogging.setup(level=logging.INFO,
                        syslog=True,
-                       syslog_address=(das_utils.getMasterIp(), CC.SYSLOG_UDP),
                        syslog_format=clogging.YEAR + " " + clogging.SYSLOG_FORMAT)
 
         # Always create a new gurobi environment!
@@ -233,7 +232,7 @@ class AbstractOptimizer(AbstractDASModule, metaclass=ABCMeta):
                     copyfile(tf.name, CC.GUROBI_LIC_CREATE_FNAME)
             os.environ[CC.GRB_LICENSE_FILE] = CC.GUROBI_LIC_CREATE_FNAME
         else:
-            os.environ[CC.GRB_LICENSE_FILE] = self.getconfig(CC.GUROBI_LIC)
+            os.environ[CC.GRB_LICENSE_FILE] = os.path.expandvars(self.getconfig(CC.GUROBI_LIC))
 
         import gurobipy as gb
 
@@ -247,14 +246,17 @@ class AbstractOptimizer(AbstractDASModule, metaclass=ABCMeta):
         attempt = 0
         rand_wait = 0
         while True:
+            print("LOOP")
             try:
                 # Implement RFC 748 for Gurobi licenses: https://tools.ietf.org/html/rfc748
                 if self.gurobi_lic_fail_rate != CC.GUROBI_LIC_FAIL_DEFAULT:
                     if np.random.uniform(0,1) < self.gurobi_lic_fail_rate:
                         raise RandomGurobiLicenseError("Randomly failed to get a Gurobi license.")
                 if (cluster == CC.EDU_CLUSTER) or (isv_name == ''):
+                    print("HERE")
                     # Use academic license
                     env = gb.Env(logfile)
+                    print("DONE")
                     if self.getconfig(CC.NOTIFY_DASHBOARD_GUROBI_SUCCESS, section=CC.MONITORING_SECTION, default=False):
                         dashboard.token_retry(retry=attempt, delay=rand_wait, success=1)
                 else:
@@ -266,6 +268,7 @@ class AbstractOptimizer(AbstractDASModule, metaclass=ABCMeta):
                 # We got the environment, so break and return it
                 return env
             except (gb.GurobiError,RandomGurobiLicenseError) as err:
+                raise err
                 # If the environment is not obtained, wait some random time and try again if attempt number is still within range
 
                 # This means that the maximum retry time would be (2^17 + (random number

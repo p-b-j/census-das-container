@@ -21,7 +21,6 @@ class OptimizerWithGurobiEnvironmentForTest(programs.optimization.optimizer.Opti
     def run(self):
         pass
 
-@pytest.mark.skip(reason="Skipping momentarily")
 def test_getGurobiEnvironment(config, dd_das_stub):
     o =AbstractOptimizerWithGurobiEnvironmentForTest(config=config, stat_node=None, das=dd_das_stub)
     env = o.getGurobiEnvironment()

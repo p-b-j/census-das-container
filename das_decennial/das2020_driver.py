@@ -591,7 +591,7 @@ if __name__=="__main__":
     seconds = total_seconds % 60
 
     dashboard.das_log(mission_name + ' finished', extra={'stop': 'now()', 'exit_code':0 })
-    dashboard.SQS_Client().flush()
+    #dashboard.SQS_Client().flush()
 
 
     if das.output_paths:
@@ -601,7 +601,7 @@ if __name__=="__main__":
         das.log_and_print("")
 
     dashboard.das_log(mission_name + ' finished', extra={'stop': 'now()', 'exit_code':0 })
-    dashboard.SQS_Client().flush()
+    #dashboard.SQS_Client().flush()
     requestResize(CC.TAKEDOWN_SECTION)
     das.log_and_print(f"{sys.argv[0]}: Elapsed time: {total_seconds} seconds ({minutes} min, {seconds} seconds)")
     delegate.log_testpoint("T03-005S") # DAS application completed

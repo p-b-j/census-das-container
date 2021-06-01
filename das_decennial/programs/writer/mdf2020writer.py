@@ -31,7 +31,7 @@ class MDF2020Writer(DASDecennialWriter):
     def saveHeader(self, *, path):
         """Saves header to the requested S3 location. This header will then be combined with the contents by the s3cat command"""
         self.annotate(f"writing header to {path}")
-        with s3open(path, "w", fsync=True) as f:
+        with open(path, "w") as f:
             f.write("|".join(self.var_list))
             f.write("\n")
 
@@ -49,7 +49,7 @@ class MDF2020Writer(DASDecennialWriter):
             df = df.repartition(CC.MDF_PARTITIONS_FOR_S3CAT)
         df = self.sort(df)
         ET.SubElement(self.das.dfxml_writer.doc, CC.DAS_OUTPUT).text = path
-        df.write.csv(path, sep="|")
+        df.write.csv(path, sep="|", mode="overwrite")
 
         if self.setup.dvs_enabled:
             self.annotate(f"{__file__}: Computing DVS annotations")

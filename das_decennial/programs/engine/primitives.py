@@ -22,8 +22,8 @@ from fractions import Fraction
 from constants import CC
 
 _called_from_test = False  # Used to disallow overriding of rngs except in unit tests.
-# _rng_factory = DASRandom  # RDRand draws wrapped in numpy.random module
-_rng_factory = DASRDRandIntegers  # RDRand draws unlimited int, with OpenBSD rejection sampling unbiasing
+_rng_factory = DASRandom  # RDRand draws wrapped in numpy.random module
+#_rng_factory = DASRDRandIntegers  # RDRand draws unlimited int, with OpenBSD rejection sampling unbiasing
 
 
 class DPMechanism:
