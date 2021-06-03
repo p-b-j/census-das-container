@@ -44,7 +44,7 @@ def geoimp_wrapper(*, config, parent_child_node, accum, optimizers, min_schema=N
     """
 
     # Make sure that the logger is set up on all the nodes
-    clogging.setup(level=logging.INFO, syslog='True')
+    clogging.setup(level=logging.INFO)
 
     parent, children = findParentChildNodes(parent_child_node)
     parent_hist = parent.getDenseSyn(), parent.getDenseSynHousing()
@@ -96,7 +96,7 @@ def geoimp_wrapper_root(*, config, parent_shape, root_node: GeounitNode, optimiz
     """
 
     # Make sure that the logger is set up on all of the nodes
-    clogging.setup(level=logging.INFO, syslog=True)
+    clogging.setup(level=logging.INFO)
     # t_start = time.time()
     parent_hist = [None] * len(parent_shape)
 

@@ -31,12 +31,12 @@ class DASStub:
 
     def log_and_print(self, message, cui=False):
         print(f"ANNOTATE: {message}")
-        logging.info("ANNOTATE: " + message)
+        #logging.info("ANNOTATE: " + message)
 
     def make_bom_only(self, *args, **kwargs):
         pass
 
     def annotate(self, message, verbose=True):
-        if verbose:
-            print(f"ANNOTATE: {message}")
-        logging.info("ANNOTATE: " + message)
+        #if verbose:
+        print(f"ANNOTATE: {message}")
+        #logging.info("ANNOTATE: " + message)

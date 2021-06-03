@@ -34,7 +34,7 @@ crontab /tmp/cron$$
 
 
 # Get Spark if we don't have it
-SPARK_DIST=https://apache.osuosl.org/spark/spark-2.4.7/spark-2.4.7-bin-hadoop2.7.tgz
+SPARK_DIST=https://mirrors.sonic.net/apache/spark/spark-2.4.8/spark-2.4.8-bin-hadoop2.7.tgz
 SPARK_FILE=`basename $SPARK_DIST`
 SPARK_DIR=/usr/local/spark
 SPARK_TAR=$SPARK_DIR/$SPARK_FILE
@@ -44,8 +44,10 @@ if [ ! -d $SPARK_DIR ]; then
 fi
 if [ ! -r $SPARK_TAR  ]; then
   wget -O $SPARK_TAR $SPARK_DIST
+fi
+if [ ! -d $SPARK_TAR ]; then
   cd $SPARK_DIR
-  tar xfvz $SPARK_FILE
+  tar xfvz $SPARK_TAR
 fi
 
 # Update the user's profile

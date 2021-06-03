@@ -207,9 +207,9 @@ class AbstractOptimizer(AbstractDASModule, metaclass=ABCMeta):
         #
 
 
-        clogging.setup(level=logging.INFO,
-                       syslog=True,
-                       syslog_format=clogging.YEAR + " " + clogging.SYSLOG_FORMAT)
+        clogging.setup(level=logging.INFO)
+                    #    syslog=True,
+                    #    syslog_format=clogging.YEAR + " " + clogging.SYSLOG_FORMAT)
 
         # Always create a new gurobi environment!
         # (Previously we just returned grb_env if we already had one. This was an error)

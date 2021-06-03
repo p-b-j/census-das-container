@@ -13,9 +13,9 @@ import random
 
 from urllib.parse import urlparse
 
-import boto3
-import botocore
-import botocore.exceptions
+#import boto3
+#import botocore
+#import botocore.exceptions
 
 # note: boto3.resource acquire is not threadsafe, so we create this mutex
 boto3_resource_mutex = threading.Lock()

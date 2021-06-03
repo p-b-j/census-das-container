@@ -15,7 +15,7 @@ import os
 import subprocess
 import urllib.request
 import socket
-import boto3
+#import boto3
 import sys
 
 HTTP_PROXY='HTTP_PROXY'

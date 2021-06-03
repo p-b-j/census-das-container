@@ -1,6 +1,6 @@
 import json
 import subprocess
-import boto3
+#import boto3
 
 
 Ec2InstanceId='Ec2InstanceId'
