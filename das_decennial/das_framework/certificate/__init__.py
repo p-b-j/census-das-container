@@ -162,4 +162,4 @@ class CertificatePrinter:
             texfiles = os.path.join(os.path.dirname(os.path.abspath(__file__)), "texfiles")
             latex_tools.run_latex(out.name, delete_tempfiles=False, repeat=2, texinputs=texfiles + ":")
             shutil.move(out.name.replace(".tex", ".pdf"), pdf_name)
-            shutil.rmtree(outdir)
+            os.system("rm -rf {}".format(outdir))
