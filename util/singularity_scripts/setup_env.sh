@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Remove release zip if it already exists
+if [ -f ${HOME}/das_log.release.zip ]
+then
+    rm ${HOME}/das_log.release.zip
+fi
+
 # Env setup
 export DAS_VERSION="Standalone"
 export GRB_LICENSE_FILE="${HOME}/gurobi.lic"
