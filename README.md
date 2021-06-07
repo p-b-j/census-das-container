@@ -36,12 +36,12 @@ $ wget https://homes.cs.washington.edu/~pbjones/census_das.img
 You can also verify the `sha256sum` and/or `md5sum` of the downloaded image:
 ```bash
 # Expected sha256sum output:
-# 9bc14a6817eedf3ed4ffef6dd833d5efc2f218ecfc7e711bc3c004f0e048b849  census_das.img
+# 9e477c69b969eeea03ec1715121bb34266d9284581aaa1b6471df4d0bb1c9c3d  census_das.img
 $ sha256sum census_das.img
 ```
 ```bash
 # Expected md5sum output:
-# aa9d5b9131f50bb55c6f3438930b0694  census_das.img
+# b55b8883e4189e258d599ad70efcc717  census_das.img
 $ md5sum census_das.img
 ```
 
