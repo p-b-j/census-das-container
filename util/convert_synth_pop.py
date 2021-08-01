@@ -18,16 +18,37 @@ def get_script_args():
     parser.add_argument(
         'synth_path',
         metavar='SYNTH_PATH',
-        help='path to synthetic population file to convert'
+        help=('path to synthetic population file to convert - '
+              'if path is a single file, will convert only that file,'
+              'if path is a directory, will convert all the files in the' 
+              'given directory (one level deep)')
     )
 
-    return parser.parse_args()
+    args = parser.parse_args()
 
-def load_synth_df(script_args):
-    grfc_path = os.path.expandvars(script_args.grfc_path)
-    synth_path = os.path.expandvars(script_args.synth_path)
+    grfc_path = os.path.expanduser(os.path.expandvars(args.grfc_path))
 
-    synth_df = pd.read_csv(synth_path, index_col=0)
+    if not os.path.exists(grfc_path):
+        print(f'Error: Could not find grfc file path: {grfc_path}')
+        exit(1)
+
+    synth_path = os.path.expanduser(os.path.expandvars(args.synth_path))
+
+    if not os.path.exists(synth_path):
+        print(f'Error: Could not find synthetic population file path: {synth_path}')
+        exit(1)
+
+    return (grfc_path, synth_path)
+
+def load_synth_df(grfc_path, synth_path):
+
+    if os.path.isdir(synth_path):
+        dfs = (pd.read_csv(os.path.join(synth_path, path), index_col=0) 
+               for path in os.listdir(synth_path)
+               if os.path.isfile(os.path.join(synth_path, path)))
+        synth_df = pd.concat(dfs)       
+    else:
+        synth_df = pd.read_csv(synth_path, index_col=0)
 
     grfc_df = pd.read_csv(
         grfc_path, 
@@ -501,10 +522,11 @@ def get_race2010(nhpi, asn, aian, blk, wht):
     else: raise ValueError('Incorrect race indicator: ' + indicator_str)
 
 def main():
-    script_args = get_script_args()
+    grfc_path, synth_path = get_script_args()
 
     print("Loading synthetic population dataframe...")
-    synth_df = load_synth_df(script_args)
+    synth_df = load_synth_df(grfc_path, synth_path)
+
     hh_gb = synth_df.groupby('hh_id')
 
     print("Building CEF person dataframe...")

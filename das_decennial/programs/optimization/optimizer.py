@@ -246,17 +246,14 @@ class AbstractOptimizer(AbstractDASModule, metaclass=ABCMeta):
         attempt = 0
         rand_wait = 0
         while True:
-            print("LOOP")
             try:
                 # Implement RFC 748 for Gurobi licenses: https://tools.ietf.org/html/rfc748
                 if self.gurobi_lic_fail_rate != CC.GUROBI_LIC_FAIL_DEFAULT:
                     if np.random.uniform(0,1) < self.gurobi_lic_fail_rate:
                         raise RandomGurobiLicenseError("Randomly failed to get a Gurobi license.")
                 if (cluster == CC.EDU_CLUSTER) or (isv_name == ''):
-                    print("HERE")
                     # Use academic license
                     env = gb.Env(logfile)
-                    print("DONE")
                     if self.getconfig(CC.NOTIFY_DASHBOARD_GUROBI_SUCCESS, section=CC.MONITORING_SECTION, default=False):
                         dashboard.token_retry(retry=attempt, delay=rand_wait, success=1)
                 else:
@@ -780,7 +777,7 @@ class GeoOptimizer(Optimizer, metaclass=ABCMeta):
             report_reason += f'(random_report) '
             save_model = True
 
-        if save_model:
+        if save_model and False:  # Added to avoid using boto3/s3
             s3path = self.saveModelToS3(model)
             if s3path is not None:
                 report_reason += " Saved lpfile to "+s3path
