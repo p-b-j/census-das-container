@@ -80,7 +80,7 @@ def build_per_df(synth_df, hh_gb):
     per_df = pd.DataFrame(index=np.arange(synth_df.shape[0]), columns=per_fields)
 
     # All housing units right now
-    per_df['RTYPE'] = np.where(synth_df['relationship'].isin([16, 17]), 5, 3)
+    per_df['RTYPE'] = np.where(synth_df['relationship'].isin([37, 38]), 5, 3)
     # Need to add 100000000 to make the value valid
     # per_df['MAFID'] = str(100000000 + synth_df['hh_id'])
     per_df['MAFID'] = 100000001 + synth_df['hh_id']
@@ -129,7 +129,7 @@ def build_per_df(synth_df, hh_gb):
     # For some reason CENHISP is 1 and 2 instead of 0 and 1...
     per_df['CENHISP'] = synth_df['hispanic'] + 1
     # RELSHIP range seems to be 20-38 but not documented anywhere
-    per_df['RELSHIP'] = synth_df['relationship'] + 20
+    per_df['RELSHIP'] = synth_df['relationship']
     # NIU but 000 isn't allowed?
     per_df['QGQTYP'] = '   '
     # Everyone living alone (for now)
@@ -151,7 +151,7 @@ def build_unit_df(synth_df, per_df, hh_gb):
 
         # why don't these just match? :(
         # Should be able to subtract 1 from person RTYPE
-        new_row['RTYPE'] = 4 if head_of_household['relationship'] in [16, 17] else 2
+        new_row['RTYPE'] = 4 if head_of_household['relationship'] in [37, 38] else 2
         new_row['MAFID'] = 100000001 + hh_id
         new_row['BCUSTATEFP'] = head_of_household['state'].item()
         new_row['VERSION'] = VERSION
@@ -192,7 +192,7 @@ def build_unit_df(synth_df, per_df, hh_gb):
     return unit_df
 
 def get_head_of_household(household):
-    possible = household[household['relationship'].isin([0, 1, 13, 14])]
+    possible = household[household['relationship'].isin([20])]
     if possible.shape[0] > 0:
         # Arbitrarily return first row
         return possible.iloc[0]
@@ -202,7 +202,7 @@ def get_head_of_household(household):
 
 def get_hht(household, rtype):
     hhsize = household.shape[0]
-    rels = household['relationship'] + 20
+    rels = household['relationship']
     rels_no_hh = rels[rels != 20]
     hhsex = get_head_of_household(household)['sex_id'].item()
     # 14 is female householder nonfamily
@@ -224,13 +224,14 @@ def get_hht(household, rtype):
         return 7
     else:
         hh_id = household['hh_id'].iloc[0].item()
-        raise ValueError(f"Could not generate hht for household w/id: {hh_id}")
+        raise ValueError(f"Could not generate hht for household w/id: {hh_id}\n"
+                         f"Household relationships: {list(rels)}")
 
 def get_hht2(household, rtype):
     hhsize = household.shape[0]
     household_under_18 = household[household['age'] < 18]
-    rels = household['relationship'] + 20
-    rels_under_18 = household_under_18['relationship'] + 20
+    rels = household['relationship']
+    rels_under_18 = household_under_18['relationship']
     hhsex = get_head_of_household(household)['sex_id'].item()
     if (rtype == 4) or (rtype == 2 and hhsize == 0):
         return 0
@@ -260,11 +261,12 @@ def get_hht2(household, rtype):
         return 12
     else:
         hh_id = household['hh_id'].iloc[0].item()
-        raise ValueError(f"Could not generate hht2 for household w/id: {hh_id}")
+        raise ValueError(f"Could not generate hht2 for household w/id: {hh_id}\n"
+                         f"Household relationships: {list(rels)}")
     
 def get_cplt(household, rtype):
     hhsize = household.shape[0]
-    rels = household['relationship'] + 20
+    rels = household['relationship']
     if (rtype == 4) or ((rtype == 2) and (hhsize <= 1)):
         return 0
     elif rels.isin([21]).any():
@@ -280,7 +282,7 @@ def get_cplt(household, rtype):
 
 def get_upart(household, rtype):
     hhsize = household.shape[0]
-    rels = household['relationship'] + 20
+    rels = household['relationship']
     hhsex = get_head_of_household(household)['sex_id'].item()
     sex_rels = zip(household['sex_id'], rels)
     if (rtype == 4) or (rtype == 2 and hhsize == 0):
@@ -298,7 +300,7 @@ def get_upart(household, rtype):
 
 def get_multg(household, rtype):
     hhsize = household.shape[0]
-    rels = household['relationship'] + 20
+    rels = household['relationship']
     if (rtype == 4) or (hhsize <= 2):
         return 0
     elif (rels.isin([25, 26, 27]).any() and rels.isin([30]).any()) or (rels.isin([29,31]).any()):
@@ -361,8 +363,8 @@ def get_hhrace(household, rtype):
 
 def get_paoc(household, rtype):
     hhsize = household.shape[0]
-    household_under_6_rels = household[household['age'] < 6]['relationship'] + 20
-    household_6_to_17_rels = household[(household['age'] >= 6) & (household['age'] <= 17)]['relationship'] + 20
+    household_under_6_rels = household[household['age'] < 6]['relationship']
+    household_6_to_17_rels = household[(household['age'] >= 6) & (household['age'] <= 17)]['relationship']
 
     children_under_6 = household_under_6_rels.isin([25, 26, 27]).any()
     children_6_to_17 = household_6_to_17_rels.isin([25, 26, 27]).any()
