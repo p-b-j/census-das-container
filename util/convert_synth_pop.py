@@ -134,7 +134,7 @@ def build_per_df(synth_df, hh_gb):
     per_df['QGQTYP'] = '   '
     # Everyone living alone (for now)
     per_df['LIVE_ALONE'] = synth_df.apply(
-        lambda row: 0 if hh_gb.get_group(row['hh_id']).shape[0] > 1 else 1,
+        lambda row: 0 if hh_gb.get_group((row['geoid'], row['hh_id'])).shape[0] > 1 else 1,
         axis=1
     )
     
@@ -144,14 +144,14 @@ def build_unit_df(synth_df, per_df, hh_gb):
     unit_fields = ['RTYPE', 'MAFID', 'BCUSTATEFP', 'VERSION', 'FINAL_POP', 'HHLDRAGE', 'HHSPAN', 'HHLDRACE', 'HHRACE', 'TEN', 'TEN_A', 'TEN_R', 'VACS', 'QGQTYP', 'GQSEX', 'OIDTB', 'HHT', 'HHT2', 'CPLT', 'UPART', 'MULTG', 'PAOC', 'P18', 'P60', 'P65', 'P75', 'PAC', 'HHSEX']
     unit_df = pd.DataFrame(columns=unit_fields)
 
-    for hh_id, household in hh_gb:
+    for (geoid, hh_id), household in hh_gb:
         new_row = {}
 
         head_of_household = get_head_of_household(household)
 
         # why don't these just match? :(
         # Should be able to subtract 1 from person RTYPE
-        new_row['RTYPE'] = 4 if head_of_household['relationship'] in [37, 38] else 2
+        new_row['RTYPE'] = 4 if household['relationship'].isin([37, 38]).any() else 2
         new_row['MAFID'] = 100000001 + hh_id
         new_row['BCUSTATEFP'] = head_of_household['state'].item()
         new_row['VERSION'] = VERSION
@@ -259,6 +259,9 @@ def get_hht2(household, rtype):
         return 11
     elif (hhsize > 1) and (hhsex == 1) and (rels.isin([34, 35, 36]).any()):
         return 12
+    elif (hhsize > 1) and (rels.isin([20]).all()):
+        # TODO: we really shouldn't have this case
+        return 11
     else:
         hh_id = household['hh_id'].iloc[0].item()
         raise ValueError(f"Could not generate hht2 for household w/id: {hh_id}\n"
@@ -529,7 +532,7 @@ def main():
     print("Loading synthetic population dataframe...")
     synth_df = load_synth_df(grfc_path, synth_path)
 
-    hh_gb = synth_df.groupby('hh_id')
+    hh_gb = synth_df.groupby(['geoid', 'hh_id'])
 
     print("Building CEF person dataframe...")
     per_df = build_per_df(synth_df, hh_gb)
