@@ -1,4 +1,5 @@
 import argparse
+import csv
 import numpy as np
 import os
 import pandas as pd
@@ -140,56 +141,58 @@ def build_per_df(synth_df, hh_gb):
     
     return per_df
 
-def build_unit_df(synth_df, per_df, hh_gb):
-    unit_fields = ['RTYPE', 'MAFID', 'BCUSTATEFP', 'VERSION', 'FINAL_POP', 'HHLDRAGE', 'HHSPAN', 'HHLDRACE', 'HHRACE', 'TEN', 'TEN_A', 'TEN_R', 'VACS', 'QGQTYP', 'GQSEX', 'OIDTB', 'HHT', 'HHT2', 'CPLT', 'UPART', 'MULTG', 'PAOC', 'P18', 'P60', 'P65', 'P75', 'PAC', 'HHSEX']
-    unit_df = pd.DataFrame(columns=unit_fields)
+def write_unit_df(synth_df, per_df, hh_gb):
+    with open('converted_synth_unit.cef', 'w', newline='') as unit_file:
+        unit_writer = csv.writer(unit_file, delimiter='|')
 
-    for (geoid, hh_id), household in hh_gb:
-        new_row = {}
-
+        for (geoid, hh_id), household in hh_gb:
+            unit_writer.writerow(get_unit_row(household, hh_id))
+        
+def get_unit_row(household, hh_id):
         head_of_household = get_head_of_household(household)
-
+        unit_rtype = 4 if household['relationship'].isin([37, 38]).any() else 2
+        # TODO: this is free and clear - should it be more dynamic?
+        unit_ten = 2
+        unit_paoc = get_paoc(household, unit_rtype)
         # why don't these just match? :(
         # Should be able to subtract 1 from person RTYPE
-        new_row['RTYPE'] = 4 if household['relationship'].isin([37, 38]).any() else 2
-        new_row['MAFID'] = 100000001 + hh_id
-        new_row['BCUSTATEFP'] = head_of_household['state'].item()
-        new_row['VERSION'] = VERSION
-        new_row['FINAL_POP'] = household.shape[0]
-        new_row['HHLDRAGE'] = head_of_household['age'] if head_of_household['age'] >= 15 else 15
-        new_row['HHSPAN'] = get_hhspan(household, new_row['RTYPE'])
-        # Copying over QRACEX (CEF validator describes as "Edited QRACEX of householder")
-        new_row['HHLDRACE'] = 1
-        new_row['HHRACE'] = str(get_hhrace(household, new_row['RTYPE'])).zfill(2)
-        # For now, we can say everyone owns free and clear?
-        new_row['TEN'] = 2
-        # Zero clue what these are still, we will match TEN for now
-        new_row['TEN_A'] = new_row['TEN']
-        new_row['TEN_R'] = new_row['TEN']
-        # I think should be NIU since it's not vacant
-        new_row['VACS'] = 0
-        # NIU but 000 isn't allowed?
-        new_row['QGQTYP'] = '   '
-        # CEF Validator says "GQ Unit Sex Composition Flag"???
-        new_row['GQSEX'] = ' '
-        new_row['OIDTB'] = head_of_household['OIDTABBLK'].astype(np.int64).item()
-        # All of these will change when we simulate households
-        new_row['HHT'] = get_hht(household, new_row['RTYPE'])
-        new_row['HHT2'] = str(get_hht2(household, new_row['RTYPE'])).zfill(2)
-        new_row['CPLT'] = get_cplt(household, new_row['RTYPE'])
-        new_row['UPART'] = get_upart(household, new_row['RTYPE'])
-        new_row['MULTG'] = get_multg(household, new_row['RTYPE'])
-        new_row['PAOC'] = get_paoc(household, new_row['RTYPE'])
-        new_row['P18'] = get_p18(household, new_row['RTYPE'])
-        new_row['P60'] = get_p60(household, new_row['RTYPE'])
-        new_row['P65'] = get_p65(household, new_row['RTYPE'])
-        new_row['P75'] = get_p75(household, new_row['RTYPE'])
-        new_row['PAC'] = 1 if new_row['PAOC'] in [1, 2, 3] else 0
-        new_row['HHSEX'] = get_hhsex(household, new_row['RTYPE'])
-
-        unit_df = unit_df.append(new_row, ignore_index=True)
-
-    return unit_df
+        return [
+            unit_rtype, # RTYPE
+            100000001 + hh_id, # MAFID
+            head_of_household['state'].item(), # BCUSTATEFP
+            VERSION, # VERSION
+            household.shape[0], # FINAL_POP
+            head_of_household['age'] if head_of_household['age'] >= 15 else 15, # HHLDRAGE
+            get_hhspan(household, unit_rtype), # HHSPAN
+            # CEF validator describes as "Edited QRACEX of householder", not sure what that means
+            1, # HHLDRACE
+            str(get_hhrace(household, unit_rtype)).zfill(2), # HHRACE
+            # For now, we can say everyone owns free and clear?
+            unit_ten, # TEN
+            # Zero clue what these are still, we will match TEN for now
+            unit_ten, # TEN_A
+            unit_ten, # TEN_R
+            # I think should be NIU since it's not vacant
+            0, # VACS
+            # NIU but 000 isn't allowed?
+            '   ', # QGQTYP
+            # CEF Validator says "GQ Unit Sex Composition Flag"???
+            ' ', # GQSEX
+            head_of_household['OIDTABBLK'].astype(np.int64).item(), # OIDTB
+            # All of these will change when we simulate households
+            get_hht(household, unit_rtype), # HHT
+            str(get_hht2(household, unit_rtype)).zfill(2), # HHT2
+            get_cplt(household, unit_rtype), # CPLT
+            get_upart(household, unit_rtype), # UPART
+            get_multg(household, unit_rtype), # MULTG
+            get_paoc(household, unit_rtype), # PAOC
+            get_p18(household, unit_rtype), # P18
+            get_p60(household, unit_rtype), # P60
+            get_p65(household, unit_rtype), # P65
+            get_p75(household, unit_rtype), # P75
+            1 if unit_paoc in [1, 2, 3] else 0, # PAC
+            get_hhsex(household, unit_rtype), # HHSEX
+        ]
 
 def get_head_of_household(household):
     possible = household[household['relationship'].isin([20])]
@@ -537,12 +540,12 @@ def main():
     print("Building CEF person dataframe...")
     per_df = build_per_df(synth_df, hh_gb)
 
-    print("Building CEF unit dataframe...")
-    unit_df = build_unit_df(synth_df, per_df, hh_gb)
+    print("Writing CEF unit dataframe...")
+    write_unit_df(synth_df, per_df, hh_gb)
 
-    print("Exporting CEF dataframes...")
+    print("Writing CEF person dataframe...")
     per_df.to_csv('converted_synth_pop.cef', sep='|', index=False, header=False)
-    unit_df.to_csv('converted_synth_unit.cef', sep='|', index=False, header=False)
+
     print("Done!")
 
 if __name__ == "__main__":
