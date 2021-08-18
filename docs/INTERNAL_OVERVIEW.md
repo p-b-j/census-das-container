@@ -105,7 +105,7 @@ Unfortunately, the DAS code needs a bit of modification to run outside of the Ce
     * `das_decennial/programs/engine/engine_utils.py`
         * In `DASEngineHierarchical.loadNoisyAnswers` change the `else` branch of the `if path.startswith(CC.HDFS_PREFIX):` check to only have the line `level_rdd = spark.sparkContext.pickleFile(das_utils.expandPathRemoveHdfs(path))`. This is due to the code assuming we are on an AWS machine and not allowing local paths
     * `das_decennial/programs/engine/primitives.py`
-        * Change the `_rng_factory` assignment to use `DASRandom` instead of `DASRDRandIntgers`
+        * Change the `_rng_factory` assignment to use `DASRandom` instead of `DASRDRandIntegers`
     * `das_decennial/programs/metrics/accuracy_metrics_workload.py`
         * In `AccuracyMetricsWorkload.L1Sum` replace `priv` and `orig` with `priv.toDense()` and `orig.toDense()` respectively.
     * `das_decennial/programs/nodes/manipulate_nodes.py`
@@ -127,6 +127,8 @@ Unfortunately, the DAS code needs a bit of modification to run outside of the Ce
         if '|' in line:
             return inst.parse_piped_line(line)
         ```
+    * `das_decennial/programs/s3cat.py`
+        * Replace this file with the version in `census2020-das-e2e/s3cat.py` which allows for concatenation of files on the local disk
     * `das_decennial/programs/sparse.py`
         * In `multiSparse.__init__` add the line `self.size = array.size` for both the `np.ndarray` case and the `ss.csr_matrix` case of the `isinstance` checks (should be added twice). 
     * `das_decennial/programs/writer/mdf2020writer.py`
