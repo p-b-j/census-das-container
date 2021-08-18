@@ -80,8 +80,12 @@ The DAS code is in the `das_decennial` directory of the project. It contains two
 `das_decennial` and `das_decennial/das_framework` were acquired from researchers at Boston University who have access to the DAS repos and were kind enough to send zips of the modules to us. A copy of `das_decennial/das_framework/ctools` was found in a public repo maintained by a former Census Bureau employee: https://github.com/simsong/ctools. Though the code from this repo appears to be working ok, given that the employee no longer works at the Census Bureau, it may be worth asking the researchers to send the `ctools` module along with the others when getting future updates.
 
 ## Steps for Updating Code
+When you retrieve new versions of any of the submodules (`das_decennial`, `das_framework`, and `ctools`), you'll unfortunately have to go through a pretty manual process to update the code base.
+* Copy in the modules to their appropriate location, making note that the `das_decennial` module and `das_framework` module will contain empty directories for their submodules (`das_framework` and `ctools` respectively).
+* Remove any `git` files that are not `.gitignore` from the directories, since they will mess with the `git` configuration for our project (specific should be listed in the [Modifications Made](#modifications-made) section below).
+* Make the modifications listed below. If new modifications need to be made, please add to the list.
 
-## Modifications Made
+### Modifications Made
 Unfortunately, the DAS code needs a bit of modification to run outside of the Census Bureau's AWS environment. There are a number of AWS-specific packages used and some logging infrastructure that cannot be replicated. Here are a list of changes that were needed in order to run the DAS, with the disclaimer that some of the changes may need to be redesigned if they remove a part of the system deemed critical.
 
 * `das_decennial` directory
