@@ -39,7 +39,7 @@ A few changes needed to be made to the files in `census2020-das-e2e/etc/`. Here 
     * Changed the `tar xfvz $SPARK_FILE` command to `tar xfvz $SPARK_TAR`
 * `gurobi_install.sh`
     * Changed `gurobi` version from `7.5.2` to `9.1.1`
-    * Added the following code to use `anaconda` to install `gurobi` for `Python`
+    * Added the following code at the bottom of the script to use `anaconda` to install `gurobi` for `Python`
     ```
     ANACONDA_ROOT=/usr/local/anaconda3
     if [ ! -d $ANACONDA_ROOT ]; then
@@ -61,13 +61,13 @@ A few changes needed to be made to the files in `census2020-das-e2e/etc/`. Here 
 ## Gurobi License Server
 Since the DAS was intended to be run on servers within the IHME cluster, a `gurobi` license server was setup to allow the same license file to be used regardless of which server was running the DAS. The license server was setup on a server under the CSE department, but should likely be migrated over to IHME servers with the help of some admins.
 
-Here is a form to request an academic site license, which is needed to run the token server: https://assets.gurobi.com/pdf/requests/ACADEMIC-SITE-REQUEST.pdf
+* Here is a form to request an academic site license, which is needed to run the token server: https://assets.gurobi.com/pdf/requests/ACADEMIC-SITE-REQUEST.pdf
 
-Here is how to retrieve the license once it is granted: https://www.gurobi.com/documentation/9.1/quickstart_mac/retrieving_a_floating_lice.html
+* Here is how to retrieve the license once it is granted: https://www.gurobi.com/documentation/9.1/quickstart_mac/retrieving_a_floating_lice.html
 
-Here is some documentation on starting a token server once you've retrieved the license: https://www.gurobi.com/documentation/9.1/quickstart_mac/sta_a_token_server.html
+* Here is some documentation on starting a token server once you've retrieved the license: https://www.gurobi.com/documentation/9.1/quickstart_mac/sta_a_token_server.html
 
-And then finally you should setup the client license for the DAS according to these directions (there are also directions specific to this project in the project README): https://www.gurobi.com/documentation/9.1/quickstart_mac/creating_a_token_server_cl.html#subsection:clientlicensetoken
+* And then finally you should setup the client license for the DAS according to these directions (there are also directions specific to this project in the project README): https://www.gurobi.com/documentation/9.1/quickstart_mac/creating_a_token_server_cl.html#subsection:clientlicensetoken
 
 We also found `gurobi` support to be helpful and responsive, so likely they can be contacted if any guidance is needed: https://www.gurobi.com/support/
 
@@ -81,6 +81,7 @@ The DAS code is in the `das_decennial` directory of the project. It contains two
 
 ## Steps for Updating Code
 When you retrieve new versions of any of the submodules (`das_decennial`, `das_framework`, and `ctools`), you'll unfortunately have to go through a pretty manual process to update the code base.
+
 * Copy in the modules to their appropriate location, making note that the `das_decennial` module and `das_framework` module will contain empty directories for their submodules (`das_framework` and `ctools` respectively).
 * Remove any `git` files that are not `.gitignore` from the directories, since they will mess with the `git` configuration for our project (specific should be listed in the [Modifications Made](#modifications-made) section below).
 * Make the modifications listed below. If new modifications need to be made, please add to the list.
@@ -93,7 +94,7 @@ Unfortunately, the DAS code needs a bit of modification to run outside of the Ce
     * `das_decennial/.gitmodules` - remove this file if you haven't already     
     * `das_decennial/das2020_driver.py`
         * Comment out the `boto3` import
-        * In `DASDelegate.log_testpoint` add a void `return` at the top of the function such that the function doesn't run. This removes the testpoint logging but a fix would require a larger restructuring of logging (probably manageable if testpoint logging is needed in the future)
+        * In `DASDelegate.log_testpoint` add a void `return` at the top of the function such that the function doesn't run. This removes the testpoint logging but a fix would require a larger restructuring of logging (maybe manageable if testpoint logging is needed in the future)
         * In `__main__` comment out the two calls to `dashboard.SQS_Client().flush()`. We aren't using the dashboard logging right now since it was pretty reliant on `AWS` and didn't seem necessary, so no need to flush the queue
     * `das_decennial/das_utils.py`
         * In `clearPath` change the `subprocess.run(['hadoop', 'fs', '-rm', '-r', path], stdout=subprocess.PI    PE, stderr=subprocess.PIPE)` command to `subprocess.run(['rm', '-r', path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)` since we aren't using a `hadoop` filesystem.
@@ -136,6 +137,12 @@ Unfortunately, the DAS code needs a bit of modification to run outside of the Ce
         * In `MDF2020Writer.saveRDD` change `df.write.csv(path, sep="|")` to `df.write.csv(path, sep="|", mode="overwrite")`
     * `das_decennial/programs/writer/mdf2020writer.py`
         * In `DASDecennialWriter.saveMetadata` change `with s3open(path, "w", fsync=True) as f:` to `with open(path, "w") as f:`
+    * `das_decennial/programs/writer/writer.py`
+        * In `DASDecennialWriter.saveMetadata` change `with s3open(path, "w", fsync=True) as f:` to `with open(path, "w") as f:`
+        * In `DASDecennialWriter.saveRunData` change the `s3cat` function call to be the following line instead:
+        ```
+        s3cat.s3_cat(output_datafile_name)
+        ```
 
 
 * `das_framework` directory
@@ -173,6 +180,7 @@ There is some configuration both for how the project runs and for how the DAS ru
 
 ## Project Configuration
 The file `das_container.conf` contains some variables that can be configured to tweak how the container runs. Currently there options are:
+
 * `das_home` - For configuring the home directory the container uses, see the project README for more information about how to use this variable.
 * `container_tmp` - The temporary directory the container uses, the project README has a bit more information about this variable as well.
 * `coord_hostname` - The hostname for the coordinator when running in cluster mode, see the README in the `cluster` project directory for instructions for setting up the DAS in cluster mode.
@@ -203,5 +211,6 @@ Unfortunately it has been a little bit difficult getting information on what eac
 There are still some unknown attributes and inconsistencies with the validator classes. A few `TODO`s in the script mark specific places where we either have unknown attributes or the script could be improved in some way.
 
 The most important lingering issues for experiments are likely:
+
 * Missing GRFC codes - At the moment, we are missing codes in our big grfc file, requiring us to drop many rows from our initial synthetic population files. See the `TODO` in the function `load_synth_df`.
 * Householder/group quarter logic - There is still some safety logic for determining householders and for group quarters that should probably be removed at some point. Specifically, see the `TODO`s in the functions `get_head_of_household`, `get_hht2`, `get_hhspan`, and `get_hhrace`.
