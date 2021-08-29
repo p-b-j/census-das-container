@@ -264,8 +264,6 @@ class Budget(AbstractDASModule):
             ## CHECKING
 
             assert len(self.dp_query_names) == len(budget.levels)
-            print(self.dp_query_prop)
-            print(len(budget.levels))
             assert len(self.dp_query_prop) == len(budget.levels)
             assert len(self.unit_dp_query_names) in (0, len(budget.levels))
             assert len(self.unit_dp_query_prop) in (0, len(budget.levels))

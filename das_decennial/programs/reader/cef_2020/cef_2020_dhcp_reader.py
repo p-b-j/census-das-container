@@ -3,7 +3,6 @@ from programs.reader.fwf_reader import FixedWidthFormatTable
 from programs.reader.cef_2020.cef_2020_grfc import load_grfc
 from typing import Tuple
 from constants import CC
-import time
 
 try:
     from pyspark.sql import SparkSession
@@ -33,27 +32,22 @@ class CEF2020PersonsTable(FixedWidthFormatTable):
 
 class CEF2020DHCPUnitTable(FixedWidthFormatTable):
     def load(self, filter=None):
-        print("Unit load starting  " + str(time.time()))
         self.annotate("In Unit load")
-        print("After annotate  " + str(time.time()))
         # Load the GRF-C to obtain a DataFrame with oidtb and geocode
         grfc_path = os.path.expandvars(self.getconfig("grfc_path", section=CC.READER))
         geo_data = load_grfc(grfc_path)
 
         # Load the Unit table
         unit_data = super().load(filter)
-        print("After super.load  " + str(time.time()))
         # Join with geo_data on oidtb, which will add the geocode to the Unit DataFrame
         unit_with_geocode = unit_data.join(geo_data, on=["oidtb"], how="left")
 
         # Make the unit_with_geocode DataFrame available
         units_without_geocode = unit_with_geocode.where(col('geocode').isNull())
-        print("After geocode merge/filter  " + str(time.time()))
         assert units_without_geocode.count() == 0, f'Some units could not match with geocode! {units_without_geocode.show()}'
 
         self.reader.tables["Person"].unit_with_geocode = unit_with_geocode
         self.annotate("Finished Unit load")
-        print("right before return  " + str(time.time()))
         return unit_with_geocode
 
 

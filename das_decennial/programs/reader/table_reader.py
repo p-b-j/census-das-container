@@ -11,7 +11,6 @@ import logging
 import warnings
 from collections import defaultdict
 from configparser import NoOptionError
-import time
 
 import numpy as np
 from pyspark.sql.types import StructType, StructField
@@ -578,7 +577,6 @@ class DASDecennialReader(AbstractDASReader):
             tmp = defaultdict()
             for table in self.tables.values():
                 self.annotate(f"loading table {table.name}")
-                print("Right before call to load  " + str(time.time()))
                 table_df = table.load()
                 # if not table.verify(table_df):
                 #    print("table contains invalid records")
@@ -711,9 +709,7 @@ class DASDecennialReader(AbstractDASReader):
         :param error: if True throw Exception, otherwise throw warning
         :param sample_size: How many failed nodes to prints
         """
-        print("validateNodeRDD FILTER " + str(time.time()))
         failed_nodes = node_rdd.filter(failed_node_function)
-        print("validateNodeRDD COUNT " + str(time.time()))
         fn_count = failed_nodes.count()
         if fn_count > 0:
             failed_node_sample = failed_nodes.take(sample_size)
@@ -732,7 +728,6 @@ class DASDecennialReader(AbstractDASReader):
                 warnings.warn(err.msg)
                 print(f"{err.sample_msg} {err.sample}")
 
-        print("validateNodeRDD FREE " + str(time.time()))
         das_utils.freeMemRDD(failed_nodes)
 
     def validateConstraintsNodeRDD(self, node_rdd, level):

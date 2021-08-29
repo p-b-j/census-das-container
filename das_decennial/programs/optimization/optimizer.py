@@ -103,7 +103,7 @@ class AbstractOptimizer(AbstractDASModule, metaclass=ABCMeta):
         self.save_lp_seconds     = self.getfloat(CC.SAVE_LP_SECONDS, section=CC.GUROBI_SECTION, default=CC.SAVE_LP_SECONDS_DEFAULT)
         self.gurobi_path         = self.getconfig(CC.GUROBI_PATH, section=CC.GUROBI_SECTION, default=None, expandvars=True)
 
-        ## gurobi_lic_fail_rate allows us to simulate contention on the license server to test the retry po0oc.
+        ## gurobi_lic_fail_rate allows us to simulate contention on the license server to test the retry logic.
         ## In a production enviornment this should be zero.
         self.gurobi_lic_fail_rate= self.getfloat(CC.GUROBI_LIC_FAIL_RATE, section=CC.GUROBI, default=CC.GUROBI_LIC_FAIL_DEFAULT)
         os.environ[CC.PYTHON_VERSION] = f'python{sys.version_info.major}.{sys.version_info.minor}'
@@ -265,7 +265,6 @@ class AbstractOptimizer(AbstractDASModule, metaclass=ABCMeta):
                 # We got the environment, so break and return it
                 return env
             except (gb.GurobiError,RandomGurobiLicenseError) as err:
-                raise err
                 # If the environment is not obtained, wait some random time and try again if attempt number is still within range
 
                 # This means that the maximum retry time would be (2^17 + (random number

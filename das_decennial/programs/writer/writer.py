@@ -210,10 +210,7 @@ class DASDecennialWriter(driver.AbstractDASWriter, metaclass=ABCMeta):
                                'verbose':str(self.s3cat_verbose)})
 
                 self.add_output_path(output_datafile_name + self.s3cat_suffix)
-                s3cat.s3cat(output_datafile_name,
-                            demand_success=True,
-                            suffix=self.s3cat_suffix,
-                            verbose=self.s3cat_verbose)
+                s3cat.s3_cat(output_datafile_name)
             else:
                 # Otherwise just note the prefix in DFS and DFXML
                 ET.SubElement(self.das.dfxml_writer.doc, CC.DAS_OUTPUT).text=output_datafile_name+"/"

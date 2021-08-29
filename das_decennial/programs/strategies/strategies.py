@@ -10,11 +10,13 @@ class TestStrategy:
         test_strategy.update({
             CC.GEODICT_GEOLEVELS: levels,
             CC.DPQUERIES + "default": (
-                "hhgq1940",
-                "age1940 * hispanic1940 * cenrace1940 * citizen1940",
-                "age1940 * sex1940",
+                "total",
+                "numraces",
+                "numraces * votingage",
+                "numraces * votingage * hispanic",
+                "numraces * hhgq * hispanic * votingage",
                 "detailed"),
-            CC.QUERIESPROP + "default": (tuple(Fr(num, 100) for num in (25, 25, 25, 25))),
+            CC.QUERIESPROP + "default": (tuple(Fr(num, 100) for num in (20, 20, 20, 15, 15, 10))),
             # CC.DPQUERIES: {},
             # CC.QUERIESPROP: {},
             # CC.UNITDPQUERIES: {},
@@ -26,10 +28,10 @@ class TestStrategy:
         for level in test_strategy[CC.GEODICT_GEOLEVELS]:
             test_strategy[CC.DPQUERIES][level] = test_strategy[CC.DPQUERIES + "default"]
             test_strategy[CC.QUERIESPROP][level] = test_strategy[CC.QUERIESPROP + "default"]
-        # test_strategy[CC.QUERIESPROP][CC.GEOLEVEL_COUNTY]      = tuple(Fr(num, 100) for num in (25, 25, 25, 25))
-        # test_strategy[CC.QUERIESPROP][CC.GEOLEVEL_TRACT]       = tuple(Fr(num, 100) for num in (25, 25, 25, 25))
-        # test_strategy[CC.QUERIESPROP][CC.GEOLEVEL_BLOCK_GROUP] = tuple(Fr(num, 100) for num in (25, 25, 25, 25))
-        # test_strategy[CC.QUERIESPROP][CC.GEOLEVEL_BLOCK]       = tuple(Fr(num, 100) for num in (25, 25, 25, 25))
+        test_strategy[CC.QUERIESPROP][CC.GEOLEVEL_COUNTY]      = tuple(Fr(num, 100) for num in (10, 30, 20, 15, 15, 10))
+        test_strategy[CC.QUERIESPROP][CC.GEOLEVEL_TRACT]       = tuple(Fr(num, 100) for num in ( 5, 35, 20, 15, 15, 10))
+        test_strategy[CC.QUERIESPROP][CC.GEOLEVEL_BLOCK_GROUP] = tuple(Fr(num, 100) for num in ( 1, 39, 20, 15, 15, 10))
+        test_strategy[CC.QUERIESPROP][CC.GEOLEVEL_BLOCK]       = tuple(Fr(num, 100) for num in (39,  1, 20, 15, 15, 10))
         return test_strategy
 
 
@@ -40,23 +42,38 @@ class SingleStateTestStrategyRegularOrdering:
         ordering = {
 
             CC.L2_QUERY_ORDERING: {
-                0: ("hhgq1940", "age1940",),
-                1: ("hhgq1940",),
-                2: ("age1940 * hispanic1940 * cenrace1940 * citizen1940",),
-                3: ("age1940 * sex1940",),
-                4: ("detailed",)
+                0: {
+                    0: ("total", "numraces",),
+                    1: ("numraces",),
+                    2: ("numraces * votingage",),
+                    3: ("numraces * votingage * hispanic",),
+                },
+                1: {
+                    0: ("numraces * hhgq * hispanic * votingage",),
+                    1: ("detailed",)
+                }
             },
 
             CC.L2_CONSTRAIN_TO_QUERY_ORDERING: {
-                0: ("hhgq1940", "age1940",),
-                1: ("hhgq1940",),
-                2: ("age1940 * hispanic1940 * cenrace1940 * citizen1940",),
-                3: ("age1940 * sex1940",),
-                4: ("detailed",)
+                0: {
+                    0: ("total",),
+                    1: ("numraces",),
+                    2: ("numraces * votingage",),
+                    3: ("numraces * votingage * hispanic",),
+                },
+                1: {
+                    0: ("numraces * hhgq * hispanic * votingage",),
+                    1: ("detailed",)
+                }
 
             },
             CC.ROUNDER_QUERY_ORDERING: {
-                0: ("hhgq1940", "age1940", "age1940 * sex1940", "age1940 * hispanic1940 * cenrace1940 * citizen1940", "detailed",)
+                0: {
+                    0: ("total", "numraces", "numraces * votingage", "numraces * votingage * hispanic",)
+                },
+                1: {
+                    0: ("numraces * hhgq * hispanic * votingage", "detailed",)
+                }
             }
 
         }
@@ -69,11 +86,16 @@ class SingleStateTestStrategyRegularOrdering:
                 CC.ROUNDER_QUERY_ORDERING: ordering[CC.ROUNDER_QUERY_ORDERING]
             }
         query_ordering[CC.GEOLEVEL_COUNTY][CC.L2_QUERY_ORDERING] = {
-            0: ("hhgq1940", "age1940",),
-            1: ("hhgq1940",),
-            2: ("age1940 * hispanic1940 * cenrace1940 * citizen1940",),
-            3: ("age1940 * sex1940",),
-            4: ("detailed",)
+            0: {
+                0: ("total",),
+                1: ("numraces",),
+                2: ("numraces * votingage",),
+                3: ("numraces * votingage * hispanic",),
+            },
+            1: {
+                0: ("numraces * hhgq * hispanic * votingage",),
+                1: ("detailed",)
+            }
         }
         return query_ordering
 
@@ -106,10 +128,15 @@ class StandardRedistrictingRounderOrdering:
     @staticmethod
     def get():
         return {
-                0: ('total',
-                    'hhgq',
-                    'detailed')
-                }
+            0: (
+                'total',
+                'hhgq',
+                'hhgq * hispanic',
+                'hhgq * hispanic * cenrace',
+                'hhgq * votingage * hispanic * cenrace',
+                'detailed'
+            )
+        }
 
 
 class Strategy1a:

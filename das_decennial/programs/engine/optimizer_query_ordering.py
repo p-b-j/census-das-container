@@ -114,10 +114,7 @@ class OptimizationQueryOrdering(AbstractDASModule):
             l2_target_queries = []
             options_list = []
 
-            print(l2_dp_query_ordering)
-
             if not outer_pass:
-                print("HERE")
                 for pn, qnames in l2_dp_query_ordering.items():
                     l2_target_queries.extend(qnames)
                     options_list.append(f"L2_DPqueryPart{pn}")
@@ -126,7 +123,6 @@ class OptimizationQueryOrdering(AbstractDASModule):
                     for ipn, qnames in l2_dp_query_ordering[opn].items():
                         l2_target_queries.extend(qnames)
                         options_list.append(f"L2_DPqueryPart{opn}_{ipn}")
-            print(l2_target_queries)
             l2_target_queries = sortMarginalNames(l2_target_queries)
 
             # if len(l2_target_queries) > len(set(l2_target_queries)):
