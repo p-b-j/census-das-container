@@ -16,13 +16,6 @@ then
     exit 1
 fi
 
-if [ ! -d ${das_home} ]
-then
-    echo "Error: could not find das_home directory for container"
-    echo "\$das_home set as: ${das_home}"
-    exit 1
-fi
-
 if [ ! -f ${das_home}/gurobi.lic ]
 then
     echo "Error: could not find gurobi.lic file in \$das_home"

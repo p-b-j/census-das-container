@@ -71,6 +71,8 @@ def load_synth_df(grfc_path, synth_path):
         + grfc_df['TABBLK'].astype(str).str.zfill(4)
     ).astype(int)
 
+    # TODO: Our massive GRFC file doesn't have a lot of blocks still
+    # Might be worth inquiring with the Census bureau about this
     return synth_df.join(
         grfc_df.set_index('geoid'), 
         on='geoid'
@@ -80,29 +82,27 @@ def build_per_df(synth_df, hh_gb):
     per_fields = ['RTYPE', 'MAFID', 'CUF_PNC', 'BCUSTATEFP', 'VERSION', 'QSEX', 'QAGE', 'QDB', 'QDOB_MONTH', 'QDOB_DAY', 'QDOB_YEAR', 'QSPAN', 'QSPANX', 'CENHISP', 'QRACE1', 'QRACE2', 'QRACE3', 'QRACE4', 'QRACE5', 'QRACE6', 'QRACE7', 'QRACE8', 'QRACEX', 'CENRACE', 'RACE2010', 'RELSHIP', 'QGQTYP', 'LIVE_ALONE']
     per_df = pd.DataFrame(index=np.arange(synth_df.shape[0]), columns=per_fields)
 
-    # All housing units right now
     per_df['RTYPE'] = np.where(synth_df['relationship'].isin([37, 38]), 5, 3)
-    # Need to add 100000000 to make the value valid
-    # per_df['MAFID'] = str(100000000 + synth_df['hh_id'])
+    # Need to add 100000001 to make the value valid
     per_df['MAFID'] = 100000001 + synth_df['hh_id']
-    # Still don't know what this is
+    # TODO: still don't know what CUF_PNC is
     per_df['CUF_PNC'] = 12345
     per_df['BCUSTATEFP'] = synth_df['state']
-    # Also don't know what this is
+    # TODO: also don't know what VERSION is
     per_df['VERSION'] = VERSION
     per_df['QSEX'] = synth_df['sex_id']
     per_df['QAGE'] = synth_df['age']
     per_df['QDOB_YEAR'] = 2020 - synth_df['age']
-    # Do we care about birth month/day?
+    # TODO: do we care about birth month/day?
     per_df['QDOB_MONTH'] = 1
     per_df['QDOB_DAY'] = 1
     per_df['QDB'] = (per_df['QDOB_YEAR'].astype(str) 
                         + per_df['QDOB_MONTH'].astype(str).str.zfill(2)
                         + per_df['QDOB_DAY'].astype(str).str.zfill(2))
-    # Don't know exactly what the Edit/Allocation group is
+    # TODO: don't know exactly what the Edit/Allocation group is
     per_df['QRACEX'] = 1
     per_df['QSPANX'] = 1
-    # Don't know exactly what the Q codes are
+    # TODO: don't know exactly what the Q codes are
     per_df['QSPAN'] = 1000
     per_df['QRACE1'] = 1000
     per_df['QRACE2'] = 1000
@@ -151,7 +151,7 @@ def write_unit_df(synth_df, per_df, hh_gb):
 def get_unit_row(household, hh_id):
         head_of_household = get_head_of_household(household)
         unit_rtype = 4 if household['relationship'].isin([37, 38]).any() else 2
-        # TODO: this is free and clear - should it be more dynamic?
+        # TODO: this is always free and clear - should we set it to something else?
         unit_ten = 2
         unit_paoc = get_paoc(household, unit_rtype)
         # why don't these just match? :(
@@ -164,22 +164,16 @@ def get_unit_row(household, hh_id):
             household.shape[0], # FINAL_POP
             head_of_household['age'] if head_of_household['age'] >= 15 else 15, # HHLDRAGE
             get_hhspan(household, unit_rtype), # HHSPAN
-            # CEF validator describes as "Edited QRACEX of householder", not sure what that means
-            1, # HHLDRACE
+            1, # HHLDRACE - CEF validator describes as "Edited QRACEX of householder", not sure what that means
             str(get_hhrace(household, unit_rtype)).zfill(2), # HHRACE
-            # For now, we can say everyone owns free and clear?
             unit_ten, # TEN
             # Zero clue what these are still, we will match TEN for now
             unit_ten, # TEN_A
             unit_ten, # TEN_R
-            # I think should be NIU since it's not vacant
-            0, # VACS
-            # NIU but 000 isn't allowed?
-            '   ', # QGQTYP
-            # CEF Validator says "GQ Unit Sex Composition Flag"???
-            ' ', # GQSEX
+            0, # VACS - I think should be NIU since it's not vacant
+            '   ', # QGQTYP - TODO: Do we want to assign a GQ type?
+            ' ', # GQSEX - CEF Validator says "GQ Unit Sex Composition Flag"???
             head_of_household['OIDTABBLK'].astype(np.int64).item(), # OIDTB
-            # All of these will change when we simulate households
             get_hht(household, unit_rtype), # HHT
             str(get_hht2(household, unit_rtype)).zfill(2), # HHT2
             get_cplt(household, unit_rtype), # CPLT
@@ -201,6 +195,8 @@ def get_head_of_household(household):
         return possible.iloc[0]
     else:
         # Arbitrarily return first row
+        # TODO: it'd be nice to be able to rely on having a householder
+        # Then we can replace this case with a error
         return household.iloc[0]
 
 def get_hht(household, rtype):
@@ -264,6 +260,7 @@ def get_hht2(household, rtype):
         return 12
     elif (hhsize > 1) and (rels.isin([20]).all()):
         # TODO: we really shouldn't have this case
+        # Need to know there is only one householder per unit to remove it
         return 11
     else:
         hh_id = household['hh_id'].iloc[0].item()
@@ -341,6 +338,7 @@ def get_hhldrage(household, rtype):
 def get_hhspan(household, rtype):
     hhsize = household.shape[0]
     return get_head_of_household(household)['hispanic'].item() + 1
+    # TODO: Specified recode (below) not accepted by validator
     # if (rtype == 4) or (hhsize == 0):
     #     return 0
     # else:
@@ -360,6 +358,7 @@ def get_hhrace(household, rtype):
 
     return hhrace
 
+    # TODO: Specified recode (below) not accepted by validator
     # if (rtype == 4) or (hhsize == 0):
     #     return 0
     # elif hhrace < 7:
