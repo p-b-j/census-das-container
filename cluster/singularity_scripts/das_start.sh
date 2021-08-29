@@ -3,16 +3,7 @@
 source util/singularity_scripts/setup_env.sh
 
 # Run standalone config
-cd das_decennial
-
-LOGDIR=$HOME/das-log
-mkdir -p $LOGDIR || exit 1
-
-ZIPFILE=/tmp/das_decennial$$.zip
-export ZIPFILE
-zip -r -q $ZIPFILE . || exit 1
-
-export DAS_RUN_UUID=$(cat /proc/sys/kernel/random/uuid)
+source util/singularity_scripts/prep_das_run.sh
 
 spark-submit --py-files $ZIPFILE \
     --master $1 \
@@ -24,6 +15,6 @@ spark-submit --py-files $ZIPFILE \
     --num-executors 1 \
     --executor-cores 1 \
     --conf spark.network.timeout=3000 \
-    das2020_driver.py ../configs/cef_test.ini \
+    das2020_driver.py $2 \
     --loglevel DEBUG \
     --logfilename ~/das_log.log
