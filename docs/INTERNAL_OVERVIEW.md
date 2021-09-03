@@ -90,11 +90,12 @@ When you retrieve new versions of any of the submodules (`das_decennial`, `das_f
 Unfortunately, the DAS code needs a bit of modification to run outside of the Census Bureau's AWS environment. There are a number of AWS-specific packages used and some logging infrastructure that cannot be replicated. Here are a list of changes that were needed in order to run the DAS, with the disclaimer that some of the changes may need to be redesigned if they remove a part of the system deemed critical.
 
 * `das_decennial` directory
-    * `das_decennial/.github` - remove this file if you haven't already
+    * `das_decennial/.github` - remove this directory if you haven't already
     * `das_decennial/.gitmodules` - remove this file if you haven't already     
     * `das_decennial/das2020_driver.py`
         * Comment out the `boto3` import
         * In `DASDelegate.log_testpoint` add a void `return` at the top of the function such that the function doesn't run. This removes the testpoint logging but a fix would require a larger restructuring of logging (maybe manageable if testpoint logging is needed in the future)
+        * In `produce_certificate`, change the dataframe construction to be `df = pd.DataFrame(list(das.engine.budget.geolevel_prop_budgets_dict.items()))`
         * In `__main__` comment out the two calls to `dashboard.SQS_Client().flush()`. We aren't using the dashboard logging right now since it was pretty reliant on `AWS` and didn't seem necessary, so no need to flush the queue
     * `das_decennial/das_utils.py`
         * In `clearPath` change the `subprocess.run(['hadoop', 'fs', '-rm', '-r', path], stdout=subprocess.PI    PE, stderr=subprocess.PIPE)` command to `subprocess.run(['rm', '-r', path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)` since we aren't using a `hadoop` filesystem.
@@ -105,10 +106,6 @@ Unfortunately, the DAS code needs a bit of modification to run outside of the Ce
         * Comment out the `boto3` and `botocore` imports
     * `das_decennial/programs/engine/engine_utils.py`
         * In `DASEngineHierarchical.loadNoisyAnswers` change the `else` branch of the `if path.startswith(CC.HDFS_PREFIX):` check to only have the line `level_rdd = spark.sparkContext.pickleFile(das_utils.expandPathRemoveHdfs(path))`. This is due to the code assuming we are on an AWS machine and not allowing local paths
-    * `das_decennial/programs/engine/primitives.py`
-        * Change the `_rng_factory` assignment to use `DASRandom` instead of `DASRDRandIntegers`
-    * `das_decennial/programs/metrics/accuracy_metrics_workload.py`
-        * In `AccuracyMetricsWorkload.L1Sum` replace `priv` and `orig` with `priv.toDense()` and `orig.toDense()` respectively.
     * `das_decennial/programs/nodes/manipulate_nodes.py`
         * In `geoimp_wrapper` change the `clogging.setup` call to just be `clogging.setup(level=logging.INFO)`
         * In `geoimp_wrapper_root` change the `clogging.setup` call to just be `clogging.setup(level=logging.INFO)`
@@ -128,15 +125,38 @@ Unfortunately, the DAS code needs a bit of modification to run outside of the Ce
         if '|' in line:
             return inst.parse_piped_line(line)
         ```
+    * `das_decennial/programs/schema/schema.py`
+        * In `sort_marginal_names` change the return to be the following:
+        ```Python
+        return sorted(CC.SCHEMA_CROSS_JOIN_DELIM.join(sorted(re.split(CC.SCHEMA_CROSS_SPLIT_DELIM, str(q)))) for q in querynames)
+        ```
+    * `das_decennial/programs/strategies/strategies.py`
+        * The query orderings should not be nested dictionaries, I'm not sure why they are all formatted this way when it breaks our code each time... For whatever query ordering scheme you are using, change the dictionaries so that they are just one level w/the key being the ordering number and the value being the query order. For example, here is the old/new format for an example ordering: 
+        ```Python
+        # Old format that breaks
+        CC.L2_QUERY_ORDERING: {
+            0: {
+                0: ('total',),
+                1: ('cenrace', 'hispanic', 'votingage', 'hhinstlevels', 'hhgq', 'votingage * hispanic',
+                    'hhgq', 'hispanic * cenrace', 'votingage * cenrace', 'votingage * hispanic',
+                    'votingage * hispanic * cenrace',
+                    'detailed'),
+            },
+        }
+        # New, correct format
+        CC.L2_QUERY_ORDERING: {
+            0: ('total',),
+            1: ('cenrace', 'hispanic', 'votingage', 'hhinstlevels', 'hhgq', 'votingage * hispanic',
+                'hhgq', 'hispanic * cenrace', 'votingage * cenrace', 'votingage * hispanic',
+                'votingage * hispanic * cenrace',
+                'detailed'),
+        }
+        ```
     * `das_decennial/programs/s3cat.py`
         * Replace this file with the version in `census2020-das-e2e/s3cat.py` which allows for concatenation of files on the local disk
-    * `das_decennial/programs/sparse.py`
-        * In `multiSparse.__init__` add the line `self.size = array.size` for both the `np.ndarray` case and the `ss.csr_matrix` case of the `isinstance` checks (should be added twice). 
     * `das_decennial/programs/writer/mdf2020writer.py`
         * In `MDF2020Writer.saveHeader` change `with s3open(path, "w", fsync=True) as f:` to `with open(path, "w") as f:`
         * In `MDF2020Writer.saveRDD` change `df.write.csv(path, sep="|")` to `df.write.csv(path, sep="|", mode="overwrite")`
-    * `das_decennial/programs/writer/mdf2020writer.py`
-        * In `DASDecennialWriter.saveMetadata` change `with s3open(path, "w", fsync=True) as f:` to `with open(path, "w") as f:`
     * `das_decennial/programs/writer/writer.py`
         * In `DASDecennialWriter.saveMetadata` change `with s3open(path, "w", fsync=True) as f:` to `with open(path, "w") as f:`
         * In `DASDecennialWriter.saveRunData` change the `s3cat` function call to be the following line instead:
@@ -167,7 +187,7 @@ Unfortunately, the DAS code needs a bit of modification to run outside of the Ce
         ```
 * `ctools` directory
     * `ctools/.gitattributes` - remove this file if you haven't already
-    * `ctools/.github` - remove this file if you haven't already
+    * `ctools/.github` - remove this directory if you haven't already
     * `ctools/aws.py`
         * Comment out the `boto3` import
     * `ctools/ec2.py`
