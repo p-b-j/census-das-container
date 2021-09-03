@@ -32,11 +32,9 @@ class multiSparse:
         if isinstance(array, np.ndarray): # a numpy ndarray is expected to initialize multiSparse
             self.sparse_array = ss.csr_matrix(array.flatten())
             self.shape = array.shape
-            self.size = array.size
         elif isinstance(array, ss.csr_matrix) and shape is not None:
             self.sparse_array = array
             self.shape = shape
-            self.size = array.size
         else:
             raise TypeError("array must be of class numpy.ndarray or of type ss.csr_matrix, along with the shape")
 

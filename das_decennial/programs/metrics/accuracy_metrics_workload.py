@@ -25,5 +25,5 @@ class AccuracyMetricsWorkload(AccuracyMetrics):
         """
         error = 0
         for query in self.workload_dict.values():
-            error = error + int(np.sum(np.abs(query.answer(priv.toDense()) - query.answer(orig.toDense()))))
+            error = error + int(np.sum(np.abs(query.answer(priv) - query.answer(orig))))
         return error

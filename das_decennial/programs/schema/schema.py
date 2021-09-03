@@ -997,7 +997,7 @@ def isSameQuery(name1, name2):
 
 
 def sortMarginalNames(querynames):
-    return sorted(CC.SCHEMA_CROSS_JOIN_DELIM.join(sorted(re.split(CC.SCHEMA_CROSS_SPLIT_DELIM, q))) for q in querynames)
+    return sorted(CC.SCHEMA_CROSS_JOIN_DELIM.join(sorted(re.split(CC.SCHEMA_CROSS_SPLIT_DELIM, str(q)))) for q in querynames)
 
 
 def getDefaultLevels(dimnames, shape):

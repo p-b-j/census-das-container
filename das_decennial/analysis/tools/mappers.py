@@ -14,16 +14,16 @@ def getDenseDF_mapper(node, schema):
             'geocode' : str
             'raw' : programs.sparse.multiSparse object
             'syn' : programs.sparse.multiSparse object
-    
+
     schema : programs.schema.schema.Schema objects
-    
-    
+
+
     Returns
     -------
     list
         a list of dict objects
-    
-    
+
+
     Notes
     -----
     - This mapper creates a Row for every cell in the histogram
@@ -38,11 +38,11 @@ def getDenseDF_mapper(node, schema):
         # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         priv = node['syn'].toDense()
         geocode = node['geocode']
-    else: # assume GeounitNode    
+    else: # assume GeounitNode
         orig = node.raw.toDense()
         priv = node.syn.toDense()
         geocode = node.geocode
-    
+
     rows = []
     for c, cell in enumerate(np.ndindex(schema.shape)):
         rowdict = {}
@@ -94,20 +94,23 @@ def getSparseDF_mapper(node, schema):
     import numpy as np
     data_types = ['raw', 'syn']
     data = {}
-    
+
     for data_type in data_types:
-        d = node.get(data_type) if isinstance(node, dict) else getattr(node, data_type)            
+        d = node.get(data_type) if isinstance(node, dict) else getattr(node, data_type)
         if d is not None:
             data[data_type] = d.sparse_array
-            
+
     geocode = node.get('geocode') if isinstance(node, dict) else getattr(node, 'geocode')
-    
+
     rows = []
 
     nz_indices_list = []
     for d in data.values():
         nz_indices_list += d.indices.tolist()
     nz_indices = np.unique(nz_indices_list).tolist()
+    if len(nz_indices) == 0:
+        nz_indices = [0]
+
     # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     key_dict = {'raw': 'orig', 'syn': 'priv'}
 
@@ -115,7 +118,7 @@ def getSparseDF_mapper(node, schema):
         rowdict = {}
         # geocode column
         rowdict['geocode'] = str(geocode)
-        
+
         # [orig, priv] column(s) (depending on what exists in the mpde)
         for key in data.keys():
             rowdict[key_dict[key]] = int(data[key][0,ind])
@@ -124,7 +127,7 @@ def getSparseDF_mapper(node, schema):
         cell = np.unravel_index(ind, schema.shape)
         for dim, level in enumerate(cell):
             rowdict[schema.dimnames[dim]] = str(level)
-        
+
         row = rowdict
         rows.append(row)
     return rows
@@ -167,4 +170,3 @@ def getMicrodataDF_mapper(node, schema, privatized=True, mangled_names=True, rec
         row = rowdict
         rows += [row]*num_records
     return rows
-

@@ -16,6 +16,9 @@ cd ..
 
 ZIPFILE=/mnt/users/$JBID/das_analysis.zip
 export ZIPFILE
+#export MISSION_NAME="temp_mission_name"
+#export LOGFILE_NAME="/mnt/users/${JBID}/geolevel_dependen_queries/das_decennial/analysis/temp_log3.txt"
+#export DAS_RUN_UUID='temp_uuid_123'
 
 # added -FS option to add new files, update existing files, and delete old files when creating the zip file
 # https://superuser.com/questions/350991/how-to-overwrite-existing-zip-file-instead-of-updating-it-in-info-zip
@@ -33,7 +36,7 @@ DASHBOARD="../programs/dashboard.py"
 ## Start the mission.
 ## This creates MISSION_NAME, LOGFILE_NAME and DAS_RUN_UUID
 ##
-$(python3 DASHBOARD --start_mission --mission_type analysis)
+$(python3 $DASHBOARD --mission_start --mission_type analysis)
 
 
 # make the logs directory (if it doesn't exist)
@@ -47,10 +50,6 @@ echo "  Log file location:             ${LOGFILE_NAME}"
 echo "  Mission Name:                  ${MISSION_NAME}"
 
 RUN_BG=TRUE                     # run in the background
-if [ $JBID = garfi303 ]; then
-    echo "Running analysis in foreground for garfi303"
-    RUN_BG=FALSE
-fi
 
 # 200g
 DRIVER_MEMORY=100g
@@ -130,7 +129,7 @@ runcluster() {
     echo $cmd | python3 $DASHBOARD --spark_submit --mission_type=analysis
     $cmd
     echo spark-submit finished at `date`
-    python3 $DASHBOARD --mission_name $MISSION_NAME --mission_stop --mission_type=analysis
+    python3 $DASHBOARD --mission_stop --mission_type=analysis
 
     echo $0: PID $$ done at `date`. Analysis is finished.
 

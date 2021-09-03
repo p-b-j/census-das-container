@@ -8,7 +8,8 @@ import logging
 from typing import Union, Callable, List
 import xml.etree.ElementTree as ET
 
-from pyspark.sql import DataFrame, Row
+from pyspark.sql import DataFrame, Row, SparkSession
+from pyspark.sql.types import StructType, StructField, StringType, LongType
 
 from programs.writer.writer import DASDecennialWriter
 from programs.writer.rowtools import makeHistRowsFromMultiSparse
@@ -170,14 +171,20 @@ class DHCP_MDF2020_Writer(MDF2020Writer):
             row, index = row_index
             rowdict = row.asDict()
             rowdict['EPNUM'] = index
-            return Row(**rowdict)
+            # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
+            ordered_cols = self.var_list + ['priv']
+            return Row(*ordered_cols)(*[rowdict[col] for col in ordered_cols])
 
         rdd = rdd.repartition(min(rdd.count(), 20000))
         rdd = rdd.flatMap(node2SparkRows)
-        # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         rdd = rdd.flatMap(lambda r: [r] * r['priv'])
         rdd = rdd.repartition(20000)
-        df = rdd.zipWithIndex().map(addIndexAsEPNUM).toDF()
+
+        # df = rdd.zipWithIndex().map(addIndexAsEPNUM).toDF()
+        schema = StructType([StructField(col, (StringType() if col != 'EPNUM' else LongType())) for col in self.var_list + ['priv']])
+        rdd = rdd.zipWithIndex().map(addIndexAsEPNUM)
+        spark = SparkSession.builder.getOrCreate()
+        df = spark.createDataFrame(rdd, schema=schema)
         df = df.select(self.var_list)
 
         return df
@@ -345,14 +352,19 @@ class MDF2020H1HistogramWriter(MDF2020PersonWriter):
             nodedict = node.toDict((SYN, INVAR, GEOCODE))
             households = makeHistRowsFromMultiSparse(nodedict, schema, row_recoder=self.row_recoder, geocode_dict=inverted_geodict, microdata_field=None)
             units = addGroupQuarters(nodedict, schema, households, row_recoder=self.row_recoder, geocode_dict=inverted_geodict, to_microdata=False)
-            return units
+            # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
+            ordered_cols = self.var_list + ['priv']
+            return [Row(*ordered_cols)(*[unit[col] for col in ordered_cols]) for unit in units]
 
         rdd = rdd.repartition(min(rdd.count(), 20000))
         rdd = rdd.flatMap(node2SparkRows)
-        # 'priv' means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         rdd = rdd.flatMap(lambda r: [r] * r['priv'])
         rdd = rdd.repartition(20000)
-        df = rdd.toDF()
+
+        # df = rdd.toDF()
+        schema = StructType([StructField(col, StringType()) for col in self.var_list + ['priv']])
+        spark = SparkSession.builder.getOrCreate()
+        df = spark.createDataFrame(rdd, schema=schema)
         df = df.select(self.var_list)
 
         return df
@@ -366,11 +378,11 @@ def addGroupQuarters(node: Union[GeounitNode, dict],
                       geocode_dict = None,
                       to_microdata = True,
                      ):
-    # Invariant that keeps number of total housing units (index 0) and numbers of each GQ type in the other cells
-    gqhh_tot = getNodeAttr(node, INVAR)['gqhh_tot']
+    # Invariant that keeps number of total units (households, vacant, and GQ)
+    unit_total = getNodeAttr(node, INVAR)['gqhh_tot']
 
-    # Number of vacant housing units is the total minus number of households (which are occupied units)
-    group_quarters = gqhh_tot - len(rows)
+    # Number of group quarters is the total minus the number of households
+    group_quarters = unit_total - sum([row['priv'] for row in rows])
 
     # Template dict for empty housing unit or GQ entry
     unit_rowdict = {k: '0' for k in map(lambda s: f"{s}_{schema.name}", schema.dimnames)}

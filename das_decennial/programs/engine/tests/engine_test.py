@@ -159,6 +159,7 @@ class TestEngines:
 
                   [engine]
                   save_noisy: off
+                  save_optimized: off
                   geolevel_num_Part: 0,0,0
 
                   [constraints]

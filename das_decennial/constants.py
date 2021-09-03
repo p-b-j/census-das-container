@@ -56,6 +56,7 @@ class _DAS_CONSTANTS:
     ZERO_ERROR_GEOLEVELS = "zero_error_geolevels"
     ONLY_DYADIC_RATIONALS = "only_dyadic_rationals"
     PRINT_PER_ATTR_EPSILONS = "print_per_attr_epsilons"
+    STRATEGY = "strategy"
 
     ## DP mechanism noise primitives
     PRIMITIVE_FRACTION_DENOM_LIMIT = 1048576
@@ -122,10 +123,8 @@ class _DAS_CONSTANTS:
     NUM_ENGINE_PARTITIONS = "numEnginePartitions"
     QUERIESPROP = "queriesprop"
     UNITQUERIESPROP = "unitqueriesprop"
-    VACANCYQUERIESPROP = "vacancyqueriesprop"
     DPQUERIES = "DPqueries"
     UNITDPQUERIES = "UnitDPqueries"
-    VACANCYDPQUERIES = "VacancyDPqueries"
     ROUNDERQUERIES = "RounderQueries"
     POOL_MEASUREMENTS = "pool_measurements"
 
@@ -153,6 +152,7 @@ class _DAS_CONSTANTS:
     SAVENOISY = "save_noisy"
     RELOADNOISY = "reload_noisy"
     SAVED_NOISY_APP_ID = "saved_noisy_app_id"
+    SAVEOPTIMIZED = "save_optimized"
     OPTIMIZATION_START_FROM_LEVEL = "optimization_start_from_level"
     NOISY_MEASUREMENTS_POSTFIX = "noisy_measurements_postfix"
     APPID_NO_SPARK = "APPID_No_Spark"
@@ -283,6 +283,8 @@ class _DAS_CONSTANTS:
     AIAN_RANGES_PATH = "aian_ranges_path"
     STRONG_MCD_STATES = "strong_mcd_states"
     IGNORE_GQS_IN_BLOCK_GROUPS = "ignore_gqs_in_block_groups"
+    TARGET_ORIG_BLOCK_GROUPS = "target_orig_block_groups"
+    TARGET_DAS_AIAN_AREAS = "target_das_aian_areas"
 
     NOT_AN_AIAN_AREA = "9" * 4
     NOT_AN_AIAN_STATE = "99"
@@ -290,6 +292,7 @@ class _DAS_CONSTANTS:
     NOT_AN_OSE = "9" * 5
     NOT_AN_AIAN_TRACT = "9" * 11
     NOT_AN_AIAN_BLOCK = "9" * 16
+    NOT_A_MCD = "9" * 5
     STRONG_MCD_COUNTY = "9" * 3
 
     ## Geolevel names:
@@ -384,6 +387,9 @@ class _DAS_CONSTANTS:
     CERTIFICATE_TITLE1   = 'CERTIFICATE_TITLE1'
     CERTIFICATE_PERSON2  = 'CERTIFICATE_PERSON2'
     CERTIFICATE_TITLE2   = 'CERTIFICATE_TITLE2'
+    CERTIFICATE_PERSON3 = 'CERTIFICATE_PERSON3'
+    CERTIFICATE_TITLE3 = 'CERTIFICATE_TITLE3'
+    DRB_CLR_NUM = 'DRB_clearance_number'
 
 
     ###########################################
@@ -969,6 +975,11 @@ class _DAS_CONSTANTS:
     PRINT_AIAN_STATE_TOTAL_L1_ERRORS = "print_aian_state_total_l1_errors"
     PRINT_COUNTY_TOTAL_AND_VOTINGAGE = "print_county_total_and_votingage"
     PRINT_H1_COUNTY_METRICS = "print_h1_county_metrics"
+    PRINT_AIANS_L1_ERROR_ON_TOTAL_POP = "print_aians_l1_error_on_total_pop"
+    PRINT_PLACE_MCD_OSE_BG_L1_ERROR_ON_TOTAL_POP = "print_place_mcd_ose_bg_l1_error_on_total_pop"
+    PRINT_BLOCK_AND_COUNTY_TOTAL_POP_ERRORS = "print_block_and_county_total_pop_errors"
+    PRINT_BLAU_QUINTILE_ERRORS = "print_blau_quintile_errors"
+    PRINT_8_CELL_CENRACE_HISP_ERRORS = "print_8_cell_cenrace_hisp_errors"
 
     ###########################################
     # Config Constants (DAS)

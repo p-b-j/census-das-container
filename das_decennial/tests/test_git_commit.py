@@ -19,7 +19,7 @@ There is probably some way to muck with the pytest config file to accomplish thi
 import das2020_driver
 
 def test_get_git_hash():
-    h = das2020_driver.get_git_hash( pathlib.Path(dirname(abspath(__file__))).parent)
+    h = " ".join(das2020_driver.get_git_hash( pathlib.Path(dirname(abspath(__file__))).parent))
     print("h=%s" % h)
     words = h.split()
     assert words[0]=='das_decennial'

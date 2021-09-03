@@ -733,15 +733,6 @@ class DAS:
             whent = round(self.running_time(),2)
             print(f"ANNOTATE: {when} t={whent} {message}")
 
-            # assert os.getenv("ISMASTER")!='false'
-            # if verbose:
-            #     when  = time.asctime()[11:16]
-            #     whent = round(self.running_time(),2)
-            #     print(f"ANNOTATE: {when} t={whent} {message}")
-            # self.timestamp("ANNOTATE: "+message)
-            # for hook in self.annotation_hooks:
-            #     hook(message)
-
         def runReader(self):
             self.timestamp("runReader: Creating and running DAS reader")
             if not self.reader.willRead():
@@ -1064,8 +1055,6 @@ def main_setup(additional_args = []):
     clogging.setup(args.loglevel,
                    syslog=False,
                    filename=args.logfilename)
-                #    log_format=clogging.LOG_FORMAT,
-                #    syslog_format=clogging.YEAR + " " + clogging.SYSLOG_FORMAT)
     logging.info("Config path: {}".format(os.path.abspath(args.config)))
     return args, config
 

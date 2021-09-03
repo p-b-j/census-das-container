@@ -67,6 +67,9 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
         msg = f"The option {CC.PRINT_COUNTY_TOTAL_AND_VOTINGAGE} requires that county geounit IDs are in the format of either the AIAN or the optimized spine."
         assert (self.print_county_total_and_votingage and aian_or_opt_spine_at_county) or (not self.print_county_total_and_votingage), msg
 
+        self.print_blau_quintile_errors = self.getboolean(CC.PRINT_BLAU_QUINTILE_ERRORS, section=CC.ERROR_METRICS, default=False)
+        self.print_8_cell_cenrace_hisp_errors = self.getboolean(CC.PRINT_8_CELL_CENRACE_HISP_ERRORS, section=CC.ERROR_METRICS, default=False)
+
         # Check to see if spine was an AIAN spine or opt-spine and topdown was short circuited at the state geolevel
         aian_or_opt_spine_state_sc = (self.setup.geo_bottomlevel == CC.GEOLEVEL_STATE) and (self.setup.spine_type != CC.NON_AIAN_SPINE)
         self.print_aian_state_total_L1_errors = self.getboolean(CC.PRINT_AIAN_STATE_TOTAL_L1_ERRORS, section=CC.ERROR_METRICS, default=False)
@@ -75,6 +78,9 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
 
         # TODO: Add an assert for the schema being H1
         self.print_H1_county_metrics = self.getboolean(CC.PRINT_H1_COUNTY_METRICS, section=CC.ERROR_METRICS, default=False)
+        self.print_aians_l1_total_pop = self.getboolean(CC.PRINT_AIANS_L1_ERROR_ON_TOTAL_POP, section=CC.ERROR_METRICS, default=False)
+        self.print_place_mcd_ose_bg_l1_total_pop = self.getboolean(CC.PRINT_PLACE_MCD_OSE_BG_L1_ERROR_ON_TOTAL_POP, section=CC.ERROR_METRICS, default=False)
+        self.print_block_and_county_total_pop_errors = self.getboolean(CC.PRINT_BLOCK_AND_COUNTY_TOTAL_POP_ERRORS, section=CC.ERROR_METRICS, default=True)
         aian_or_opt_spine_county_sc = (self.setup.geo_bottomlevel == CC.GEOLEVEL_COUNTY) and (self.setup.spine_type != CC.NON_AIAN_SPINE)
         msg = f"The option {CC.PRINT_H1_COUNTY_METRICS} requires that top-down was short-circuited at the county geolevel and that an AIAN or optimized spine is used."
         assert (self.print_H1_county_metrics and aian_or_opt_spine_county_sc) or (not self.print_H1_county_metrics), msg
@@ -91,6 +97,20 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
 
         if self.print_H1_county_metrics:
             self.printH1CountyMetrics(engine_tuple)
+
+        if self.print_block_and_county_total_pop_errors:
+            self.compute_total_pop_errors_and_quantiles(engine_tuple, "Block", False, [0, 9, 99, 999])
+            self.compute_total_pop_errors_and_quantiles(engine_tuple, "County", True, [1000, 9999, 99999, 999999])
+
+        if self.print_aians_l1_total_pop:
+            population_bin_starts = np.array([0, 100, 1000, 10000])
+            self.calculate_L1_total_error_by_bin(engine_tuple, "FED_AIRS", population_bin_starts)
+            self.calculate_L1_total_error_by_bin(engine_tuple, "AIAN_AREAS", population_bin_starts)
+
+        if self.print_place_mcd_ose_bg_l1_total_pop:
+            population_bin_starts = np.arange(51, dtype=int) * 50
+            for entity in ["MCD", "OSE", "PLACE", "BLOCK_GROUP"]:
+                self.calculate_L1_total_error_by_bin(engine_tuple, entity, population_bin_starts)
 
         rel_tp_error = self.calculate_relative_total_pop_error(engine_tuple)
 
@@ -116,6 +136,10 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
             self.log_and_print("Optimizer returned all levels, skipping reaggregation")
             nodes_dict, feas_dict = engine_tuple
 
+        if self.print_blau_quintile_errors:
+            self.printByBlauQuintileErrors(nodes_dict)
+        if self.print_8_cell_cenrace_hisp_errors:
+            self.print8CellCenraceHispErrors(nodes_dict)
 
         # # For aian-spine with return_all_levels: also get the errors for Full States (i.e. AIAN+non-AIAN parts)
         # self.log_and_print("Aggregating non-AIAN and AIAN areas (denoted as 'States') into FullStates")
@@ -181,7 +205,7 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
                 n_bins = 20
 
                 # RDD with L1 errors of the query (and total population logarithmic bin as a key)
-                #if qname not in self.das.engine.budget.query_budget.unit_dp_query_names + self.das.engine.budget.query_budget.vacancy_dp_query_names:
+                #if qname not in self.das.engine.budget.query_budget.unit_dp_query_names:
                 # TODO: Fix deciding which histogram the query relates to
                 if True:
                     # qL1rddsigned = pop_diff_rdd.map(lambda d: (d[0], q.answerSparse(d[1].sparse_array.transpose())))
@@ -296,9 +320,100 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
         self.printErrors(error_geoleveldict, total_population, l1_relative, population_cutoff, rel_tp_error)
 
         # self.printAndComputeQueryAccuracies(qdict, total_population,  error_geoleveldict, nodes_dict)
-
         if self.das.experiment:
             return error_geoleveldict, total_population
+
+    def printByBlauQuintileErrors(self, nodes_dict):
+        for geolevel, rdd in nodes_dict.items():
+            #cenrace_major_query = self.setup.schema_obj.getQuery(CC.CENRACE_MAJOR)
+            hisp_cenrace_major_query = self.setup.schema_obj.getQuery(("*".join((CC.CENRACE_MAJOR, CC.ATTR_HISP)),))
+            bi_rdd = rdd.map(lambda node: (self.BlauIndexCEF(node, hisp_cenrace_major_query), node)).repartition(5000)
+            quantiles_rdd = bi_rdd.map(lambda d: Row(val=float(d[0])))
+            quantiles = quantiles_rdd.toDF().approxQuantile("val", [0.2, 0.4, 0.6, 0.8], 0.01)
+
+            def quintileNum(d, quintiles):
+                for i in range(4):
+                    if d <= quintiles[i]:
+                        return i + 1
+                return 5
+
+            biq_rdd = bi_rdd.map(lambda d: (quintileNum(d[0], quantiles), (d[1].syn.sum() - d[1].raw.sum(), 1)))
+            # biq_sig_errors = biq_rdd.reduceByKey(add).collect()
+            # biq_abs_errors = biq_rdd.reduceByKey(lambda x, y: np.abs(x) + np.abs(y)).collect()
+            biq_sig_errors = biq_rdd.reduceByKey(lambda x, y: (x[0] + y[0], x[1] + y[1])).collect()
+            biq_abs_errors = biq_rdd.reduceByKey(lambda x, y: (np.abs(x[0]) + np.abs(y[0]), x[1] + y[1])).collect()
+
+            # print(f"{geolevel} Blau index quintiles: {quantiles}")
+            blau_mse = [f"{qi}: {(aggerr / count):.3f}" for qi, (aggerr, count) in biq_sig_errors]
+            blau_mae = [f"{qi}: {(aggerr / count):.3f}" for qi, (aggerr, count) in biq_abs_errors]
+            print(f"{geolevel} Mean signed errors by Blau index quintile: {blau_mse}, aggregate: ", [f"{qi}: {aggerr}" for qi, (aggerr, count) in biq_sig_errors])
+            print(f"{geolevel} MAE errors by Blau index quintile: {blau_mae}, aggregate: ",  [f"{qi}: {aggerr}" for qi, (aggerr, count) in biq_abs_errors])
+
+    def print8CellCenraceHispErrors(self, nodes_dict):
+        hisp_cenrace_major_query = self.setup.schema_obj.getQuery(("*".join((CC.CENRACE_MAJOR, CC.ATTR_HISP)),))
+        qlevels = ['Hispanic', 'WhiteANH', 'BlackANH', 'AIAN_ANH', 'AsianANH', 'NHOPI_ANH', 'SOR_ANH', '2ormoreNH']
+
+        def bin10_100(n):
+            if n < 10:
+                return "0-9"
+            if n < 100:
+                return "10-99"
+            return "100+"
+
+        for geolevel, rdd in nodes_dict.items():
+            if geolevel not in ['Tract', "Block_Group"]:
+                continue
+            hmr_rs_tuple_rdd = rdd.map(lambda node: self.cenraceHisp8cells(node, hisp_cenrace_major_query))
+            for i, cat in enumerate(qlevels):
+                cat_hmr_rdd_binned = hmr_rs_tuple_rdd.map(lambda d: (bin10_100(d[0][i]), (np.abs(d[1][i] - d[0][i]), 1)))
+                # print(cat_hmr_rdd_binned.take(5))
+                cat_hmr = sorted(cat_hmr_rdd_binned.reduceByKey(lambda x, y: (x[0] + y[0], x[1] + y[1])).collect())
+                print(f"{geolevel} {cat} MAE: ", {qi: f"{(aggerr / count):.3f}" for qi, (aggerr, count) in cat_hmr}, "(Absolute: ", {qi: aggerr for qi, (aggerr, count) in cat_hmr}, ")")
+            print(f"{geolevel} MAEs (total over pop bins) by race cat:")
+            totals, count = hmr_rs_tuple_rdd.map(lambda d: (np.abs(d[1] - d[0]), 1)).reduce(lambda x, y: (x[0] + y[0], x[1] + y[1]))
+            for cat, total in zip(qlevels, totals.tolist()):
+                print(f"{cat}: MAE {(total/count):.3f} (Absolute {total})")
+
+    def compute_total_pop_errors_and_quantiles(self, engine_tuple, geolevel, compute_rel, pop_cutoffs):
+        df = self.answerQueriesUsingAnalysis(engine_tuple, [geolevel], ["total"])
+        errors = df.withColumn("error", F.col(AC.ORIG) - F.col(AC.PRIV)).select(["error", AC.ORIG]).withColumn("l1_error", F.abs(F.col("error"))).persist()
+        # These quantiles should match with the quants_errors in the compute_metrics_in_bin method
+        if compute_rel:
+            header_row = ["count", "l1_mean", "pct_rel_mean", "q(0.005)", "q(0.025)", "q(0.05)", "q(0.25)", "q(0.5)", "q(0.75)", "q(0.95)", "q(0.975)", "q(0.995)"]
+        else:
+            header_row = ["count", "l1_mean", "q(0.005)", "q(0.025)", "q(0.05)", "q(0.25)", "q(0.5)", "q(0.75)", "q(0.95)", "q(0.975)", "q(0.995)"]
+        pop_cutoffs = [None] + pop_cutoffs + [None]
+        all_bin_ends = [(None, None)] + list(zip(pop_cutoffs[:-1], pop_cutoffs[1:]))
+        res = []
+        for bin_ends in all_bin_ends:
+            res_bin = self.compute_metrics_in_bin(bin_ends, errors, compute_rel)
+            # print(res_bin)
+            assert len(res_bin) == len(header_row)
+            res.append([bin_ends] + list(zip(header_row, res_bin)))
+        self.log_and_print("########################################")
+        self.log_and_print(f"Total population errors and quantiles for {geolevel}, with format [population_bounds_of_bin, (statistic_1_name, statistic_1), (statistic_2_name, statistic_2), ...]:\n{res}", cui=True)
+        self.log_and_print("########################################")
+
+    def compute_metrics_in_bin(self, bin_ends, df, compute_rel):
+        if bin_ends[0] is not None and bin_ends[1] is not None:
+            df_filtered = df.filter((F.col(AC.ORIG) <= bin_ends[1]) & (F.col(AC.ORIG) > bin_ends[0]))
+        elif bin_ends[0] is not None:
+            df_filtered = df.filter(F.col(AC.ORIG) > bin_ends[0])
+        elif bin_ends[1] is not None:
+            df_filtered = df.filter(F.col(AC.ORIG) <= bin_ends[1])
+        else:
+            df_filtered = df
+        if df_filtered.count() == 0:
+            final_len = 11 + compute_rel
+            return [None] * final_len
+        quants_errors = df_filtered.approxQuantile("error", [0.005, 0.025, 0.05, 0.25, .5, 0.75, 0.95, 0.975, 0.995], 0)
+        l1_mean = [np.round(list(df_filtered.agg({"l1_error": "avg"}).collect())[0]["avg(l1_error)"], 3)]
+        num = df_filtered.count()
+        if compute_rel:
+            df_filtered = df_filtered.withColumn("pct_rel", F.col("l1_error") / F.col(AC.ORIG) * 100.)
+            pct_rel_mean = [np.round(list(df_filtered.agg({"pct_rel": "avg"}).collect())[0]["avg(pct_rel)"], 3)]
+            return [num] + l1_mean + pct_rel_mean + quants_errors
+        return [num] + l1_mean + quants_errors
 
     def printH1CountyMetrics(self, engine_tuple):
         nodes, feas_dict = engine_tuple
@@ -336,12 +451,7 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
         print(f"The proportion of Counties with query {qname} that satisfy our accuracy goal is {proportion}")
         print(f"County_{qname}_L1_Errors_Are:{np.array(l1_errors)}")
 
-    def calculate_relative_total_pop_error(self, engine_tuple, quantiles=None, threshold=0.05):
-        geolevels = list(self.gettuple(CC.TOTAL_POP_RELATIVE_ERROR_GEOLEVELS, section=CC.ERROR_METRICS, sep=CC.REGEX_CONFIG_DELIM, default=()))
-        quantiles = [xi / 20. for xi in np.arange(20)] + [.975, .99, 1.] if quantiles is None else quantiles
-        population_bin_starts = np.arange(51, dtype=int) * 50
-        if len(geolevels) == 0:
-            return EMPTY_TUPLE
+    def answerQueriesUsingAnalysis(self, engine_tuple, geolevels, queries):
         cur_path = os.path.abspath(os.path.curdir)
         os.chdir(os.path.join(cur_path, 'analysis'))
 
@@ -351,8 +461,53 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
         df = datatools.rdd2df(block_nodes, self.setup.schema_obj)
         df = sdftools.aggregateGeolevels(spark, df, geolevels, verbose=False)
         df = sdftools.remove_not_in_area(df, geolevels)
+        df_out = sdftools.answerQueries(df, self.setup.schema_obj, queries, verbose=False)
 
-        df = sdftools.answerQueries(df, self.setup.schema_obj, ["total"], verbose=False)
+        os.chdir(cur_path)
+        return df_out
+
+    def calculate_L1_total_error_by_bin(self, engine_tuple, geolevel, population_bin_starts):
+        df = self.answerQueriesUsingAnalysis(engine_tuple, [geolevel], ["total"])
+        if df.count() == 0:
+            return None
+        df_l1 = df.withColumn("L1_error", F.abs(F.col(AC.ORIG) - F.col(AC.PRIV)))
+        rdd_l1 = df_l1.rdd.map(lambda row: (float(row["L1_error"]), int(np.digitize(row[AC.ORIG], population_bin_starts))))
+        df_l1_w_bins = rdd_l1.toDF(["L1_error", "pop_bin"])
+        avg_over_all_bins = np.round(list(df_l1_w_bins.agg({"L1_error":"avg"}).collect())[0]["avg(L1_error)"], 5)
+        df_l1_grouped = df_l1_w_bins.groupBy("pop_bin").agg({"L1_error":"avg", "*": "count"})
+
+        df_collect = df_l1_grouped.collect()
+        n_bins = len(population_bin_starts) + 1
+        population_bin_starts = np.concatenate(([-np.inf], population_bin_starts, [np.inf]))
+        ranges = list(zip(population_bin_starts[:-1], population_bin_starts[1:] - 1))
+        tmp_res = [None] * n_bins
+        for row in df_collect:
+            tmp_res[int(row["pop_bin"])] = np.round(row["avg(L1_error)"], 5)
+        assert len(tmp_res) == (len(population_bin_starts) - 1)
+        final_res = list(zip(ranges, tmp_res))[1:]
+        self.log_and_print("########################################")
+        self.log_and_print(f"Total Query mean L1 Error in {geolevel} overall entities is {avg_over_all_bins}, and Binned by CEF Total Population:\n{final_res}", cui=True)
+        self.log_and_print("########################################")
+
+    def calculate_relative_total_pop_error(self, engine_tuple, quantiles=None, threshold=0.05):
+        geolevels = list(self.gettuple(CC.TOTAL_POP_RELATIVE_ERROR_GEOLEVELS, section=CC.ERROR_METRICS, sep=CC.REGEX_CONFIG_DELIM, default=()))
+        quantiles = [xi / 20. for xi in np.arange(20)] + [.975, .99, 1.] if quantiles is None else quantiles
+        population_bin_starts = np.arange(51, dtype=int) * 50
+        if len(geolevels) == 0:
+            return EMPTY_TUPLE
+        df = self.answerQueriesUsingAnalysis(engine_tuple, geolevels, ["total"])
+
+        # cur_path = os.path.abspath(os.path.curdir)
+        # os.chdir(os.path.join(cur_path, 'analysis'))
+        #
+        # block_nodes, feas_dict = engine_tuple
+        # spark = SparkSession.builder.getOrCreate()
+        # block_nodes = block_nodes.map(lambda node: node.redefineGeocodes(self.setup.geocode_dict))
+        # df = datatools.rdd2df(block_nodes, self.setup.schema_obj)
+        # df = sdftools.aggregateGeolevels(spark, df, geolevels, verbose=False)
+        # df = sdftools.remove_not_in_area(df, geolevels)
+        #
+        # df = sdftools.answerQueries(df, self.setup.schema_obj, ["total"], verbose=False)
         # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
         df_l1 = df.withColumn("L1_error", F.abs(F.col(AC.ORIG) - F.col(AC.PRIV)))
 
@@ -384,6 +539,8 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
             prop_lt_binned_final[geolevel] = list(zip(ranges, prop_lt_dict[geolevel]))
             bin_counts[geolevel] = list(zip(ranges, prop_lt_counts[geolevel]))
 
+        cur_path = os.path.abspath(os.path.curdir)
+        os.chdir(os.path.join(cur_path, 'analysis'))
         n_quants = len(quantiles)
         # Find unbinned results:
         # Recall df_prop_lt has columns ["tp_rel", "pop_bin", AC.GEOLEVEL, "prop_lt"]
@@ -392,7 +549,6 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
         quantiles_dict_final = {geolevel: [None] * n_quants for geolevel in geolevels}
         for row in quantiles_df:
             quantiles_dict_final[row[AC.GEOLEVEL]][np.digitize(float(row["quantile"]), quantiles) - 1] = (float(row["quantile"]), np.round(row["tp_rel"], 5))
-
         os.chdir(cur_path)
         return bin_counts, prop_lt_binned_final, tp_rel_dict_final, quantiles_dict_final
 
@@ -404,21 +560,12 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
 
         if len(geolevels) == 0 or len(queries) == 0:
             return EMPTY_TUPLE
-
         denom_query = self.getconfig(CC.L1_RELATIVE_DENOM_QUERY, section=CC.ERROR_METRICS, default="total")
         denom_level = self.getconfig(CC.L1_RELATIVE_DENOM_LEVEL, section=CC.ERROR_METRICS, default="total")
 
+        df = self.answerQueriesUsingAnalysis(engine_tuple, geolevels, queries + [denom_query])
         cur_path = os.path.abspath(os.path.curdir)
         os.chdir(os.path.join(cur_path, 'analysis'))
-
-        block_nodes, feas_dict = engine_tuple
-        spark = SparkSession.builder.getOrCreate()
-        block_nodes = block_nodes.map(lambda node: node.redefineGeocodes(self.setup.geocode_dict))
-        df = datatools.rdd2df(block_nodes, self.setup.schema_obj)
-        df = sdftools.aggregateGeolevels(spark, df, geolevels, verbose=False)
-        df = sdftools.remove_not_in_area(df, geolevels)
-
-        df = sdftools.answerQueries(df, self.setup.schema_obj, queries + [denom_query], verbose=False)
         df = sdftools.getL1Relative(df, colname="L1Relative", denom_query=denom_query, denom_level=denom_level).persist()
 
         if use_bins:
@@ -492,7 +639,6 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
 
         for row in counts_correct_sign:
             counts_correct_sign_dict[row[AC.GEOLEVEL]][row[AC.QUERY]] = row["count"]
-
         os.chdir(cur_path)
         return avg_dict, lt_prop_dict, quantiles_dict_final, counts_dict, counts_correct_sign_dict, bin_counts, prop_lt_binned_final
 
@@ -770,6 +916,20 @@ class AccuracyMetrics(AbstractDASErrorMetrics):
         """
         #return int(np.max(np.abs(priv - orig)))
         return int(np.abs(priv.sparse_array - orig.sparse_array).max())
+
+    @staticmethod
+    def BlauIndexCEF(node, hisp_cenrace_major_query: AbstractLinearQuery):
+        hisp_major_races = hisp_cenrace_major_query.answer(node.getDenseRaw())  # CEF based
+        # hisp_major_races = hisp_cenrace_major_query.answerSparse(node.raw.sparse_array.transpose()).toarray()
+        # return 1 - np.sum(major_races * major_races) / np.sum(major_races) ** 2
+        return 1 - (np.sum(hisp_major_races[7:] ** 2) + np.sum(hisp_major_races[:7] ** 2)) / np.sum(hisp_major_races) ** 2
+
+    @staticmethod
+    def cenraceHisp8cells(node, hisp_cenrace_major_query: AbstractLinearQuery):
+        hmr_raw = hisp_cenrace_major_query.answer(node.getDenseRaw())
+        hmr_syn = hisp_cenrace_major_query.answer(node.getDenseSyn())
+        return tuple(map(lambda d: np.array([np.sum(d[7:]),] + list(d[:7])), [hmr_raw, hmr_syn]))
+
 
     @staticmethod
     def qL1(node, q: AbstractLinearQuery, sparse=False):

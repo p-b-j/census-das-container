@@ -208,8 +208,6 @@ class AbstractOptimizer(AbstractDASModule, metaclass=ABCMeta):
 
 
         clogging.setup(level=logging.INFO)
-                    #    syslog=True,
-                    #    syslog_format=clogging.YEAR + " " + clogging.SYSLOG_FORMAT)
 
         # Always create a new gurobi environment!
         # (Previously we just returned grb_env if we already had one. This was an error)
@@ -776,7 +774,7 @@ class GeoOptimizer(Optimizer, metaclass=ABCMeta):
             report_reason += f'(random_report) '
             save_model = True
 
-        if save_model and False:  # Added to avoid using boto3/s3
+        if save_model and False:
             s3path = self.saveModelToS3(model)
             if s3path is not None:
                 report_reason += " Saved lpfile to "+s3path

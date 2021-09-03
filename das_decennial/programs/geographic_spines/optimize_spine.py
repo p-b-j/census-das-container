@@ -351,9 +351,9 @@ def bypassing_improves_parent(parent_plb: Fraction, child_plbs: list, epsilon_de
         return True
     if len(child_plbs) == 1:
         return True
-    elif epsilon_delta:
+    if epsilon_delta:
         return False
-    elif bypass_cutoff >= num_siblings + len(child_plbs) and min(child_plbs) * 2 >= (len(child_plbs) - 1) * parent_plb:
+    if bypass_cutoff >= num_siblings + len(child_plbs) and min(child_plbs) * 2 >= (len(child_plbs) - 1) * parent_plb:
         return True
 
     return False
@@ -606,9 +606,14 @@ def call_optimize_spine(state_county: str, row, user_plb_dict: dict, fanout_cuto
     :return widths: the fixed number of additional digits of DAS_geoid that is required to represent each geolevel at
     the county level and below.
     """
+    # Recall each element of row is formattd as (tract_i, block_i, OSEs_i, gq_OSE_i), where OSEs_i is a tuple containing the geographic codes of
+    # off-spine entities to target in the spine optimization routines.
+
+    # Sort by block geocode16 geoid:
+    row = tuple(sorted(row, key=lambda d: d[1]))
 
     adjacency_dict = dict()
-    intersect_entities = [''.join(row_k[-2:]) for row_k in row]
+    intersect_entities = [''.join(row_k[2] + (row_k[3],)) for row_k in row]
 
     tracts = np.unique([row_k[0] for row_k in row])
     num_tracts = len(tracts)
@@ -628,8 +633,7 @@ def call_optimize_spine(state_county: str, row, user_plb_dict: dict, fanout_cuto
     # Define block-groups and continue to assign them block children from the same off-spine entity as long as there are
     # no more than cutoff children assigned:
     for k, tract in enumerate(tracts):
-        unique_intersect_entities_in_tract = \
-            np.unique([intersect_entities[n] for n, row_k in enumerate(row) if row_k[0] == tract])
+        unique_intersect_entities_in_tract = np.unique([intersect_entities[n] for n, row_k in enumerate(row) if row_k[0] == tract])
         tract_id = init_ranges[CC.TRACT][0] + k
         adjacency_dict[tract_id] = []
         for i, entity in enumerate(unique_intersect_entities_in_tract):
@@ -653,26 +657,19 @@ def call_optimize_spine(state_county: str, row, user_plb_dict: dict, fanout_cuto
 
     # Create blocks_in_entities input for optimize_spine(.):
     blocks_in_entities = []
-    # To have the code consider the union of all blocks within the county with the same GQ types as an OSE when
-    # defining tract-groups to minimize OSED, replace [-2] with [-2, -1] in the next line:
-    for ose_type_index in [-2]:
-        unique_oses = np.unique([row_k[ose_type_index] for row_k in row if not np.all([xi == "9" for xi in row_k[ose_type_index]])])
+    n_ose_types = len(row[0][2])
+    for ose_type_index in range(n_ose_types):
+        unique_oses = np.unique([row_k[2][ose_type_index] for row_k in row if not np.all([xi == "9" for xi in row_k[2][ose_type_index]])])
         for ose in unique_oses:
-            blocks_in_entities.append({row_k[1] for row_k in row if row_k[ose_type_index] == ose})
+            blocks_in_entities.append({row_k[1] for row_k in row if row_k[2][ose_type_index] == ose})
 
     # Create entities_in_tract input for optimize_spine(.):
     entities_in_tract = dict()
     for k, tract in enumerate(tracts):
         tract_id = init_ranges[CC.TRACT][0] + k
-        unique_entities_in_tract = np.unique([row_k[-2] for row_k in row if row_k[0] == tract])
+        ose_tuples_in_tract = [row_k[2] for row_k in row if row_k[0] == tract]
+        unique_entities_in_tract = np.unique([ose_tuple[k] for ose_tuple in ose_tuples_in_tract for k in range(n_ose_types)])
         entities_in_tract[tract_id] = unique_entities_in_tract.tolist()
-        # This version of the code groups together all tracts with the same MCDs/places before carrying out further
-        # optimization to minimize OSED. To also initialize tract_groups based on both GQ types and place/MCD OSEs,
-        # comment out line above and uncomment next three lines. (This choice is independent of the choice described
-        # above after blocks_in_entities is initialized as an empty list.)
-        # entities_in_tract[tract_id] = [unique_entities_in_tract.tolist()]
-        # unique_entities_in_tract = np.unique([row_k[-1] for row_k in row if row_k[0] == tract])
-        # entities_in_tract[tract_id].append(unique_entities_in_tract.tolist())
 
     plb_mapping, geoid_mapping, widths = optimize_spine(state_county, adjacency_dict, levels_dict,
                                                         blocks_in_entities, entities_in_tract, user_plb_dict,

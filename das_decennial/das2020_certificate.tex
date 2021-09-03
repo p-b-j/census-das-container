@@ -1,6 +1,5 @@
 % Certificate of disclosure avoidance
 % Originally from https://github.com/harishkumarholla/Certificate.git
-% Note: This should be a generic certificate that is then customized
 \documentclass[14pt]{scrartcl}              %class
 \usepackage{times}
 \usepackage[landscape,left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry} %for layout
@@ -15,15 +14,19 @@
 \usepackage{fancyvrb}
 \usepackage[T1]{fontenc}
 \usepackage[lighttt]{lmodern}
+\usepackage{booktabs}
 \definecolor{acolor}{rgb}{0,0.08,0.45}
 \definecolor{red}{rgb}{0.5,0,0}
 \definecolor{linkbordercolor}{rgb}{0,0,0}
 
 \newcommand{\censusDirectorate}{Research and Methodology Directorate}
+\newcommand{\censusCenter}{Center for Enterprise Dissemination -- Disclosure Avoidance}
 \newcommand{\personOne}{@@PERSON1@@}
 \newcommand{\titleOne}{@@TITLE1@@}
 \newcommand{\personTwo}{@@PERSON2@@}
 \newcommand{\titleTwo}{@@TITLE2@@}
+\newcommand{\personThree}{@@PERSON3@@}
+\newcommand{\titleThree}{@@TITLE3@@}
 \newcommand{\name}{@@NAME@@}
 \newcommand{\theDate}{@@DATE@@}
 
@@ -47,68 +50,75 @@
 % Here include left side image
 %
 \noindent
-\begin{minipage}[l]{1.5in}
-\includegraphics[width=.92\linewidth]{Seal_of_the_United_States_Census_Bureau.pdf}  
+\begin{minipage}[c]{1.5in}
+\includegraphics[width=.92\linewidth]{Seal_of_the_United_States_Census_Bureau.pdf}
 \end{minipage}
-\\
-\vspace{-1in}
-
-
-\noindent
-\begin{minipage}[l]{1.5in}
-\end{minipage}
-\hfill
-
-
 \begin{minipage}[c]{8.5in}
 {\centering
-{\doublespacing
-{\Large\bfseries\color{acolor}\censusDirectorate}}\\
+{
+\doublespacing
+{\Large\bfseries\color{acolor}\censusDirectorate}
+}\\
+{\Large\bfseries\color{acolor}\censusCenter} \\
 {\Large\bfseries\color{acolor} Certificate of Disclosure Avoidance}\\
 }
 \end{minipage}
-\hfill
-
-\begin{minipage}[r]{1.0in}
-\end{minipage}
-\hfill
-
 \vspace{4cm}
-\begin{minipage}[c]{10in}
-  \setlength{\parindent}{0pt}
-  \setlength{\parskip}{16pt}
-  \doublespacing
+\doublespacing
 
   {{\bfseries This is to certify that {{\underline{\name}}} has
       been produced in accordance with the disclosure avoidance requirements of the 2020
       Census of Population and Housing at \underline{\theDate}.}}
-
-  Disclosure Review Board Clearance: CBDRB-FY20-DSEP-002
-
-  Configuration File: @@CONFIG_FILENAME@@
-
-  Git Commit: @@GIT_COMMIT@@
-\end{minipage}
-
+  \textbf{Disclosure Review Board Clearance: @@DRB-CLR-NUM@@ (Not valid unless signed).}
 
 \noindent
-{\singlespacing 
+{\singlespacing
 \vfill
 \begin{minipage}[l]{2.8in}
 \centering
+\personOne\\
 \sigField{Signature1}{2.8in}{2.5cm}\\
 \titleOne
 \end{minipage}
 \hfill
 \begin{minipage}[r]{2.8in}
 \centering
+\personTwo\\
 \sigField{Signature2}{2.8in}{2.5cm}\\
 \titleTwo
+\end{minipage}
+\hfill
+\begin{minipage}[r]{2.8in}
+\centering
+\personThree\\
+\sigField{Signature3}{2.8in}{2.5cm}\\
+\titleThree
 \end{minipage}}
 \begin{center}
-Page 1 of \pageref{LastPage}
+Page 1 of~\pageref{LastPage}
 \end{center}
 \clearpage
+
+
+Configuration File: @@CONFIG-FILENAME@@
+
+Git Commit: @@GIT-COMMIT@@
+
+Mission name: @@MISSION-NAME@@
+\vfill
+\begin{center}
+Page 2 of~\pageref{LastPage}
+\end{center}
+\clearpage
+
+\singlespacing
+Formal privacy framework parameters:
+
+@@DPPARAMS@@
+\clearpage
+
+
+\singlespacing
 \def\BackgroundPic{}            % erase the background picture
 \fontsize{8}{8}\selectfont
 \pagestyle{fancy}
@@ -117,7 +127,7 @@ Page 1 of \pageref{LastPage}
 \rhead{page \thepage~of \pageref{LastPage}}
 \cfoot{}
 \clearpage
-Config file: @@CONFIG_FILENAME@@
+Config file: @@CONFIG-FILENAME@@
 
 @@CONFIG@@
 \clearpage

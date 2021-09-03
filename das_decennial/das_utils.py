@@ -290,7 +290,6 @@ def clearPath(path):
     else:
         try:
             subprocess.run(['rm', '-r', path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            #subprocess.run(['hadoop', 'fs', '-rm', '-r', path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except (subprocess.SubprocessError, ValueError) as e:
             logging.error(f"HDFS remove failed: subprocess returned error {e}, {sys.exc_info()}")
 

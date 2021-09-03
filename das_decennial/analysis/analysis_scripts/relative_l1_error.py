@@ -31,6 +31,7 @@ print(f"matplotlib version: {matplotlib.__version__}")
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas
+from copy import deepcopy
 
 import os, math
 from collections import defaultdict
@@ -43,19 +44,18 @@ abdat-ITE-MASTER:hadoop@ip-10-252-44-211$ aws s3 ls s3://uscb-decennial-ite-das/
 """
 
 #queries = [CC.CENRACE_7LEV_TWO_COMB + " * hispanic"]
-queries = ["cenrace_7lev_two_comb * hispanic * voting"]
-#denom_query = "total"
-#denom_level = "total"
-denom_query="votingage"
-denom_level="18 and over"
+queries = ["cenrace_7lev_two_comb * hispanic"]
+denom_query = "total"
+denom_level = "total"
+#denom_query="votingage"
+#denom_level="18 and over"
 
-all_geolevels =  ["OSE", C.BLOCK_GROUP, C.PLACE] #'STATE', 'AIAN_AREAS', 'OSE', 'AIANTract', 'AIANState', 'AIANBlock', C.TRACT, C.STATE, C.BLOCK]
+all_geolevels =  ["OSE"] #, C.BLOCK_GROUP, C.PLACE] #'STATE', 'AIAN_AREAS', 'OSE', 'AIANTract', 'AIANState', 'AIANBlock', C.TRACT, C.STATE, C.BLOCK]
 
 POPULATION_CUTOFF = 500
 POPULATION_BIN_STARTS = np.arange(51, dtype=int) * 50
 QUANTILES = [xi / 20. for xi in np.arange(20)] + [.975, .99, 1.]
 THRESHOLD = 0.05
-
 
 def listDefault():
     return all_geolevels
@@ -73,44 +73,47 @@ def schemaDefault():
     return "PL94"
 schema_dict = defaultdict(schemaDefault)
 schema_dict["H1"] = "H1_SCHEMA"         # For H1-only internal runs as of 4/2/2020
+# TODO: add trial 1:
+paths = ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0412-1117-TRIAL1/DAS-PPMF-EPS10-0412-1117-TRIAL1/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0412-1604-TRIAL2/DAS-PPMF-EPS10-0412-1604-TRIAL2/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0412-1606-TRIAL3-2/DAS-PPMF-EPS10-0412-1606-TRIAL3-2/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0412-1607-TRIAL4/DAS-PPMF-EPS10-0412-1607-TRIAL4/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0412-1712-TRIAL5-2/DAS-PPMF-EPS10-0412-1712-TRIAL5-2/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0412-2011-TRIAL6/DAS-PPMF-EPS10-0412-2011-TRIAL6/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0412-2012-TRIAL7/DAS-PPMF-EPS10-0412-2012-TRIAL7/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0412-2013-TRIAL8/DAS-PPMF-EPS10-0412-2013-TRIAL8/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0413-0838-TRIAL9/DAS-PPMF-EPS10-0413-0838-TRIAL9/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0413-0840-TRIAL10/DAS-PPMF-EPS10-0413-0840-TRIAL10/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0413-0841-TRIAL11/DAS-PPMF-EPS10-0413-0841-TRIAL11/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0413-0842-TRIAL12/DAS-PPMF-EPS10-0413-0842-TRIAL12/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0413-0843-TRIAL13/DAS-PPMF-EPS10-0413-0843-TRIAL13/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-DAS-PPMF-EPS10-0413-1635-TRIAL14/DAS-DAS-PPMF-EPS10-0413-1635-TRIAL14/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-DAS-PPMF-EPS10-0413-1636-TRIAL15/DAS-DAS-PPMF-EPS10-0413-1636-TRIAL15/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-DAS-PPMF-EPS10-0413-1637-TRIAL16/DAS-DAS-PPMF-EPS10-0413-1637-TRIAL16/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-DAS-PPMF-EPS10-0413-1638-TRIAL17/DAS-DAS-PPMF-EPS10-0413-1638-TRIAL17/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-DAS-PPMF-EPS10-0413-1639-TRIAL18/DAS-DAS-PPMF-EPS10-0413-1639-TRIAL18/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0414-1019-TRIAL19-3/DAS-PPMF-EPS10-0414-1019-TRIAL19-3/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0414-0603-TRIAL20/DAS-PPMF-EPS10-0414-0603-TRIAL20/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0414-0604-TRIAL21-2/DAS-PPMF-EPS10-0414-0604-TRIAL21-2/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0414-1626-TRIAL22/DAS-PPMF-EPS10-0414-1626-TRIAL22/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0414-0605-TRIAL22/DAS-PPMF-EPS10-0414-0605-TRIAL22/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0415-0009-TRIAL24/DAS-PPMF-EPS10-0415-0009-TRIAL24/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0415-0010-TRIAL25/DAS-PPMF-EPS10-0415-0010-TRIAL25/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-TEST-PPMF-EPS4-0409-0612/DAS-TEST-PPMF-EPS4-0409-0612/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/tests/DAS-TEST-PPMF-EPS4-0410-0641/DAS-TEST-PPMF-EPS4-0410-0641/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategyStrategy1b_St_Cty_BG_optSpine_ppmfCandidate-MultipassRounder-opt_s/MDF10_PER_US-BlockNodeDicts/pine-scale429_439-dynamic_geolevel-20210408-204533-trial0/mdf/us/per/MDF10_PER_US.txt",
+"s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategyStrategy2b_St_Cty_BG_optSpine_ppmfCandidate-MultipassRounder-opt_spine-scale429_439-dynamic_geolevel-20210408-205708-trial0/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/",
+"s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategyStrategy2b_St_Cty_B_aianSpine_ppmfCandidate-MultipassRounder-aian_spine-scale429_439-dynamic_geolevel-20210406-135349-trial0/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"]
 
-paths = ['s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy2c-MultipassRounder-aian_spine-eps2-dynamic_geolevel-20201231-110811/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy1a-MultipassRounder-opt_spine-eps4-dynamic_geolevel-20201228-115337/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy1a-MultipassRounder-opt_spine-eps10-dynamic_geolevel-20201228-115337/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy1a-MultipassRounder-opt_spine-eps50-dynamic_geolevel-20201228-115337/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy1b-MultipassRounder-opt_spine-eps10-dynamic_geolevel-20201228-115337/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy2b-MultipassRounder-aian_spine-eps10-dynamic_geolevel-20201228-142548/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy2b-MultipassRounder-aian_spine-eps20-dynamic_geolevel-20201228-142548/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy2b-MultipassRounder-opt_spine-eps10-dynamic_geolevel-20201228-142548/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy2b-MultipassRounder-opt_spine-eps20-dynamic_geolevel-20201228-142548/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy1c-MultipassRounder-aian_spine-eps4-dynamic_geolevel-20201228-142933/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy1c-MultipassRounder-aian_spine-eps10-dynamic_geolevel-20201228-142933/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy1c-MultipassRounder-aian_spine-eps20-dynamic_geolevel-20201228-142933/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy1c-MultipassRounder-opt_spine-eps10-dynamic_geolevel-20201228-142933/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy2a-MultipassRounder-aian_spine-eps10-dynamic_geolevel-20201228-142933/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy2a-MultipassRounder-opt_spine-eps4-dynamic_geolevel-20201228-142933/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy2a-MultipassRounder-opt_spine-eps10-dynamic_geolevel-20201228-142933/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy2a-MultipassRounder-opt_spine-eps20-dynamic_geolevel-20201228-142933/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy1a-MultipassRounder-aian_spine-eps2-dynamic_geolevel-20201229-184746/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy1a-MultipassRounder-aian_spine-eps4-dynamic_geolevel-20201229-184746/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy1a-MultipassRounder-aian_spine-eps10-dynamic_geolevel-20201229-184746/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy2b-MultipassRounder-aian_spine-eps10-dynamic_geolevel-20201229-190456/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy2b-MultipassRounder-opt_spine-eps10-dynamic_geolevel-20201229-190456/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy2c-MultipassRounder-aian_spine-eps10-dynamic_geolevel-20201229-190456/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy2c-MultipassRounder-opt_spine-eps2-dynamic_geolevel-20201229-190456/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy1c-MultipassRounder-aian_spine-eps4-dynamic_geolevel-20201229-185422/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy1c-MultipassRounder-aian_spine-eps10-dynamic_geolevel-20201229-185422/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy1c-MultipassRounder-opt_spine-eps4-dynamic_geolevel-20201229-185422/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/']
 
-
-run_ids = []
-for path in paths:
-    run_id_str = path.split("dsep_experiments_dec_2020/DSEP-DEC2020-")[1]
-    run_id = ""
-    while run_id_str[:4] != "/mdf":
-        run_id += run_id_str[0]
-        run_id_str = run_id_str[1:]
-    run_ids.append(run_id)
+run_ids = deepcopy(paths)
+#for path in paths:
+#    run_id_str = path.split("dsep_experiments_dec_2020/DSEP-DEC2020-")[1]
+#    run_id = ""
+#    while run_id_str[:4] != "/mdf":
+#        run_id += run_id_str[0]
+#        run_id_str = run_id_str[1:]
+#    run_ids.append(run_id)
 
 
 def largestIntInStr(bucket_name):

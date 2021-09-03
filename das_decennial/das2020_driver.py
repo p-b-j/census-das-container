@@ -226,77 +226,80 @@ def get_git_hash(git_folder: Path):
     TODO: - clean this up so that it returns a tuple of the (remote URL,commit point).
     - We have code in DVS that does this now.
     """
-    commit_point     = subprocess.check_output([CC.GIT_EXECUTABLE, "show"],encoding='utf8').split('\n')[0]
+    commit_point     = [subprocess.check_output([CC.GIT_EXECUTABLE, "show"], encoding='utf8', cwd=git_folder).split('\n')[0]]
     try:
         porcelaingit = subprocess.check_output(
             [CC.GIT_EXECUTABLE, "status", "--porcelain", "--untracked-files=no"],
-            encoding='utf-8',cwd=git_folder)
+            encoding='utf-8', cwd=git_folder)
     except (subprocess.CalledProcessError) as e:
         logging.error(f"Git porcelain-no-untracked-files failed: subprocess returned error {e}, {sys.exc_info()}")
         commit_point = commit_point + " -- Git to check whether commit is clean hasn't run! --"
         porcelaingit = ""
 
     if len(porcelaingit) > 0:
-        commit_point = commit_point + " (modifications from commit present at run time)"
+        commit_point.append("(modifications present at run time)")
     else:
         try:
             porcelaingit_wfiles = subprocess.check_output(
                 [CC.GIT_EXECUTABLE, "status", "--porcelain"],
-                encoding='utf-8')
+                encoding='utf-8', cwd=git_folder)
         except (subprocess.CalledProcessError) as e:
             logging.error(f"Git porcelain failed: subprocess returned error {e}, {sys.exc_info()}")
             commit_point = commit_point + " -- Git to check the presence of untracked files hasn't run! --"
             porcelaingit_wfiles = ""
-        if len(porcelaingit_wfiles) > 0:
-            commit_point = commit_point + " (untracked files present at run time)"
-    return f"{git_folder.name} {commit_point}"
+
+        commit_point.append("(untracked files present at run time)" if len(porcelaingit_wfiles) > 0 else "")
+    return tuple([git_folder.name] + commit_point)
 
 
-def generate_certificate( config, certificate_path ):
-    # Do the import here so we don't need to do it on every node
-    from das_framework.certificate import CertificatePrinter
-    cp = CertificatePrinter(title="Certificate of Disclosure Avoidance")
-    cp.add_params({"DATE"   : datetime.datetime.now().isoformat()[0:19],
-                   "NAME"   : config[CC.WRITER_SECTION].get(CC.CERTIFICATE_NAME, ''),
-                   "PERSON1": config[CC.WRITER_SECTION].get(CC.CERTIFICATE_PERSON1, ''),
-                   "TITLE1" : config[CC.WRITER_SECTION].get(CC.CERTIFICATE_TITLE1, ''),
-                   "PERSON2": config[CC.WRITER_SECTION].get(CC.CERTIFICATE_PERSON2, ''),
-                   "TITLE2" : config[CC.WRITER_SECTION].get(CC.CERTIFICATE_TITLE2, ''),
-                   "GIT_COMMIT" : ctools.latex_tools.latex_escape(get_git_hash( Path(abspath(__file__))))
-               })
-    cp.add_config(config)
-    cp.typeset(certificate_path)
+# def generate_certificate( config, certificate_path ):
+#     # Do the import here so we don't need to do it on every node
+#     from das_framework.certificate import CertificatePrinter
+#     cp = CertificatePrinter(title="Certificate of Disclosure Avoidance")
+#     cp.add_params({"DATE"   : datetime.datetime.now().isoformat()[0:19],
+#                    "NAME"   : config[CC.WRITER_SECTION].get(CC.CERTIFICATE_NAME, ''),
+#                    "PERSON1": config[CC.WRITER_SECTION].get(CC.CERTIFICATE_PERSON1, ''),
+#                    "TITLE1" : config[CC.WRITER_SECTION].get(CC.CERTIFICATE_TITLE1, ''),
+#                    "PERSON2": config[CC.WRITER_SECTION].get(CC.CERTIFICATE_PERSON2, ''),
+#                    "TITLE2" : config[CC.WRITER_SECTION].get(CC.CERTIFICATE_TITLE2, ''),
+#                    "GIT_COMMIT" : ctools.latex_tools.latex_escape(" ".join(get_git_hash( Path(abspath(__file__)))))
+#                })
+#     cp.add_config(config)
+#     cp.typeset(certificate_path)
 
 
 
 def add_git_commit_to_config(das):
     das.annotate(f"{CC.SAVE_GIT_COMMIT} set to True")
-    current_dir = Path(abspath(__file__)).parent
-    current_folder = Path(current_dir).name
-    parent_folder = Path(current_dir).parent.name
-
-    # This sets if we are going to be using the parent folder of the current file. This is the case if the parent
-    # folder is das-vm-config.
-    working_folder_path = Path(current_dir).parent if parent_folder == 'das-vm-config' else Path(current_dir)
-
-    # Run git submodule status --recursive with the cwd set to either the current file path or to the parent if
-    # the parent is das-vm-config.
-    all_submodules = subprocess.run(["git", "submodule", "status", "--recursive"], stdout=subprocess.PIPE,
-                                    cwd=working_folder_path).stdout.decode("utf-8").split("\n")
-
-    # Run through the submodules and clean up the strings as well as add the root repo to the list.
-    all_submodules = [Path(working_folder_path) / Path(submodule.strip().split(" ")[1]) for submodule in
-                      all_submodules if submodule.strip()]
-    all_submodules.append(Path(working_folder_path))
-
-    # Call get_git_hash on all the repos including the root repo.
-    repo_info = [get_git_hash(git_folder=submodule) for submodule in all_submodules]
-    repo_info = "|".join(repo_info)
-
+    repo_info = get_repo_info()
+    repo_info = "|".join(map(lambda d: " ".join(d), repo_info.itertuples(index=False)))
     # Add all the git has repo information to the das config. This is later used to add the info to the metatadata file.
     das.config.set(CC.READER, CC.GIT_COMMIT, repo_info)
 
     das.annotate(f"Git commit info: {repo_info}")
+
+
+def get_repo_info():
+    import pandas as pd
+    current_dir = Path(abspath(__file__)).parent
+    current_folder = Path(current_dir).name
+    parent_folder = Path(current_dir).parent.name
+    # This sets if we are going to be using the parent folder of the current file. This is the case if the parent
+    # folder is das-vm-config.
+    working_folder_path = Path(current_dir).parent if parent_folder == 'das-vm-config' else Path(current_dir)
+    # Run git submodule status --recursive with the cwd set to either the current file path or to the parent if
+    # the parent is das-vm-config.
+    all_submodules = subprocess.run(["git", "submodule", "status", "--recursive"], stdout=subprocess.PIPE,
+                                    cwd=working_folder_path).stdout.decode("utf-8").split("\n")
+    # Run through the submodules and clean up the strings as well as add the root repo to the list.
+    all_submodules = [Path(working_folder_path) / Path(submodule.strip().split(" ")[1]) for submodule in
+                      all_submodules if submodule.strip()]
+    all_submodules.append(Path(working_folder_path))
+    # Call get_git_hash on all the repos including the root repo.
+    repo_info = pd.DataFrame([get_git_hash(git_folder=submodule) for submodule in all_submodules])
+    repo_info.columns = ['Submodule', 'Commit', "Modified/Untracked"]
+
+    return repo_info
 
 
 def do_dry_run(args):
@@ -314,16 +317,80 @@ def do_dry_run(args):
 
 
 
-def produce_certificate(config, certificate_path):
+def produce_certificate(config, certificate_path, git_commit="*None provided*", das=None):
     # Do the import here so we don't need to do it on every node
+    import programs.strategies.print_alloc as palloc
+    import pandas as pd
     writer = config[CC.WRITER_SECTION]
+    if das is not None:
+        levels = das.engine.budget.levels
+        privacy_framework = das.engine.setup.privacy_framework
+        total_budget = das.engine.budget.total_budget
+        level_alloc = das.engine.budget.geolevel_prop_budgets_dict
+    else:
+        # TODO: Do we want to re-read in this case or say 'not indicated'?
+        levels = config.get(option=CC.GEODICT_GEOLEVELS, section=CC.GEODICT).split(",")
+        privacy_framework = config.get(option=CC.PRIVACY_FRAMEWORK, section=CC.BUDGET, fallback=CC.PURE_DP)
+        total_budget = "*None indicated*"
+
+    strategy_name = config.get(section=CC.BUDGET, option=CC.STRATEGY)
+    epsilon_names = {CC.PURE_DP: r"$\varepsilon$", CC.ZCDP: r"zCDP-implied $\varepsilon$"}
+    framework_names = {CC.PURE_DP: r"$\varepsilon$-Differential Privacy", CC.ZCDP: r"Zero Concentrated Differential Privacy (mapped to $(\varepsilon, \delta)$-DP)"}
+    dpstring = ""
+    dpstring += f"Privacy framework: {framework_names[privacy_framework]}\n\n"
+    dpstring += f"Total {epsilon_names[privacy_framework]} = {total_budget} ($\\approx {float(total_budget):.2f}$)\n\n"
+    if privacy_framework == CC.ZCDP and das is not None:
+        delta_mant_exp = str(float(das.engine.budget.delta)).split('e')
+        delta_latex_str = delta_mant_exp[0] + r" \times 10^{" + delta_mant_exp[1] + r"}"
+        dpstring += r"$\delta=" + str(das.engine.budget.delta) + f"$ (${delta_latex_str}$)" + "\n\n"
+        rho = 1 / das.engine.budget.global_scale ** 2
+        dpstring += r"$\rho = " + str(rho) + f"$ $(\\approx {float(rho):.2f}$)" + "\n\n"
+    dpstring += r"\vspace{0.5cm}"
+
+    if das is not None:
+        df = pd.DataFrame(list(das.engine.budget.geolevel_prop_budgets_dict.items()))
+        df.columns = ["Geography level", "Budget proportion"]
+        dpstring += "Geographic level allocations:\n\n" + str(df.to_latex(index=False)) + "\n" + r"\vspace{0.5cm}"
+    dpstring += f"Within-geolevel query PLB allocations:\n\n{str(palloc.makeDataFrame(strategy_name, levels=levels).to_latex())}\n" + r"\vspace{0.5cm}"
+    if config.getboolean(option=CC.PRINT_PER_ATTR_EPSILONS, section=CC.BUDGET, fallback=False) and das is not None:
+        dpstring += "\clearpage\n\nPer-attribute semantics:\n\n"
+        if privacy_framework == CC.ZCDP:
+            dpstring += r"$\delta=" + str(das.engine.budget.delta) + f"$ (${delta_latex_str}$)" + "\n\n"
+        dpstring += r"\begin{tabular}{lr}"+ "\n\n\\toprule\n\n"
+        dpstring += r"Attribute Name & " + epsilon_names[privacy_framework] + r"\\" + "\n\n"
+        dpstring += "\midrule\n\n"
+        for attr_name, attr_eps in das.engine.budget.per_attr_epsilons.items():
+            dpstring += f"{attr_name} & {float(attr_eps):.2f} \\\\ \n\n"
+        dpstring += r"\bottomrule" + "\n\n" + r"\end{tabular}" + r"\hspace{3cm}"
+        # df = pd.DataFrame(das.engine.budget.per_attr_epsilons.items())
+        # df.columns = ["Attribute Name", "$\\varepsilon$"]
+        # dpstring += str(df.to_latex(index=False)) + "\n\n"
+
+        dpstring += r"\begin{tabular}{lr}" + "\n\n\\toprule\n\n"
+        dpstring += r"Geography & " + epsilon_names[privacy_framework] + r"\\" + "\n\n"
+        dpstring += "\midrule\n\n"
+        for geolevel, geolevel_eps in das.engine.budget.per_geolevel_epsilons.items():
+            gl = geolevel.replace('_','\_')
+            dpstring += f"Block-within-{gl} & {float(geolevel_eps):.2f} \\\\ \n\n"
+        dpstring += r"\bottomrule" + "\n\n" + r"\end{tabular}" + r"\vspace{0.5cm}"
+        # df = pd.DataFrame(das.engine.budget.per_geolevel_epsilons.items())
+        # df.columns = ["Geography Name", "$\\varepsilon$"]
+        # dpstring += str(df.to_latex(index=False)) + "\n\n"
 
     from das_framework.certificate import CertificatePrinter
-    cp = CertificatePrinter(title="Certificate of Disclosure Avoidance")
-    cp.add_params({"@@DATE@@"   : datetime.datetime.now().isoformat()[0:19],
-                   "@@NAME@@"   : config[CC.WRITER_SECTION][CC.CERTIFICATE_NAME],
-                   "@@TITLE1@@" : config[CC.WRITER_SECTION][CC.CERTIFICATE_TITLE1],
-                   "@@TITLE2@@" : config[CC.WRITER_SECTION][CC.CERTIFICATE_TITLE2]
+    cp = CertificatePrinter(title="Certificate of Disclosure Avoidance", template=CERTIFICATE_TEMPLATE)
+    cp.add_params({"DATE"   : datetime.datetime.now().isoformat()[0:19],
+                   "NAME"   : config[CC.WRITER_SECTION][CC.CERTIFICATE_NAME],
+                   "TITLE1" : config[CC.WRITER_SECTION][CC.CERTIFICATE_TITLE1],
+                   "TITLE2" : config[CC.WRITER_SECTION][CC.CERTIFICATE_TITLE2],
+                   "TITLE3": config[CC.WRITER_SECTION][CC.CERTIFICATE_TITLE3],
+                   "PERSON1": config[CC.WRITER_SECTION][CC.CERTIFICATE_PERSON1],
+                   "PERSON2": config[CC.WRITER_SECTION][CC.CERTIFICATE_PERSON2],
+                   "PERSON3": config[CC.WRITER_SECTION][CC.CERTIFICATE_PERSON3],
+                   "GIT-COMMIT"   : git_commit.replace("_","\_") + "\n\nOther repositories:\n\n" + get_repo_info().to_latex(index=False) + "\n" + r"\vspace{0.5cm}",
+                   "DPPARAMS"     : dpstring,
+                   "MISSION-NAME" : str(os.getenv('MISSION_NAME')).replace("_","\_"),
+                   "DRB-CLR-NUM"  : config.get(section=CC.WRITER_SECTION, option=CC.DRB_CLR_NUM, fallback="None")
                })
     cp.add_config(config)
     cp.typeset(certificate_path)
@@ -504,7 +571,7 @@ if __name__=="__main__":
     ###
 
     # put the applicationId into the environment and log it
-    git_commit = get_git_hash( Path(dirname(abspath(__file__))))
+    git_commit = " ".join(get_git_hash( Path(dirname(abspath(__file__)))))
     try:
         git_hash   = git_commit.split()[2]
     except (ValueError,TypeError,KeyError) as e:
@@ -566,7 +633,7 @@ if __name__=="__main__":
     ### SOL-124.135.250.020 : Produce a certificate
     ###
     certificate_path     = re.sub(r".log$", config[CC.WRITER_SECTION][CC.CERTIFICATE_SUFFIX], das.logfilename)
-    produce_certificate(config, certificate_path)
+    produce_certificate(config, certificate_path, git_commit=git_commit, das=das)
     das.writer.add_output_path( certificate_path )
 
     ## The certificate is automatically added to the .zip file because it has the same prefix as the logfile

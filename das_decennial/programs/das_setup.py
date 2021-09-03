@@ -71,6 +71,7 @@ class DASDecennialSetup(AbstractDASSetup):
     plb_allocation: Dict[str, float]   # Dictionary of Privacy Loss Budget proportion spent of the geounit, by its geocode.
     spine_type: str  # AIAN, NON-AIAN, OPTIMIZED
     geocode_dict: Dict[int, str]  # Lengths of substrings of geocode as key, geocode names as value, THE STANDARD ONE
+    qalloc_string = ""  # String for query allocation to be filled by engine module, and accessed by other modules like writer
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

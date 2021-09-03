@@ -1,7 +1,7 @@
 """
     This module contains primitive operations used in differential privacy.
 """
-from programs.engine.rngs import DASRandom, DASRDRandIntegers
+from programs.engine.rngs import DASRDRandIntegers
 import numpy as np
 import scipy.stats
 import time
@@ -22,8 +22,8 @@ from fractions import Fraction
 from constants import CC
 
 _called_from_test = False  # Used to disallow overriding of rngs except in unit tests.
-_rng_factory = DASRandom  # RDRand draws wrapped in numpy.random module
-#_rng_factory = DASRDRandIntegers  # RDRand draws unlimited int, with OpenBSD rejection sampling unbiasing
+# _rng_factory = DASRandom  # RDRand draws wrapped in numpy.random module
+_rng_factory = DASRDRandIntegers  # RDRand draws unlimited int, with OpenBSD rejection sampling unbiasing
 
 
 class DPMechanism:
@@ -134,7 +134,7 @@ class RationalGeometricMechanism(DPMechanism):
         shape = np.shape(true_answer)
         size = np.prod(shape)
 
-        assert _called_from_test or _rng_factory is DASRandom, "Only unit tests may override _rng_factory."
+        assert _called_from_test or _rng_factory is DASRDRandIntegers, "Only unit tests may override _rng_factory."
         rng = _rng_factory()
         perturbations = RationalSimpleDiscreteLaplace(s=inverse_scale_n, t=inverse_scale_d * self.sensitivity, size=size, rng=rng)
         self.protected_answer = true_answer + np.reshape(perturbations, shape)
@@ -213,7 +213,7 @@ class RationalDiscreteGaussianMechanism(DPMechanism):
         shape = np.shape(true_answer)
         size = int(np.prod(shape))
 
-        assert _called_from_test or _rng_factory is DASRandom, "Only unit tests may override _rng_factory."
+        assert _called_from_test or _rng_factory is DASRDRandIntegers, "Only unit tests may override _rng_factory."
         rng = _rng_factory()
         perturbations = RationalSimpleDiscreteGaussian(sigma_sq=self.sigma_sq, size=size, rng=rng)
         self.protected_answer = true_answer + np.reshape(perturbations, shape)
@@ -249,7 +249,7 @@ class RoundedContinuousGaussianMechanism(DPMechanism):
         size = int(np.prod(shape))
 
         print(f"WARNING: inexact (float ops, etc) formally private noise primitive in use! Not appropriate for production!")
-        assert _called_from_test or _rng_factory is DASRandom, "Only unit tests may override _rng_factory."
+        assert _called_from_test or _rng_factory is DASRDRandIntegers, "Only unit tests may override _rng_factory."
         rng = _rng_factory()
         # perturbations = RationalSimpleDiscreteGaussian(sigma_sq=self.sigma_sq, size=size, rng=rng)
         perturbations = rng.normal(loc=np.zeros(size), scale=self.stddev, size=size)
@@ -281,7 +281,7 @@ class FloatDiscreteGaussianMechanism(DPMechanism):
         size = int(np.prod(shape))
 
         print(f"WARNING: inexact (float ops, etc) formally private noise primitive in use! Not appropriate for production!")
-        assert _called_from_test or _rng_factory is DASRandom, "Only unit tests may override _rng_factory."
+        assert _called_from_test or _rng_factory is DASRDRandIntegers, "Only unit tests may override _rng_factory."
         rng = _rng_factory()
         perturbations = FloatDiscreteGaussian(variance=float(self.sigma_sq), size=size, rng=rng)
         self.protected_answer = true_answer + np.reshape(perturbations, shape)

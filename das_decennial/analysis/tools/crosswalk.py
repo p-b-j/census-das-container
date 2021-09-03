@@ -60,14 +60,15 @@ AIAN_AREAS = ['Legal_Federally_Recognized_American_Indian_Area',
               'State_Recognized_Legal_American_Indian_Area',
               'Oklahoma_Tribal_Statistical_Area',
               'Joint_Use_Oklahoma_Tribal_Statistical_Area']
+FED_AIRS = ['Legal_Federally_Recognized_American_Indian_Area',
+            'American_Indian_Joint_Use_Area',]
 
 AIAN_RANGES_PATH = '../programs/geographic_spines/AIANNHCE_ranges.csv'
 
 STRONG_MCD_STATES = ['09', '23', '25', '26', '27', '33', '34', '36', '42', '44', '50', '55']
 
 
-
-def getCrosswalkDF(spark=None, columns=None, strong_mcd_states=STRONG_MCD_STATES, aian_areas=AIAN_AREAS, aian_ranges_path=AIAN_RANGES_PATH):
+def getCrosswalkDF(spark=None, columns=None, strong_mcd_states=STRONG_MCD_STATES, aian_areas=AIAN_AREAS, aian_ranges_path=AIAN_RANGES_PATH, fed_airs=FED_AIRS):
     """
     Loads the 2010 crosswalk files that Simson generated from the 2010 GRFC into a Spark DF
 
@@ -157,27 +158,21 @@ def getCrosswalkDF(spark=None, columns=None, strong_mcd_states=STRONG_MCD_STATES
 
     # Note: When using any of the columns from the next block, filter out IDs composed only of "9"'s
     aian_ranges_dict = make_aian_ranges_dict(aian_ranges_path, aian_areas)
-    def is_aian(aiannhce):
-        if aiannhce == CC.NOT_AN_AIAN_AREA:
-            return False
-        else:
-            # Check if AIAN area catagory is included in the user's specification of AIAN areas:
-            for aian_definition, aian_range in aian_ranges_dict.items():
-                if aiannhce <= aian_range[1] and aiannhce >= aian_range[0]:
-                    return True if aian_definition in aian_areas else False
-        # The only way aiannhce is not in any of the aian_ranges should not occur:
-        assert False, "AIANNHCE codes cannot be between 4990 and 4999"
-    is_aian_udf = udf(is_aian, BooleanType())
+
+    is_fed_air_udf = udf(lambda aiannhce: in_aian_class(aiannhce, fed_airs, aian_ranges_dict), BooleanType())
+    is_aian_udf = udf(lambda aiannhce: in_aian_class(aiannhce, aian_areas, aian_ranges_dict), BooleanType())
     crossdf = add_aiannhce_col(spark, crossdf)
     # aian_areas:
     crossdf = crossdf.withColumn("AIAN_AREAS", sf.when(is_aian_udf("AIANNHCE"), sf.col("AIANNHCE")).otherwise(CC.NOT_AN_AIAN_AREA))
+    crossdf = crossdf.withColumn("FED_AIRS", sf.when(is_fed_air_udf("AIANNHCE"), sf.col("AIANNHCE")).otherwise(CC.NOT_AN_AIAN_AREA))
     # portions of Blocks/Tracts/States within aian_areas:
     crossdf = crossdf.withColumn("AIANBlock", sf.when(sf.col("AIAN_AREAS") != CC.NOT_AN_AIAN_AREA, sf.col("BLOCK")).otherwise(CC.NOT_AN_AIAN_BLOCK))
     crossdf = crossdf.withColumn("AIANTract", sf.col("AIANBlock")[0:11])
     crossdf = crossdf.withColumn("AIANState", sf.col("AIANTract")[0:2])
     # Define an off-spine entity (OSE) as Place in AIAN areas/ non-strong-MCD states and MCD otherwise:
-    crossdf = crossdf.withColumn("OSE", sf.when((sf.col("AIAN_AREAS") != CC.NOT_AN_AIAN_AREA) & (sf.col("STATE").isin(strong_mcd_states)), sf.col("COUSUB")).otherwise(sf.col("PLACE")))
+    crossdf = crossdf.withColumn("OSE", sf.when((sf.col("AIAN_AREAS") == CC.NOT_AN_AIAN_AREA) & (sf.col("STATE").isin(strong_mcd_states)), sf.col("COUSUB")).otherwise(sf.col("PLACE")))
     crossdf = crossdf.withColumn("COUNTY_NSMCD", sf.when(sf.col("STATE").isin(strong_mcd_states), CC.STRONG_MCD_COUNTY).otherwise(sf.col("COUNTY")))
+    crossdf = crossdf.withColumn("MCD", sf.when(sf.col("STATE").isin(strong_mcd_states), sf.col("COUSUB")).otherwise(sf.lit(CC.NOT_A_MCD)))
 
     if columns is None:
         columns = crossdf.columns
@@ -188,6 +183,16 @@ def getCrosswalkDF(spark=None, columns=None, strong_mcd_states=STRONG_MCD_STATES
     crossdf = crossdf.select(columns)
     return crossdf
 
+def in_aian_class(aiannhce, aian_class, aian_ranges_dict):
+    if aiannhce == CC.NOT_AN_AIAN_AREA:
+        return False
+    else:
+        # Check if AIAN area catagory is included in the user's specification of AIAN areas:
+        for aian_definition, aian_range in aian_ranges_dict.items():
+            if aiannhce <= aian_range[1] and aiannhce >= aian_range[0]:
+                return True if aian_definition in aian_class else False
+    # The only way aiannhce is not in any of the aian_ranges should not occur:
+    assert False, "AIANNHCE codes cannot be between 4990 and 4999"
 
 def add_aiannhce_col(sc, df):
     cols_grfc = ['TABBLKST', 'TABBLKCOU', 'TABTRACTCE', 'TABBLK', 'AIANNHCE']

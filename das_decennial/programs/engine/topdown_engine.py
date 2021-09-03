@@ -80,6 +80,9 @@ class TopdownEngine(DASEngineHierarchical):
 
         self.optimizeWorkload()
         # print(f"Blocks in engine max part: {das_utils.maxPartPerKey(original_data, lambda n: n.parentGeocode)}")
+        #if self.postprocess_only and self.optimization_start_from_level is not None:
+        #    nodes_dict = {}
+        #else:
         nodes_dict: __NodeDict__ = self.makeOrLoadNoisy(original_data)
 
         # TODO: These privacy checks should be invoked automatically, either in super().run() or in super().didRun()
@@ -90,7 +93,7 @@ class TopdownEngine(DASEngineHierarchical):
                     self.log_warning_and_print(f"USED BUDGET (id {bid}) UNEQUAL TO SET BUDGET!!!")
         else:
             self.log_and_print("Skipping privacy checks")
-        # should delete raw here
+
         nodes_dict, feas_dict = self.topdown(nodes_dict)
 
         if self.getboolean(CC.RETURN_ALL_LEVELS, default=False):
@@ -204,6 +207,9 @@ class TopdownEngine(DASEngineHierarchical):
             level_ind = self.levels_reversed.index(self.optimization_start_from_level)
             level_pairs = zip(self.levels_reversed[level_ind:-1], self.levels_reversed[level_ind+1:])
 
+
+
+
         self.das.delegate.log_testpoint('T05-001S')
         ### feasibility dictionary
         feas_dict: __FeasDict__ = {}
@@ -229,7 +235,7 @@ class TopdownEngine(DASEngineHierarchical):
 
             print(f"Feasibility dict: {feas_dict}")
 
-            if self.save_noisy:
+            if self.getboolean(CC.SAVEOPTIMIZED, default=True):
                 self.annotate(f"Saving {level} optimized data")
                 self.saveNoisyAnswers({level: nodes_dict[level]}, False, postfix="Optimized")
 
@@ -261,7 +267,7 @@ class TopdownEngine(DASEngineHierarchical):
 
             print(f"Feasibility dict: {feas_dict}")
 
-        if self.save_noisy:
+        if self.getboolean(CC.SAVEOPTIMIZED, default=True):
             level = self.levels[0]
             self.annotate(f"Saving {level} optimized data")
             self.saveNoisyAnswers({level: nodes_dict[level]}, False, postfix="Optimized")

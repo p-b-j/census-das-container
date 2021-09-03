@@ -44,8 +44,6 @@ class ConstraintsCreator(querybase_constraints.ConstraintsCreatorwHHGQ):
         self.gqt_dim = self.hist_shape[self.schema.dimnames.index(self.attr_hhgq)] - self.hh_cats + 1
         # ub cap on number of of people in a gq or hh
         self.hhgq_cap = np.repeat(99999, self.gqt_dim)
-        # households
-        self.hhgq_cap[0] = 99
         #self.hhgq_cap[1] = 0
         # low bound
         self.hhgq_lb = np.repeat(1, self.gqt_dim)  # 1 person per building (TODO: we don't have vacant in the histogram, it's going to change)

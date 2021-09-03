@@ -5,10 +5,15 @@ global noise scale, delta etc.
 """
 
 from fractions import Fraction
-from typing import Tuple, List, Dict, Iterable, Callable, Generator, Any, Union
+from typing import Tuple, List, Dict, Iterable, Callable, Union
 from configparser import NoOptionError, NoSectionError
 from collections import defaultdict
+from operator import add
+from functools import reduce
 import numpy as np
+import pandas as pd
+import os
+
 
 from programs.engine.curve import zCDPEpsDeltaCurve
 from programs.engine.discrete_gaussian_utility import limit_denominator as dg_limit_denominator
@@ -16,6 +21,7 @@ from programs.das_setup import DASDecennialSetup
 import programs.queries.querybase as querybase
 from programs.schema.schema import sortMarginalNames
 from programs.strategies.strategies import StrategySelector
+import programs.strategies.print_alloc as print_alloc
 
 from das_utils import checkDyadic
 
@@ -63,6 +69,63 @@ class Budget(AbstractDASModule):
         if self.getboolean(CC.PRINT_PER_ATTR_EPSILONS, default=False):
             self.per_attr_epsilons, self.per_geolevel_epsilons = self.computeAndPrintPerAttributeEpsilon()
 
+        self.saveAllocString2Setup(setup)
+
+        self.saveFullAllocationSemanticsCSV()
+
+    def saveAllocString2Setup(self, setup):
+        """Add the allocations string to setup object so that it's accessible by writer or other modules"""
+        setup.qalloc_string = f"Global rho: {1. / self.global_scale ** 2}\n" \
+                                  f"Global epsilon: {self.total_budget}\n" \
+                                  f"delta: {self.delta}\n" \
+                                  "Geolevel allocations:\n" + \
+                              str([f"{k}: {str(v)}" for k, v in self.geolevel_prop_budgets_dict.items()]) + \
+                              "\nWithin-geolevel query allocations:\n" + str(self.query_budget.allocation_df.to_csv())
+
+    def saveFullAllocationSemanticsCSV(self):
+        """ Save CSV file (which will be included into .zip uploaded to S3 with total budget, all allocations and per-attribute semantics"""
+
+        def renameQuery(qname):
+            print_name = qname if qname != 'detailed' else CC.SCHEMA_CROSS_JOIN_DELIM.join(self.schema_obj.dimnames)
+            return print_name + f" (cells: {self.schema_obj.getQuery(qname).numAnswers()})"
+
+        logfilename = os.getenv('LOGFILE_NAME')
+        if logfilename is not None:
+            budget_names = {CC.PURE_DP: "epsilon", CC.ZCDP: "rho"}
+            # Save the CSV
+            with open(logfilename.replace(".log", f"_plballoc-fulltable.csv"), "w") as f:
+                if self.privacy_framework == CC.ZCDP:
+                    rho = 1. / self.global_scale ** 2
+                    f.write(f"Global rho,{rho} ({float(rho):.2f})\n")
+                f.write(f"Global epsilon,{self.total_budget} ({float(self.total_budget):.2f})\n")
+                if self.privacy_framework == CC.ZCDP:
+                    f.write(f"delta,{self.delta} ({float(self.delta):.2e})\n\n")
+                gldf = pd.DataFrame(self.geolevel_prop_budgets_dict.items())
+                gldf.columns = ["", f"{budget_names[self.privacy_framework]} Allocation by Geographic Level"]
+                f.write(f"{str(gldf.to_csv(index=False))}\n\n")
+                f.write(f"Per Query {budget_names[self.privacy_framework]} Allocation by Geographic Level\n")
+                df1 = self.query_budget.allocation_df.copy(deep=True)
+                df1['Query'] = list(df1.reset_index()['index'].apply(renameQuery))
+                f.write(str(df1.set_index('Query').to_csv()))
+                f.write("\n\n")
+                f.write(f"Per Query {budget_names[self.privacy_framework]} Allocation of Global {budget_names[self.privacy_framework]}\n")
+                f.write(print_alloc.printPercent(print_alloc.multiplyByGLBudgets(df1.set_index('Query'), self.geolevel_prop_budgets_dict.items()), out='csv'))
+                f.write("\n\n Per attribute semantics:")
+                f.write("\n\n Attribute,epsilon\n")
+                for attr, eps in self.per_attr_epsilons.items():
+                    f.write(f"{attr},{float(eps):.2f}\n")
+                f.write("\n\n Per geography semantics:")
+                f.write("\n\n Geographic level,epsilon\n")
+                for gl, eps in self.per_geolevel_epsilons.items():
+                    f.write(f"Block-within-{gl},{float(eps):.2f}\n")
+
+
+            # Save a colored table with percentage allocation
+            df2 = self.query_budget.allocation_df.copy(deep=True)
+            df2 = print_alloc.multiplyByGLBudgets(df2, self.geolevel_prop_budgets_dict.items()).astype(float)
+            print_alloc.makeHeatTable(df2, logfilename.replace(".log", f"_plballoc.pdf"))
+
+
     def epsilonzCDPCalculator(self, verbose=True):
         """A closure returning function that gets epsilon from a zCDP curve"""
         return lambda geo_allocations_dict: Fraction(zCDPEpsDeltaCurve(geo_allocations_dict, verbose=verbose).get_epsilon(float(self.delta), self.global_scale, bounded=True, tol=1e-7, zcdp=True))
@@ -84,8 +147,8 @@ class Budget(AbstractDASModule):
             geo_allocations_dict = {}
             for geolevel, gprop in self.geolevel_prop_budgets_dict.items():
                 geo_allocations_dict[geolevel] = gprop, dp_query_prop[geolevel]
-                # TODO: add unit_dp_query_props accordingly, and vacancy_dp_query_props in a separate call, for separate budget
-            total_budget = self.epsilonzCDPCalculator()(geo_allocations_dict)
+                # TODO: add unit_dp_query_props accordingly
+            total_budget = self.epsilonzCDPCalculator(verbose=False)(geo_allocations_dict)
             total_budget_n, total_budget_d = dg_limit_denominator((total_budget.numerator, total_budget.denominator),
                                                                   max_denominator=CC.PRIMITIVE_FRACTION_DENOM_LIMIT,
                                                                   mode="upper")
@@ -94,13 +157,16 @@ class Budget(AbstractDASModule):
                 geolevel_noise_precision = 2 * prop / (self.global_scale ** 2)
                 self.log_and_print(f"Noise 'precision' for {geolevel}: {geolevel_noise_precision}")
 
+            rho = 1 / self.global_scale ** 2
+            self.log_and_print(f"Global rho: {rho} ({float(rho):.2f})")
+
             self.log_and_print(f"Delta: {self.delta}")
         elif self.privacy_framework == CC.PURE_DP:
             total_budget = 1 / self.global_scale
         else:
             raise NotImplementedError(f"DP primitives/composition rules for {self.privacy_framework} not implemented.")
         self.log_and_print(f"Denominator limit: {CC.PRIMITIVE_FRACTION_DENOM_LIMIT}")
-        self.log_and_print(f"Total budget: {total_budget}")
+        self.log_and_print(f"Total budget: {total_budget} ({float(total_budget):.2f})")
         self.log_and_print(f"Global scale: {self.global_scale}")
 
         return total_budget
@@ -138,8 +204,8 @@ class Budget(AbstractDASModule):
         # TODO: add support for Bottomup? No geolevel calculations, then; attr calculations the same
         #       before then, throw an exception if Bottomup used?
 
-        # TODO: This is only for dp_queries. A similar loop over unit_schema_obj dimnames for vacancy queries. And unit_qp_queries to be integrated in this loop.
-        #  Those will use self.unit_schema_obj.dimnames and self.query_budget.unitQueryPropPairs() and self.query_budget.vacancyQueryPropPairs()
+        # TODO: This is only for dp_queries unit_qp_queries to be integrated in this loop.
+        #  Those will use self.unit_schema_obj.dimnames and self.query_budget.unitQueryPropPairs()
         attr_query_props = self.getAttrQueryProps(self.levels, self.schema_obj.dimnames, lambda gl: self.query_budget.queryPropPairs(gl))
 
         for attr, gl_q_dict in attr_query_props.items():
@@ -214,7 +280,7 @@ class Budget(AbstractDASModule):
         for geolevel, upper_level in zip(levels[:-1], levels[1:]):  # Start from bottom level, end at second from top
             # Accounting is labeled as "Block-within-Some_higher_level" budget where budget expended on Block up to (excluding) that level is composed
             # hence the need to shift level labels by one
-            # TODO: unit_dp_queries should be added. And vacancy queries in a separate call
+            # TODO: unit_dp_queries should be added
             geo_allocations_dict[geolevel] = geolevel_prop_budgets_dict[geolevel], dp_query_prop[geolevel]
             per_geolevel_epsilons[upper_level] = eps_getter(geo_allocations_dict)
 
@@ -235,15 +301,13 @@ class Budget(AbstractDASModule):
         dp_query_names: Dict[str, Union[Tuple[str], List[str]]]                   # Queries by name, per geolevel
         unit_dp_query_names: Dict[str, Union[Tuple[str], List[str]]]              # Queries for unit histogram by name, per geolevel
         unit_dp_query_prop: Dict[str, Union[Tuple[Fraction], List[Fraction]]]          # Per geolevel, shares of within-geolevel budgets dedicated to each query
-        vacancy_dp_query_names: Dict[str, Union[Tuple[str], List[str]]]           # Queries for unit histogram that use separate (vacancy) budget by name, per geolevel
-        vacancy_dp_query_prop: Dict[str, Union[Tuple[Fraction], List[Fraction]]]       # Per geolevel, shares of within-geolevel budgets dedicated to each query
         queries_dict: Dict[str, querybase.AbstractLinearQuery]                         # Dictionary with actual query objects
 
         def __init__(self, budget, **kwargs):
             super().__init__(**kwargs)
 
             try:
-                strategy = StrategySelector.strategies[budget.getconfig("strategy")].make(budget.levels)
+                strategy = StrategySelector.strategies[budget.getconfig(CC.STRATEGY)].make(budget.levels)
             except (NoOptionError, NoSectionError):
                 raise DASConfigError("DPQuery strategy has to be set", section=CC.BUDGET, option="strategy")
 
@@ -251,15 +315,12 @@ class Budget(AbstractDASModule):
             self.dp_query_prop = strategy[CC.QUERIESPROP]
             self.unit_dp_query_names = strategy[CC.UNITDPQUERIES]
             self.unit_dp_query_prop = strategy[CC.UNITQUERIESPROP]
-            self.vacancy_dp_query_names = strategy[CC.VACANCYDPQUERIES]
-            self.vacancy_dp_query_prop = strategy[CC.VACANCYQUERIESPROP]
 
             # FILL QUERY DICT
             self.queries_dict = {}
             for geolevel in budget.geolevel_prop_budgets_dict:
                 self.queries_dict.update(budget.schema_obj.getQueries(self.dp_query_names[geolevel]))
                 self.queries_dict.update(budget.unit_schema_obj.getQueries(self.unit_dp_query_names[geolevel]))
-                self.queries_dict.update(budget.unit_schema_obj.getQueries(self.vacancy_dp_query_names[geolevel]))
 
             ## CHECKING
 
@@ -267,49 +328,95 @@ class Budget(AbstractDASModule):
             assert len(self.dp_query_prop) == len(budget.levels)
             assert len(self.unit_dp_query_names) in (0, len(budget.levels))
             assert len(self.unit_dp_query_prop) in (0, len(budget.levels))
-            assert len(self.vacancy_dp_query_names) in (0, len(budget.levels))
-            assert len(self.vacancy_dp_query_prop) in (0, len(budget.levels))
 
-            for geolevel in budget.geolevel_prop_budgets_dict:
+            max_qname_len = max(map(len, self.queries_dict))
+
+            qallocstr_gprop = ""
+            for geolevel, gprop in budget.geolevel_prop_budgets_dict.items():
 
                 # Make a list to check later if it sums up to 1.
                 budget_per_each_query: list = []
-
-                # Vacancy query have separate budget
-                budget_per_each_vacancy_query: list = []
 
                 budget_per_each_query.extend(list(self.dp_query_prop[geolevel]))
 
                 self.checkUnique(self.dp_query_names[geolevel], CC.DPQUERIES)
                 self.checkUnique(self.unit_dp_query_names[geolevel], CC.UNITDPQUERIES)
-                self.checkUnique(self.vacancy_dp_query_names[geolevel], CC.VACANCYDPQUERIES)
-
-                # Print all levels, on which the measurements are taken:
-                self.printLevelsOfMarginals(budget, self.dp_query_names[geolevel], budget.schema_obj, 'main histogram')
-                self.printLevelsOfMarginals(budget, self.unit_dp_query_names[geolevel], budget.unit_schema_obj, 'unit histogram')
-                self.printLevelsOfMarginals(budget, self.vacancy_dp_query_names[geolevel], budget.unit_schema_obj, 'vacancy')
 
                 budget.checkDyadic(self.dp_query_prop[geolevel], msg="queries")
-                self.checkQueryImpactGaps(budget, self.queryPropPairs(geolevel), f"{geolevel} {CC.DPQUERIES}")
 
+                qallocstr = f"{geolevel}:\n\t" + "\n\t".join([f"{query.name + ':' + ' ' * (max_qname_len - len(query.name))}  {qprop}" for query, qprop in self.queryPropPairs(geolevel)])
+                qallocstr_gprop += f"{geolevel}:\n\t" + "\n\t".join([f"{query.name + ':' + ' ' * (max_qname_len - len(query.name))}  {qprop * gprop}" for query, qprop in
+                     self.queryPropPairs(geolevel)])
                 if self.unit_dp_query_names[geolevel]:
                     # Add the fractions of per-geolevel budgets dedicated to each query to the list that should sum up to 1.
                     budget_per_each_query.extend(list(self.unit_dp_query_prop[geolevel]))
                     budget.checkDyadic(self.unit_dp_query_prop[geolevel], msg="unit queries")
-                    self.checkQueryImpactGaps(budget, self.unitQueryPropPairs(geolevel), CC.UNITDPQUERIES)
+                    qallocstr += "\n\t".join([f"{query.name + ':' + ' ' * (max_qname_len - len(query.name))}  {qprop}" for query, qprop in self.unitQueryPropPairs(geolevel)])
+                    qallocstr_gprop += "\n\t".join([f"{query.name + ':' + ' ' * (max_qname_len - len(query.name))}  {qprop * gprop}" for query, qprop in self.unitQueryPropPairs(geolevel)])
 
-                if self.vacancy_dp_query_names[geolevel]:
-                    # Add the fractions of per-geolevel budgets dedicated to each query to the list that should sum up to 1.
-                    budget_per_each_vacancy_query.extend(list(self.vacancy_dp_query_prop[geolevel]))
-                    budget.checkDyadic(self.vacancy_dp_query_prop[geolevel], msg="vacancy queries")
-                    self.checkQueryImpactGaps(budget, self.vacancyQueryPropPairs(geolevel), CC.VACANCYDPQUERIES)
-
+                qallocstr_gprop += "\n"
                 assertSumTo(budget_per_each_query, msg="Within-geolevel Budget Proportion")
                 assertEachPositive(budget_per_each_query, "queries")
 
-                if len(budget_per_each_vacancy_query) > 0:
-                    assertSumTo(budget_per_each_vacancy_query, msg="Within-geolevel Budget Proportion (Vacancy budget)")
-                    assertEachPositive(budget_per_each_vacancy_query, "vacancy queries")
+                budget.log_and_print("Within-geolevel query allocations:")
+                budget.log_and_print(qallocstr)
+
+            logfilename = os.getenv('LOGFILE_NAME')
+            df = print_alloc.makeDataFrame(budget.getconfig(CC.STRATEGY), budget.levels)
+            self.allocation_df = df  # Save it for printing out of the budget object
+            self.printAllocTables(df, budget)
+            self.saveQueryAllocations(df, "_wglev_query_allocations", logfilename)
+
+            dftot = print_alloc.multiplyByGLBudgets(df.copy(deep=True), budget.geolevel_prop_budgets_dict.items())
+            budget.log_and_print("All query allocations (i.e. multiplied by geolevel proportion):")
+            budget.log_and_print(qallocstr_gprop)
+            self.printAllocTables(dftot, budget)
+            self.saveQueryAllocations(dftot, "_overall_query_allocations", logfilename)
+
+            # Print all levels, on which the measurements are taken:
+            self.printLevelsOfMarginals(budget, set(reduce(add, self.dp_query_names.values())), budget.schema_obj, 'main histogram')
+            unique_unit_dp_query_names = [udpqn for udpqn in self.unit_dp_query_names.values() if udpqn]
+            if unique_unit_dp_query_names:
+                self.printLevelsOfMarginals(budget, set(reduce(add, self.unit_dp_query_names.values())), budget.unit_schema_obj, 'unit histogram')
+
+            self.checkQueryImpactGaps(budget, self.queries_dict)
+
+        @staticmethod
+        def saveQueryAllocations(df, fname_append, logfilename):
+            """ Saves query allocations into CSV and TEX files which will be included in ZIP uploaded to S3"""
+            if logfilename is not None:
+                with open(logfilename.replace(".log", f"{fname_append}.csv"), "w") as f:
+                    f.write("\n" + str(df.to_csv()) + "\n")
+                    f.write("\n" + str(df.astype(float).to_csv()) + "\n")
+                    f.write("\n" + print_alloc.printFloat(df, out='csv') + "\n")
+                with open(logfilename.replace(".log", f"{fname_append}.tex"), "w") as f:
+                    f.write("\n" + str(df.to_latex()) + "\n")
+                    f.write("\n" + print_alloc.printFloat(df, out='latex') + "\n")
+                    f.write("\n" + print_alloc.printPercent(df, out='latex') + "\n")
+
+        def printAllocTables(self, df, budget):
+            """
+            Prints query allocations conainted in data frame df
+            :param df: Pandas dataframe with query allocations
+            :param budget: DAS module that can do log_and_print
+            :return:
+            """
+            budget.log_and_print("As a table:")
+            budget.log_and_print("\n" + str(df) + "\n")
+            budget.log_and_print("As a CSV:")
+            budget.log_and_print("\n" + str(df.to_csv()) + "\n")
+            budget.log_and_print("As LaTeX:")
+            budget.log_and_print("\n" + str(df.to_latex()) + "\n")
+            budget.log_and_print("As a table (floats):")
+            budget.log_and_print("\n" + print_alloc.printFloat(df) + "\n")
+            budget.log_and_print("As a CSV (floats):")
+            budget.log_and_print("\n" + print_alloc.printFloat(df, out='csv') + "\n")
+            budget.log_and_print("As LaTeX (floats):")
+            budget.log_and_print("\n" + print_alloc.printFloat(df, out='latex') + "\n")
+            budget.log_and_print("As a table (percent):")
+            budget.log_and_print("\n" + print_alloc.printPercent(df) + "\n")
+            budget.log_and_print("As LaTeX (percent):")
+            budget.log_and_print("\n" + print_alloc.printPercent(df, out='latex') + "\n")
 
         def queryPropPairs(self, geolevel):
             """ Generator of query and it's proportion tuples within geolevel"""
@@ -326,14 +433,6 @@ class Budget(AbstractDASModule):
                     query = self.queries_dict[qname]
                     yield query, qprop
 
-        def vacancyQueryPropPairs(self, geolevel):
-            """ Generator of query and it's proportion tuples within geolevel"""
-            if self.vacancy_dp_query_names[geolevel]:
-                assert len(self.vacancy_dp_query_names[geolevel]) == len(self.vacancy_dp_query_prop[geolevel]), f"Lengths of Vacancy DPquery and their PLB vectors not equal, geolevel {geolevel}"
-                for qname, qprop in zip(self.vacancy_dp_query_names[geolevel], self.vacancy_dp_query_prop[geolevel]):  # Change to self.query_budget.dp_query_names[geolevel] when we allow different queries in geolevels
-                    query = self.queries_dict[qname]
-                    yield query, qprop
-
         @staticmethod
         def checkUnique(querynames, option_name):
             sorted_marginals_names = sortMarginalNames(querynames)
@@ -342,14 +441,13 @@ class Budget(AbstractDASModule):
                                               section=CC.BUDGET, options=(option_name,))
 
         @staticmethod
-        def checkQueryImpactGaps(das_module, queries: Generator[Tuple[querybase.AbstractLinearQuery, Any], None, None], config_option):
+        def checkQueryImpactGaps(das_module, queries_dict: Dict[str, querybase.AbstractLinearQuery]):
             """Calculates impact of query on each cell of the histogram. Raises errors if there are impact gaps."""
-            das_module.log_and_print(f"###\nImpact of DP queries ([{CC.BUDGET}]/{config_option}) to be measured:")
+            das_module.log_and_print(f"###\nImpact of DP queries ([{CC.BUDGET}]/strategy) to be measured:")
             # total_impact = 0
             # for qname, prop in zip(das_module.dp_query_names, das_module.dp_query_prop):  # WARNING: names and prop vectors should be passed as arguments if total is used
             #     query = das_module.queries_dict[qname]
-            for query, _ in queries:
-                qname = query.name
+            for qname, query in queries_dict.items():
                 # This is just the sum
                 # impact = (np.ones(query.numAnswers()) @ np.abs(query.matrixRep()))  # factor of eps/sens doesn't matter here
                 impact = np.abs(query.matrixRep()).sum(axis=0)
@@ -360,17 +458,17 @@ class Budget(AbstractDASModule):
                 if abs(impmin - impmax) > 1e-7:
                     das_module.log_and_print(query, cui=False)
                     raise DASConfigValdationError(f"There is an impact gap underutilizing parallel composition in query {qname}", section=CC.BUDGET,
-                                                  options=(config_option,))
+                                                  options=("strategy",))
 
                 # Having both below is redundant, but for clarity and future flexibility including both
                 if impmin != 1:
                     das_module.log_and_print(query, cui=False)
                     raise DASConfigValdationError(f"Some histogram cells are under-measured in query {qname}", section=CC.BUDGET,
-                                                  options=(config_option,))
+                                                  options=("strategy",))
                 if impmax != 1:
                     das_module.log_and_print(query, cui=False)
                     raise DASConfigValdationError(f"Some histogram cells are measured more than once in query {qname}", section=CC.BUDGET,
-                                                  options=(config_option,))
+                                                  options=("strategy",))
 
             # das_module.log_and_print(f"TOTAL ~ Impact\n {'':50} Min: {total_impact.min()}, Max: {total_impact.max()}, All: {total_impact}", cui=False)
             # if abs(total_impact.min() != total_impact.max()) > 1e-7:

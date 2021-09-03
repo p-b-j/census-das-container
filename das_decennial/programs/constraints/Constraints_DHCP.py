@@ -293,9 +293,6 @@ class ConstraintsCreatorDHCGeneric(querybase_constraints.ConstraintsCreatorwHHGQ
         self.gqt_dim = self.schema.getQueryShape(CC.HHGQ_GQLEVELS)[0]
         self.hhgq_cap = np.repeat(99999, self.gqt_dim)
 
-        # households
-        self.hhgq_cap[0] = 99
-
         # low bound
         # 1 person per building (TODO: we don't have vacant in the histogram, it's going to change)
         self.hhgq_lb = np.repeat(1, self.gqt_dim)

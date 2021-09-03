@@ -328,9 +328,14 @@ def remove_not_in_area(df, geolevels):
         df = df.filter((df.geocode[2:7] != CC.NOT_A_PLACE) | (df.geolevel != "PLACE"))
     if 'AIAN_AREAS' in geolevels:
         df = df.filter((df.geocode != CC.NOT_AN_AIAN_AREA) | (df.geolevel != "AIAN_AREAS"))
+    if 'FED_AIRS' in geolevels:
+        df = df.filter((df.geocode != CC.NOT_AN_AIAN_AREA) | (df.geolevel != "FED_AIRS"))
     if 'OSE' in geolevels:
         df = df.filter(
             (sf.col(AC.GEOCODE).substr(sf.length(sf.col(AC.GEOCODE)) - 4, sf.length(sf.col(AC.GEOCODE))) != CC.NOT_AN_OSE) | (sf.col(AC.GEOLEVEL) != "OSE"))
+    if 'MCD' in geolevels:
+        df = df.filter(
+            (sf.col(AC.GEOCODE).substr(sf.length(sf.col(AC.GEOCODE)) - 4, sf.length(sf.col(AC.GEOCODE))) != CC.NOT_A_MCD) | (sf.col(AC.GEOLEVEL) != "MCD"))
     if 'AIANTract' in geolevels:
         df = df.filter((df.geocode != CC.NOT_AN_AIAN_TRACT) | (df.geolevel != "AIANTract"))
     if 'AIANState' in geolevels:

@@ -126,6 +126,7 @@ class DASDecennialWriter(driver.AbstractDASWriter, metaclass=ABCMeta):
             f.write("# Boot Time: {}\n".format(datetime.datetime.fromtimestamp(psutil.boot_time()).isoformat()))
             f.write("# Start Time: {}\n".format(datetime.datetime.fromtimestamp(self.das.t0).isoformat()))
             f.write("# Git Repo Info:{}\n".format(self.getconfig(section=CC.READER, key=CC.GIT_COMMIT, default="No repo info saved.")))
+            f.write("# PLB allocation over geographic levels and queries:\n#{}".format('\n#'.join(self.setup.qalloc_string.split("\n"))))
             uname = os.uname()
             uname_fields = ['os_sysname', 'host', 'os_release', 'os_version', 'arch']
             for i in range(len(uname_fields)):

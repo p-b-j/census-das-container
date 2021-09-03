@@ -56,11 +56,8 @@ def make_grfc_ids(aian_areas, redefine_counties, grfc_path, aian_ranges_path, st
     grfc = grfc.select(*cols_grfc).rdd
     grfc = grfc.map(lambda row: (row['TABBLKST'], row['AIANNHCE'], row['TABBLKCOU'], row['PLACEFP'], row['COUSUBFP'], row['TABTRACTCE'], row['TABBLK']))
 
-    # unique_states = input_geocode16_rdd.map(lambda row: row[:2]).distinct().collect()
-    # grfc = grfc.filter(lambda row: row[0] in unique_states)
-
     grfc = grfc.map(lambda row: (row[0] + row[2] + row[5] + row[6][0] + row[6], geocode_mapping(row, aian_ranges, aian_areas, redefine_counties, strong_mcd_states)))
-    # Format: (geocode16, (state, aian, ['0'][4 digit AIANNHCE] or ['10']+[3 digit county], [5 digit MCD] or [5 digit Place], tract, block))
+    # Format: (geocode16, (state, aian, ['0'][4 digit AIANNHCE] or ['10']+[3 digit county], [5 digit MCD] or [5 digit Place], tract, block, DAS AIAN area code))
     return grfc
 
 
@@ -71,7 +68,6 @@ def make_aian_ranges_dict(aian_ranges_path, aian_areas):
     for user_aian_area in aian_areas:
         assert user_aian_area in all_aian_types, f'Could not find {user_aian_area} in {all_aian_types}. Found instead: {aian_areas}'
     return aian_ranges
-
 
 
 def gq_off_spine_entities(ignore_gqs_in_block_groups, gqs):
@@ -132,7 +128,8 @@ def geocode_mapping(row, aian_ranges, aian_areas, redefine_counties, strong_mcd_
     else:
         mcd_or_place = place
 
-    return state, aian, county, mcd_or_place, tract, block
+    das_aian_area_code = aiannhce if (aian == '1') else '9999'
+    return state, aian, county, mcd_or_place, tract, block, das_aian_area_code
 
 
 def change_width_of_rdd_row(new_widths, old_widths, which_element, row):
@@ -176,7 +173,8 @@ def change_width_of_rdd_row(new_widths, old_widths, which_element, row):
 
 
 def call_opt_spine(user_plbs, geocode16, geocode_dict, fanout_cutoff, epsilon_delta, aian_areas, entity_threshold,
-                   redefine_counties, bypass_cutoff, grfc_path, aian_ranges_path, strong_mcd_states):
+                   redefine_counties, bypass_cutoff, grfc_path, aian_ranges_path, strong_mcd_states, target_orig_bgs,
+                   target_aians):
     """
     Calls routines that optimize the spine and PLB alloations. Note that block-groups in the input spine may conform
     with the standard Census definition; however, this is not the case for the spine that is output from this
@@ -200,6 +198,8 @@ def call_opt_spine(user_plbs, geocode16, geocode_dict, fanout_cutoff, epsilon_de
     :param grfc_path: the path of the GRFC
     :param aian_ranges_path: the path of the AIANNHCE range for each catagory of AIAN area
     :param strong_mcd_states: a tuple of the state geoids that are strong MCD states
+    :param target_orig_bgs: whether to target accuracy in the original block-groups, in addition to OSEs
+    :param target_aians: whether to target accuracy in the AIAN areas, in addition to OSEs
 
     :return geoid_dict: dictionary with format {geocode16_geoid:DAS_geoid}
     :return plb_mapping: dictionary with format {geocode_in_optimized_spine:PLB_allocation}
@@ -212,7 +212,7 @@ def call_opt_spine(user_plbs, geocode16, geocode_dict, fanout_cutoff, epsilon_de
     # geolevels other than these at the county geolevel and below, with the only possible exception of tract-group.
     geocode_dict_keys = list(geocode_dict.keys())
     includes_nation = 0 in geocode_dict_keys
-    # Note that geocode_dict_keys is ordered with nation last, but user_plbs is ordered with nation first.
+    # Note that geocode_dict_keys is ordered from block to the root geolevel, but user_plbs is ordered from the root to block geolevel.
     assert 2 in geocode_dict_keys, "State must be included in the geolevels."
     assert 5 in geocode_dict_keys, "County must be included in the geolevels."
     assert 11 in geocode_dict_keys, "Tract must be included in the geolevels."
@@ -220,13 +220,13 @@ def call_opt_spine(user_plbs, geocode16, geocode_dict, fanout_cutoff, epsilon_de
 
     includes_tg = sum([id_len < 11 and id_len > 5 for id_len in geocode_dict_keys]) > 0
     includes_bg = sum([id_len < 16 and id_len > 11 for id_len in geocode_dict_keys]) > 0
+    bg_width = [id_len < 16 and id_len > 11 for id_len in geocode_dict_keys][0]
 
     assert includes_bg, "Block-group must be included in the geolevels."
     assert len(user_plbs) == len(geocode_dict_keys), "Length of geolevel PLB allocations does not match number of geolevels."
     if not includes_tg:
         # The optimization routines expect a tract group PLB allocation:
         user_plbs = user_plbs[:-3] + (Fraction(0, 1),) + user_plbs[-3:]
-
     user_plbs_above_county = user_plbs[:-5]
 
     # construct PLB dictionary, which will be used in call_optimize_spine:
@@ -235,19 +235,29 @@ def call_opt_spine(user_plbs, geocode16, geocode_dict, fanout_cutoff, epsilon_de
     user_plb_dict = OrderedDict(zip(geolevels, user_plbs))
 
     geocode_rdd = make_grfc_ids(aian_areas, redefine_counties, grfc_path, aian_ranges_path, strong_mcd_states)
-    # Format: (geocode16, (state, aian, county/AIANNHCE, MCD/Place, tract, block))
+    # Format: (geocode16, (state, aian, county/AIANNHCE, Place/MCD, tract, block, DAS AIAN area code))
 
     geocode_rdd = geocode16.leftOuterJoin(geocode_rdd)
-    # Format: (geocode16, (gqose, (state, AIAN, [county_bool][county/AIANNHCE], Place/MCD, tract, block)))
+    # Format: (geocode16, (gqose, (state, AIAN, [county_bool][county/AIANNHCE], Place/MCD, tract, block, DAS AIAN area code)))
 
-    geocode_rdd = geocode_rdd.map(lambda row: (row[0], (row[1][1][0], row[1][1][1], row[1][1][2], row[1][0], row[1][1][3], row[1][1][4], row[1][1][5])))
-    # Format: (geoid, (state, AIAN, [county_bool][county/AIANNHCE], gq_OSE, Place/MCD, tract, block))
+    geocode_rdd = geocode_rdd.map(lambda row: (row[0], (row[1][1][0], row[1][1][1], row[1][1][2], row[1][0], row[1][1][3], row[1][1][4], row[1][1][5], row[1][1][6])))
+    # Format: (geoid, (state, AIAN, [county_bool][county/AIANNHCE], gq_OSE, Place/MCD, tract, block, DAS AIAN area code))
 
-    geocode_rdd = geocode_rdd.map(lambda row: (row[1][1] + row[1][0] + row[1][2], (row[1][5], row[0], row[1][4], row[1][3])))
-    # Format: (state_AIAN_county, (tract, block geocode16, Place/MCD, gq_OSE))
+    if target_orig_bgs and target_aians:
+        geocode_rdd = geocode_rdd.map(lambda row: (row[1][1] + row[1][0] + row[1][2], (row[1][5], row[0], (row[1][4], row[0][:bg_width], row[1][7]), row[1][3])))
+        # Format: (state_AIAN_county, (tract, block geocode16, OSEs, gq_OSE)), where OSEs is defined as (Place/MCD, block group, DAS AIAN area code)
+    elif target_orig_bgs:
+        geocode_rdd = geocode_rdd.map(lambda row: (row[1][1] + row[1][0] + row[1][2], (row[1][5], row[0], (row[1][4], row[0][:bg_width]), row[1][3])))
+        # Format: (state_AIAN_county, (tract, block geocode16, OSEs, gq_OSE)), where OSEs is defined as (Place/MCD, block group)
+    elif target_aians:
+        geocode_rdd = geocode_rdd.map(lambda row: (row[1][1] + row[1][0] + row[1][2], (row[1][5], row[0], (row[1][4], row[1][7]), row[1][3])))
+        # Format: (state_AIAN_county, (tract, block geocode16, OSEs, gq_OSE)), where OSEs is defined as (Place/MCD, DAS AIAN area code)
+    else:
+        geocode_rdd = geocode_rdd.map(lambda row: (row[1][1] + row[1][0] + row[1][2], (row[1][5], row[0], (row[1][4],), row[1][3])))
+        # Format: (state_AIAN_county, (tract, block geocode16, OSEs, gq_OSE)), where OSEs is defined as (Place/MCD,)
 
     geocode_rdd = geocode_rdd.groupByKey().persist()
-    # Format: (state_county, ((tract, block geocode16, Place/MCD, gq_OSE), ...))
+    # Format: (state_county, ((tract, block geocode16, OSEs, gq_OSE), ...))
 
     geocode_rdd = geocode_rdd.repartition(geocode_rdd.count())
     DAS.instance.log_and_print("Collecting unique geocodes above county")
@@ -272,9 +282,10 @@ def call_opt_spine(user_plbs, geocode16, geocode_dict, fanout_cutoff, epsilon_de
     unique_geocodes_above_county = np.unique(unique_geocodes_above_county).tolist()
 
     DAS.instance.log_and_print("Starting spine optimization")
-    geocode_rdd = geocode_rdd.map(lambda row: call_optimize_spine(row[0], row[1], user_plb_dict,
+    geocode_rdd = geocode_rdd.map(lambda row: call_optimize_spine(row[0], tuple(row[1]), user_plb_dict,
                                                                   fanout_cutoff, epsilon_delta,
-                                                                  True, entity_threshold, bypass_cutoff, includes_tg)).persist()
+                                                                  True, entity_threshold, bypass_cutoff,
+                                                                  includes_tg)).persist()
     # Format: (geounit_plb_dict, geoid_mapping, widths)
 
     # Split first two of three outputs of call_optimize_spine into RDDs. Each with format:
@@ -331,10 +342,10 @@ def call_opt_spine(user_plbs, geocode16, geocode_dict, fanout_cutoff, epsilon_de
             widths_dict[gcd_key + 3] = geocode_dict[gcd_key]
 
     # Transform to dictionaries before return statement:
-    full_plb_dicts = plb_dicts.collectAsMap()
-    full_maps_rdd = maps_rdd.collectAsMap()
+    full_plb_dict = plb_dicts.collectAsMap()
+    full_maps_dict = maps_rdd.collectAsMap()
 
-    # Add geounits above county to full_plb_dicts:
+    # Add geounits above county to full_plb_dict:
     plbs_above_county = dict()
     widths_dict_keys = list(widths_dict.keys())
     widths_above_county = sorted([key_i for key_i in widths_dict_keys if key_i < new_widths_prime[-2]])
@@ -343,10 +354,39 @@ def call_opt_spine(user_plbs, geocode16, geocode_dict, fanout_cutoff, epsilon_de
         geolevel_plb = user_plbs_above_county[k]
         for geocode in geocodes:
             plbs_above_county[geocode] = geolevel_plb
-    full_plb_dicts.update(plbs_above_county)
+    full_plb_dict.update(plbs_above_county)
 
-    return full_maps_rdd, full_plb_dicts, widths_dict
+    print("Bypassing geounits with only one child above the county geolevel")
+    county_geocodes_rdd = plb_dicts.map(lambda row: row[0]).filter(lambda row: len(row) == new_widths_prime[-2]).distinct()
+    county_geocodes = list(county_geocodes_rdd.collect())
+    widths_at_county_and_above = widths_above_county + [new_widths_prime[-2]]
+    full_plb_dict = bypass_above_county(full_plb_dict, widths_at_county_and_above, county_geocodes)
 
+    print(f"Dictionary of DAS GEOID widths after spine optimization is: {widths_dict}")
+
+    return full_maps_dict, full_plb_dict, widths_dict
+
+def bypass_above_county(plb_dict, widths_at_county_and_above, child_geocodes):
+    """
+    Reallocates child geounit PLB/precision proportions to parent geounits, for each child geounit in the county geolevel and above without siblings.
+    :param plb_dict: dictionary with format {geocode_in_optimized_spine:PLB_allocation}
+    :param widths_at_county_and_above: DAS GEOID widths for each geolevel at county and above
+    :param child_geocodes: a list of county geolevel DAS GEOIDs
+
+    :return plb_dict: dictionary with format {geocode_in_optimized_spine:PLB_allocation}, after reallocating PLB/precision proportions as described above.
+    """
+    # To start iterations at the county geolevel and work upward, use a reverse sort:
+    widths_at_county_and_above = sorted(widths_at_county_and_above, reverse=True)
+    for child_width, parent_width in zip(widths_at_county_and_above[:-1], widths_at_county_and_above[1:]):
+        parent_geocodes, inds, counts = np.unique([geocode[:parent_width] for geocode in child_geocodes], return_index=True, return_counts=True)
+        for parent_geocode, child_index, num_children in zip(parent_geocodes, inds, counts):
+            if num_children == 1:
+                # When the parent only has one child, reallocate PLB/precision proportion of the child to the parent:
+                plb_dict[parent_geocode] = plb_dict[child_geocodes[child_index]] + plb_dict[parent_geocode]
+                plb_dict[child_geocodes[child_index]] = Fraction(0, 1)
+        # The parent geounits in this iteration will be the child geounits in the next iteration:
+        child_geocodes = parent_geocodes
+    return plb_dict
 
 def aian_spine(geocode16, widths, aian_areas, redefine_counties, grfc_path, aian_ranges_path, strong_mcd_states):
     """
@@ -384,16 +424,16 @@ def aian_spine(geocode16, widths, aian_areas, redefine_counties, grfc_path, aian
             new_widths[35] = level
 
     geocode_rdd = make_grfc_ids(aian_areas, redefine_counties, grfc_path, aian_ranges_path, strong_mcd_states)
-    # Format: (geocode16, (state, aian, county/AIANNHCE, MCD/Place, tract, block))
+    # Format: (geocode16, (state, aian, county/AIANNHCE, MCD/Place, tract, block, DAS AIAN area code))
 
     geocode16 = geocode16.map(lambda row: (row, 1))
     # Format: (geoid, 1)
 
     geocode_rdd = geocode16.leftOuterJoin(geocode_rdd).repartition(num_partitions)
-    # Format: (geoid, (1, (state, AIAN, county/AIANNHCE, Place/MCD, tract, block)))
+    # Format: (geoid, (1, (state, AIAN, county/AIANNHCE, Place/MCD, tract, block, DAS AIAN area code)))
 
     geocode_rdd = geocode_rdd.map(lambda row: (row[0], row[1][1]))
-    # Format: (geoid, (state, AIAN, county/AIANNHCE, Place/MCD, tract, block))
+    # Format: (geoid, (state, AIAN, county/AIANNHCE, Place/MCD, tract, block, DAS AIAN area code))
 
     geocode_rdd = geocode_rdd.map(lambda row: (row[0], row[1][1] + row[1][0] + row[1][2] + row[1][4] + row[1][5][0] + row[1][5] + row[0]))
     # Format: (geocode16, DAS_ID)

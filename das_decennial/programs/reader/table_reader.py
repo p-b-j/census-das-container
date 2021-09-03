@@ -612,7 +612,8 @@ class DASDecennialReader(AbstractDASReader):
 
             grfc_path = os.path.expandvars(self.getconfig(CC.GRFC_PATH, section=CC.READER, default='s3://uscb-decennial-ite-das/2010-convert/grfc'))
             aian_ranges_path = self.getconfig(key=CC.AIAN_RANGES_PATH, section=CC.GEODICT, default=os.path.realpath('programs/geographic_spines/AIANNHCE_ranges.csv'))
-            strong_mcd_states = self.gettuple(CC.STRONG_MCD_STATES, section=CC.GEODICT, sep=CC.REGEX_CONFIG_DELIM, default=('09', '23', '25', '26', '27', '33', '34', '36', '42', '44', '50', '55'))
+            strong_mcd_states = self.gettuple(CC.STRONG_MCD_STATES, section=CC.GEODICT, sep=CC.REGEX_CONFIG_DELIM,
+                                              default=('09', '23', '25', '26', '27', '33', '34', '36', '42', '44', '50', '55'))
             if spine_type == CC.OPT_SPINE:
                 dp_mechanism = self.setup.dp_mechanism_name
                 approximate_dp_mechanism = {CC.ROUNDED_CONTINUOUS_GAUSSIAN_MECHANISM:True, CC.GAUSSIAN_MECHANISM:True, CC.DISCRETE_GAUSSIAN_MECHANISM:True, CC.GEOMETRIC_MECHANISM:False}
@@ -621,12 +622,16 @@ class DASDecennialReader(AbstractDASReader):
                 entity_threshold = self.getint(CC.ENTITY_THRESHOLD, section=CC.GEODICT, default=9)
                 bypass_cutoff = self.getint(CC.BYPASS_CUTOFF, section=CC.GEODICT, default=150)
                 fanout_cutoff = self.getint(CC.FANOUT_CUTOFF, section=CC.GEODICT, default=12)
-                ignore_gqs_in_block_groups = self.getboolean(CC.IGNORE_GQS_IN_BLOCK_GROUPS, section=CC.GEODICT, default=False)
+                ignore_gqs_in_bgs = self.getboolean(CC.IGNORE_GQS_IN_BLOCK_GROUPS, section=CC.GEODICT, default=False)
+                target_orig_bgs = self.getboolean(CC.TARGET_ORIG_BLOCK_GROUPS, section=CC.GEODICT, default=False)
+                target_das_aian_areas = self.getboolean(CC.TARGET_DAS_AIAN_AREAS, section=CC.GEODICT, default=False)
 
                 gq_types_query = self.setup.unit_schema_obj.getQuery(CC.HHGQ_SPINE_TYPES)
-                geocode16 = join_data.map(lambda row: (row[0][0], gq_off_spine_entities(ignore_gqs_in_block_groups, gq_types_query.answer(row[1][1].toarray().flatten()))))
+                geocode16 = join_data.map(lambda row: (row[0][0], gq_off_spine_entities(ignore_gqs_in_bgs, gq_types_query.answer(row[1][1].toarray().flatten()))))
 
-                geocode16_to_DASGeoid, plb_dict, new_widths = call_opt_spine(user_plbs, geocode16, self.modified_geocode_dict, fanout_cutoff, epsilon_delta, aian_areas, entity_threshold, redefine_counties, bypass_cutoff, grfc_path, aian_ranges_path, strong_mcd_states)
+                geocode16_to_DASGeoid, plb_dict, new_widths = call_opt_spine(user_plbs, geocode16, self.modified_geocode_dict, fanout_cutoff, epsilon_delta,
+                                                                             aian_areas, entity_threshold, redefine_counties, bypass_cutoff, grfc_path,
+                                                                             aian_ranges_path, strong_mcd_states, target_orig_bgs, target_das_aian_areas)
                 join_data = join_data.map(lambda row: ((geocode16_to_DASGeoid[row[0][0]],), row[1]))
 
                 sc = SparkSession.builder.getOrCreate().sparkContext

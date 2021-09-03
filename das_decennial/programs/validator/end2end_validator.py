@@ -71,6 +71,8 @@ from pyspark.sql import DataFrame
 app_logger = logging.getLogger("application_logger")
 app_logger.setLevel(logging.DEBUG)
 
+# Upper bound on the number of persons in a unit (including both households and group quarters)
+MAX_NUMBER_OF_PERSONS_IN_UNIT = 99999
 
 def build_dataframe(spark, validator, sql_table_name, text_file):
     """
@@ -692,7 +694,7 @@ class E2EValidatorPerson(E2EValidator):
         print("Passed test_unit_implies_no_person")
 
     def test_NIU(self):
-        # Filters to just HUs (NIUs / 000s). Then filters to (geocode, 000)'s that have more than 99 persons per HU.
+        # Filters to just HUs (NIUs / 000s). Then filters to (geocode, 000)'s that have more than MAX_NUMBER_OF_PERSONS_IN_UNIT  persons per HU.
         # Empty if there are no geocodes with too many people per HU:
         mdf_groupby_geocode = self.e2e.mdf_per\
             .filter(self.e2e.mdf_per["rtype"] == '3')\
@@ -705,7 +707,7 @@ class E2EValidatorPerson(E2EValidator):
         join_df = mdf_groupby_geocode.join(cef_groupby_geocode,
                                            (mdf_groupby_geocode.geocode == cef_groupby_geocode.geocode),
                                            how='left')
-        filter_count = join_df.filter(join_df.mdf_per_count > 99 * join_df.cef_unit_count).count()
+        filter_count = join_df.filter(join_df.mdf_per_count > MAX_NUMBER_OF_PERSONS_IN_UNIT * join_df.cef_unit_count).count()
 
         if filter_count != 0:
             print(f"Failed test_NIU. With count of {filter_count}")
@@ -744,9 +746,9 @@ class E2EValidatorPerson(E2EValidator):
         """
         ub_violations = 0
 
-        print(f"Checking if 99 * #Housing Units >= # Ppl in Housing Units")
+        print(f"Checking if {MAX_NUMBER_OF_PERSONS_IN_UNIT} (MAX_NUMBER_OF_PERSONS_IN_UNIT) * #Housing Units >= # Ppl in Housing Units")
         violationsDF = joined_df.filter(
-            99 * (joined_df["sum(cef_level000)"]) < joined_df["sum(mdf_level0)"])
+            MAX_NUMBER_OF_PERSONS_IN_UNIT * (joined_df["sum(cef_level000)"]) < joined_df["sum(mdf_level0)"])
         print(f"Found # violations {violationsDF.count()}")
         ub_violations += violationsDF.count()
 

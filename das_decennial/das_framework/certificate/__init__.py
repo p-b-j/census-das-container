@@ -163,4 +163,3 @@ class CertificatePrinter:
             latex_tools.run_latex(out.name, delete_tempfiles=False, repeat=2, texinputs=texfiles + ":")
             shutil.move(out.name.replace(".tex", ".pdf"), pdf_name)
             os.system("rm -rf {}".format(outdir))
-            

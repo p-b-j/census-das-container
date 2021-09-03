@@ -563,7 +563,7 @@ def mission_start(obj, args):
     obj[CC.START] = str(int(time.time()))
     das_log(f"{args.mission_type} Mission Start", extra=obj)
 
-def mission_stop(obj):
+def mission_stop(obj, args):
     obj[CC.STOP] = str(int(time.time()))
     das_log(f"{args.mission_type} Mission Stop", extra=obj)
 

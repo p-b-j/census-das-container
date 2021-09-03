@@ -37,8 +37,41 @@ import pandas
 import os, math
 from collections import defaultdict
 
-queries = ["total"] # ["cenrace_7lev_two_comb * hispanic * voting"]
-all_geolevels =  ["AIANState", "OSE"]
+# queries = ["total"] # ["voting"]
+all_geolevels =  ["AIANState", "County"]
+queries = ["total", "voting"]
+denom_query="total"
+denom_total="total"
+# This script allows statistics to be aggregated over multiple simulation iterations. To do so, simulation_paths can be formatted as [[simulation_iteration_path_1, simulation_iteration_path_2, ...]].
+# Note that this also allows for statistics to be computed independently on separate runs using the alternative format: [[das_run_path_1], [das_run_path_2], ...].
+simulation_paths = [
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0412-1117-TRIAL1/DAS-PPMF-EPS10-0412-1117-TRIAL1/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0412-1604-TRIAL2/DAS-PPMF-EPS10-0412-1604-TRIAL2/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0412-1606-TRIAL3-2/DAS-PPMF-EPS10-0412-1606-TRIAL3-2/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0412-1607-TRIAL4/DAS-PPMF-EPS10-0412-1607-TRIAL4/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0412-1712-TRIAL5-2/DAS-PPMF-EPS10-0412-1712-TRIAL5-2/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0412-2011-TRIAL6/DAS-PPMF-EPS10-0412-2011-TRIAL6/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0412-2012-TRIAL7/DAS-PPMF-EPS10-0412-2012-TRIAL7/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0412-2013-TRIAL8/DAS-PPMF-EPS10-0412-2013-TRIAL8/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0413-0838-TRIAL9/DAS-PPMF-EPS10-0413-0838-TRIAL9/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0413-0840-TRIAL10/DAS-PPMF-EPS10-0413-0840-TRIAL10/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0413-0841-TRIAL11/DAS-PPMF-EPS10-0413-0841-TRIAL11/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0413-0842-TRIAL12/DAS-PPMF-EPS10-0413-0842-TRIAL12/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0413-0843-TRIAL13/DAS-PPMF-EPS10-0413-0843-TRIAL13/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-DAS-PPMF-EPS10-0413-1635-TRIAL14/DAS-DAS-PPMF-EPS10-0413-1635-TRIAL14/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-DAS-PPMF-EPS10-0413-1636-TRIAL15/DAS-DAS-PPMF-EPS10-0413-1636-TRIAL15/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-DAS-PPMF-EPS10-0413-1637-TRIAL16/DAS-DAS-PPMF-EPS10-0413-1637-TRIAL16/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-DAS-PPMF-EPS10-0413-1638-TRIAL17/DAS-DAS-PPMF-EPS10-0413-1638-TRIAL17/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-DAS-PPMF-EPS10-0413-1639-TRIAL18/DAS-DAS-PPMF-EPS10-0413-1639-TRIAL18/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0414-1019-TRIAL19-3/DAS-PPMF-EPS10-0414-1019-TRIAL19-3/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0414-0603-TRIAL20/DAS-PPMF-EPS10-0414-0603-TRIAL20/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0414-0604-TRIAL21-2/DAS-PPMF-EPS10-0414-0604-TRIAL21-2/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0414-1626-TRIAL22/DAS-PPMF-EPS10-0414-1626-TRIAL22/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0414-0605-TRIAL22/DAS-PPMF-EPS10-0414-0605-TRIAL22/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0415-0009-TRIAL24/DAS-PPMF-EPS10-0415-0009-TRIAL24/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"],
+    ["s3://uscb-decennial-ite-das/runs/tests/DAS-PPMF-EPS10-0415-0010-TRIAL25/DAS-PPMF-EPS10-0415-0010-TRIAL25/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/"]
+]
+
 # This script provides the CDF of the L1 error, evaluated from 0 to MAX_L1_ERROR in intervals of DOMAIN_ELEM_MULT:
 MAX_L1_ERROR = 25
 DOMAIN_ELEM_MULT = 5
@@ -64,22 +97,20 @@ def schemaDefault():
 schema_dict = defaultdict(schemaDefault)
 schema_dict["H1"] = "H1_SCHEMA"         # For H1-only internal runs as of 4/2/2020
 
-simulation_paths = [['s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy2c-MultipassRounder-aian_spine-eps2-dynamic_geolevel-20201231-110811/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/',
-'s3://uscb-decennial-ite-das/runs/production/dsep_experiments_dec_2020/DSEP-DEC2020-PL94-strategy1a-MultipassRounder-opt_spine-eps4-dynamic_geolevel-20201228-115337/mdf/us/per/MDF10_PER_US.txt/MDF10_PER_US-BlockNodeDicts/']]
-
-
-
-
-
 def make_run_ids_from_paths(paths):
     run_ids = []
     for path in paths:
-        run_id_str = path.split("dsep_experiments_dec_2020/DSEP-DEC2020-")[1]
-        run_id = ""
-        while run_id_str[:4] != "/mdf":
-            run_id += run_id_str[0]
-            run_id_str = run_id_str[1:]
-        run_ids.append(run_id)
+        start_str = "/runs/"
+        stop_str = "/mdf/"
+        start = path.find(start_str) + len(start_str)
+        # if start_str not in path str, set start to 0
+        if start == -1 + len(start_str):
+            start = 0
+        stop = path.find(stop_str)
+        # if stop_str not in path str, set stop to end of string
+        if stop == -1:
+            stop = len(path)
+        run_ids.append(path[start:stop])
     return run_ids
 
 def make_simulation_run_ids_from_paths(simulation_paths):
@@ -127,24 +158,8 @@ def analyzeQuery(query, analysis, spark, geolevel, schema_name, path):
     sdftools.print_item(spark_df, "Flat Experiment DF")
 
     spark_df = sdftools.aggregateGeolevels(spark, spark_df, geolevel)
-
-    if geolevel == C.PLACE:
-        spark_df = spark_df.filter(spark_df.geocode[2:7] != "99999")
-    elif geolevel == 'AIAN_AREAS':
-        spark_df = spark_df.filter(spark_df.geocode != "9999")
-    elif geolevel == 'OSE':
-        spark_df = spark_df.filter(sf.col(AC.GEOCODE).substr(sf.length(sf.col(AC.GEOCODE)) - 4, sf.length(sf.col(AC.GEOCODE))) != "99999")
-    elif geolevel == 'AIANTract':
-        spark_df = spark_df.filter(spark_df.geocode != "9" * 11)
-    elif geolevel == 'AIANState':
-        spark_df = spark_df.filter(spark_df.geocode != "99")
-    elif geolevel == 'AIANBlock':
-        spark_df = spark_df.filter(spark_df.geocode != "9" * 16)
-    elif geolevel == 'COUNTY_NSMCD':
-        spark_df = spark_df.filter(spark_df.geocode != "999")
-
+    spark_df = sdftools.remove_not_in_area(spark_df, [geolevel])
     spark_df = sdftools.answerQueries(spark_df, schema, [query])
-    # AC.PRIV means "protected via the differential privacy routines in this code base" variable to be renamed after P.L.94-171 production
     spark_df = sdftools.getL1(spark_df, colname="L1", col1=AC.PRIV, col2=AC.ORIG)
     rdd = spark_df.rdd.map(lambda row: row["L1"])
     l1_errors = np.array(rdd.collect())
@@ -154,10 +169,11 @@ def compute_metrics(query, analysis, spark, geolevel, schema_name, paths):
     l1_errors = np.array([])
     for path in paths:
         l1_errors = np.concatenate((l1_errors, analyzeQuery(query, analysis, spark, geolevel, schema_name, path)))
+    mae = np.mean(l1_errors)
     cdf_vals = [(k * DOMAIN_ELEM_MULT, np.round(np.mean(l1_errors <= k * DOMAIN_ELEM_MULT), 2)) for k in range(MAX_L1_ERROR // DOMAIN_ELEM_MULT)]
     prop_lt_thresh = np.round(np.mean(l1_errors < THRESHOLD_FOR_PROP), 2)
     count = len(l1_errors) // len(paths)
-    res = [prop_lt_thresh, count, cdf_vals]
+    res = [prop_lt_thresh, count, cdf_vals, mae]
     print(res)
     return res
 
@@ -165,11 +181,9 @@ def main():
     run_ids = make_simulation_run_ids_from_paths(simulation_paths)
     with open('l1_cdf.csv', 'w') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(["Run ID", "Query", "Geolevel", f"Proportion of Geounits with L1 error <= {THRESHOLD_FOR_PROP}", "Number of Geounits", "Values of CDF"])
-
+        writer.writerow(["Run ID", "Query", "Geolevel", f"Proportion of Geounits with L1 error <= {THRESHOLD_FOR_PROP}", "Number of Geounits", "Values of CDF", "MAE"])
         schema = "PL94"
         analysis, spark = setup()
-
         for query in queries:
             for run_id, paths in zip(run_ids, simulation_paths):
                 for geolevel in all_geolevels:

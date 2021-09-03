@@ -415,8 +415,6 @@ class DASEngineHierarchical(AbstractDASEngine, metaclass=ABCMeta):
                 level_rdd = spark.sparkContext.pickleFile(path)
             else:
                 level_rdd = spark.sparkContext.pickleFile(das_utils.expandPathRemoveHdfs(path))
-                # with open(path, "rb") as f:
-                #     level_rdd = spark.sparkContext.parallelize(pickle.load(f))
             # level_rdd = level_rdd.map(lambda node: node.unzipNoisy())
             nodes_dict[level] = level_rdd if self.use_spark else RDDLikeList(level_rdd.collect())
 
@@ -512,24 +510,21 @@ class DASEngineHierarchical(AbstractDASEngine, metaclass=ABCMeta):
         assert isinstance(geolevel_prop, Fraction)
 
         for query, dpq_prop in self.budget.query_budget.queryPropPairs(geolevel):
-            self.addDPQ2Dict("main hist", query, dp_queries, dpq_prop, geolevel_prop, main_hist, budget_id=0)
+            self.addDPQ2Dict("main hist", query, dp_queries, dpq_prop, geolevel_prop, main_hist)
 
         for query, dpq_prop in self.budget.query_budget.unitQueryPropPairs(geolevel):
-            self.addDPQ2Dict("unit", query, unit_dp_queries, dpq_prop, geolevel_prop, unit_hist, budget_id=0)
-
-        for query, dpq_prop in self.budget.query_budget.vacancyQueryPropPairs(geolevel):
-            self.addDPQ2Dict("vacancy", query, unit_dp_queries, dpq_prop, geolevel_prop, unit_hist, budget_id='Vacancy')
+            self.addDPQ2Dict("unit", query, unit_dp_queries, dpq_prop, geolevel_prop, unit_hist)
 
         return dp_queries, unit_dp_queries
 
-    def addDPQ2Dict(self, query_set_name, query, dp_queries, dpq_prop, geolevel_prop, main_hist, budget_id):
+    def addDPQ2Dict(self, query_set_name, query, dp_queries, dpq_prop, geolevel_prop, main_hist):
         inverse_scale = self.getAdjustedInverseScalePerQuery(dpq_prop, geolevel_prop)
         if inverse_scale < 0.:
             raise ValueError(f"{query_set_name} query {query.name} received dpq_prop, geolevel_prop {dpq_prop, geolevel_prop}")
-        dp_query = self.makeDPQuery(hist=main_hist, query=query, inverse_scale=inverse_scale, budget_id=budget_id)
+        dp_query = self.makeDPQuery(hist=main_hist, query=query, inverse_scale=inverse_scale)
         dp_queries.update({query.name: dp_query})
 
-    def makeDPQuery(self, hist, query: querybase.AbstractLinearQuery, inverse_scale: Fraction, budget_id: Union[int, str] = 0) -> cons_dpq.DPquery:
+    def makeDPQuery(self, hist, query: querybase.AbstractLinearQuery, inverse_scale: Fraction) -> cons_dpq.DPquery:
         """
         For the data :hist: and :query: on it, creates DP mechanism to protect it, applies it on the true
         answer, and creates DPquery that contains the query, the dp_answer and mechanism parameters
@@ -540,7 +535,7 @@ class DASEngineHierarchical(AbstractDASEngine, metaclass=ABCMeta):
         assert isinstance(inverse_scale, Fraction)
         dp_mech = self.mechanism(true_data=hist, query=query, inverse_scale=inverse_scale, bounded_dp=True, mechanism_name=self.mechanism_name)
 
-        return cons_dpq.DPquery(query, dp_mech, budget_id=budget_id).zipDPanswer()
+        return cons_dpq.DPquery(query, dp_mech).zipDPanswer()
 
     def checkBoundedDPPrivacyImpact(self, nodes_dict: __NodeDict__) -> (float, float):
         """
