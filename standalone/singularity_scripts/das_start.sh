@@ -13,10 +13,10 @@ spark-submit --py-files $ZIPFILE \
     --conf spark.dynamicAllocation.enabled=true \
     --conf spark.network.timeout=3000 \
     --conf spark.driver.maxResultSize=0g \
-    --conf spark.python.worker.memory=5g \
-    --driver-memory 5g \
+    --conf spark.python.worker.memory=13g \
+    --driver-memory 13g \
     --num-executors 1 \
-    --executor-memory 5g \
+    --executor-memory 13g \
     das2020_driver.py $1 \
     --loglevel DEBUG \
     --logfilename ~/das_log.log

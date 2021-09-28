@@ -1679,74 +1679,74 @@ class Strategy1b_ST_CTY_BG_isoTot_Ordering:
         # levels = USGeolevelsNoTractGroup.getLevels()
         us_ordering = {
             CC.L2_QUERY_ORDERING: {
-                # 0: {
-                0: ('cenrace', 'hispanic', 'votingage', 'hhinstlevels', 'hhgq', 'votingage * hispanic',
-                    'hispanic * cenrace', 'votingage * cenrace',
-                    'votingage * hispanic * cenrace', 'detailed'),
-                # },
+                0: {
+                    0: ('cenrace', 'hispanic', 'votingage', 'hhinstlevels', 'hhgq', 'votingage * hispanic',
+                        'hispanic * cenrace', 'votingage * cenrace',
+                        'votingage * hispanic * cenrace', 'detailed'),
+                },
             },
             CC.L2_CONSTRAIN_TO_QUERY_ORDERING: {
-                # 0: {
-                0: ('cenrace', 'hispanic', 'votingage', 'hhinstlevels', 'hhgq', 'votingage * hispanic',
-                    'hispanic * cenrace', 'votingage * cenrace',
-                    'votingage * hispanic * cenrace', 'detailed'),
-                # },
+                0: {
+                    0: ('cenrace', 'hispanic', 'votingage', 'hhinstlevels', 'hhgq', 'votingage * hispanic',
+                        'hispanic * cenrace', 'votingage * cenrace',
+                        'votingage * hispanic * cenrace', 'detailed'),
+                },
             },
             CC.ROUNDER_QUERY_ORDERING: {
-                # 0: {
-                0: ('total', 'hhgq', 'hhgq * hispanic', 'hhgq * hispanic * cenrace', 'hhgq * votingage * hispanic * cenrace',
-                    'detailed'),
-                # },
+                0: {
+                    0: ('total', 'hhgq', 'hhgq * hispanic', 'hhgq * hispanic * cenrace', 'hhgq * votingage * hispanic * cenrace',
+                        'detailed'),
+                },
             },
         }
         st_cty_bg_ordering = {
             CC.L2_QUERY_ORDERING: {
-                # 0: {
-                0: ('total',),
-                1: ('cenrace', 'hispanic', 'votingage', 'hhinstlevels', 'hhgq', 'votingage * hispanic',
-                    'hhgq', 'hispanic * cenrace', 'votingage * cenrace', 'votingage * hispanic',
-                    'votingage * hispanic * cenrace',
-                    'detailed'),
-                # },
+                0: {
+                    0: ('total',),
+                    1: ('cenrace', 'hispanic', 'votingage', 'hhinstlevels', 'hhgq', 'votingage * hispanic',
+                        'hhgq', 'hispanic * cenrace', 'votingage * cenrace', 'votingage * hispanic',
+                        'votingage * hispanic * cenrace',
+                        'detailed'),
+                },
             },
             CC.L2_CONSTRAIN_TO_QUERY_ORDERING: {
-                # 0: {
-                0: ('total',),
-                1: ('cenrace', 'hispanic', 'votingage', 'hhinstlevels', 'hhgq', 'votingage * hispanic',
-                    'hhgq', 'hispanic * cenrace', 'votingage * cenrace', 'votingage * hispanic',
-                    'votingage * hispanic * cenrace',
-                    'detailed'),
-                # },
+                0: {
+                    0: ('total',),
+                    1: ('cenrace', 'hispanic', 'votingage', 'hhinstlevels', 'hhgq', 'votingage * hispanic',
+                        'hhgq', 'hispanic * cenrace', 'votingage * cenrace', 'votingage * hispanic',
+                        'votingage * hispanic * cenrace',
+                        'detailed'),
+                },
             },
 
             CC.ROUNDER_QUERY_ORDERING: {
-                # 0: {
-                0: ('total',),
-                1: ('hhgq', 'hhgq * hispanic', 'hhgq * hispanic * cenrace', 'hhgq * votingage * hispanic * cenrace',
-                    'detailed'),
-                # },
+                0: {
+                    0: ('total',),
+                    1: ('hhgq', 'hhgq * hispanic', 'hhgq * hispanic * cenrace', 'hhgq * votingage * hispanic * cenrace',
+                        'detailed'),
+                },
             },
         }
         default_ordering = {
             CC.L2_QUERY_ORDERING: {
-                # 0: {
-                0: ('total', 'cenrace', 'hispanic', 'votingage', 'hhinstlevels', 'hhgq', 'votingage * hispanic',
-                    'hhgq', 'hispanic * cenrace', 'votingage * cenrace', 'votingage * hispanic',
-                    'votingage * hispanic * cenrace', 'detailed'),
-                # },
+                0: {
+                    0: ('total', 'cenrace', 'hispanic', 'votingage', 'hhinstlevels', 'hhgq', 'votingage * hispanic',
+                        'hhgq', 'hispanic * cenrace', 'votingage * cenrace', 'votingage * hispanic',
+                        'votingage * hispanic * cenrace', 'detailed'),
+                },
             },
             CC.L2_CONSTRAIN_TO_QUERY_ORDERING: {
-                # 0: {
-                0: ('total', 'cenrace', 'hispanic', 'votingage', 'hhinstlevels', 'hhgq', 'votingage * hispanic',
-                    'hhgq', 'hispanic * cenrace', 'votingage * cenrace', 'votingage * hispanic',
-                    'votingage * hispanic * cenrace', 'detailed'),
-                # },
+                0: {
+                    0: ('total', 'cenrace', 'hispanic', 'votingage', 'hhinstlevels', 'hhgq', 'votingage * hispanic',
+                        'hhgq', 'hispanic * cenrace', 'votingage * cenrace', 'votingage * hispanic',
+                        'votingage * hispanic * cenrace', 'detailed'),
+                },
             },
             CC.ROUNDER_QUERY_ORDERING: {
-                # 0: {
-                0: ('total', 'hhgq', 'hhgq * hispanic', 'hhgq * hispanic * cenrace', 'hhgq * votingage * hispanic * cenrace',
-                    'detailed'),
-                # },
+                0: {
+                    0: ('total', 'hhgq', 'hhgq * hispanic', 'hhgq * hispanic * cenrace', 'hhgq * votingage * hispanic * cenrace',
+                        'detailed'),
+                },
             },
         }
 

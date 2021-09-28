@@ -130,28 +130,6 @@ Unfortunately, the DAS code needs a bit of modification to run outside of the Ce
         ```Python
         return sorted(CC.SCHEMA_CROSS_JOIN_DELIM.join(sorted(re.split(CC.SCHEMA_CROSS_SPLIT_DELIM, str(q)))) for q in querynames)
         ```
-    * `das_decennial/programs/strategies/strategies.py`
-        * The query orderings should not be nested dictionaries, I'm not sure why they are all formatted this way when it breaks our code each time... For whatever query ordering scheme you are using, change the dictionaries so that they are just one level w/the key being the ordering number and the value being the query order. For example, here is the old/new format for an example ordering: 
-        ```Python
-        # Old format that breaks
-        CC.L2_QUERY_ORDERING: {
-            0: {
-                0: ('total',),
-                1: ('cenrace', 'hispanic', 'votingage', 'hhinstlevels', 'hhgq', 'votingage * hispanic',
-                    'hhgq', 'hispanic * cenrace', 'votingage * cenrace', 'votingage * hispanic',
-                    'votingage * hispanic * cenrace',
-                    'detailed'),
-            },
-        }
-        # New, correct format
-        CC.L2_QUERY_ORDERING: {
-            0: ('total',),
-            1: ('cenrace', 'hispanic', 'votingage', 'hhinstlevels', 'hhgq', 'votingage * hispanic',
-                'hhgq', 'hispanic * cenrace', 'votingage * cenrace', 'votingage * hispanic',
-                'votingage * hispanic * cenrace',
-                'detailed'),
-        }
-        ```
     * `das_decennial/programs/s3cat.py`
         * Replace this file with the version in `census2020-das-e2e/s3cat.py` which allows for concatenation of files on the local disk
     * `das_decennial/programs/writer/mdf2020writer.py`
