@@ -685,11 +685,15 @@ class DASDecennialReader(AbstractDASReader):
                 self.validateConstraintsNodeRDD(block_nodes, self.setup.levels[0])
 
         except RuntimeError as e:
+            # Testpoint T03-001S CEF Recode Engine Failed
+            self.das.delegate.log_testpoint('T03-001F')
             # Testpoint T02-011S for CEF Ingest Failed
             self.das.delegate.log_testpoint('T02-012F')
             raise e
 
-            # Testpoint T02-012S Successful Completion of CEF Ingest
+        # Testpoint T03-001S Applied Recodes to CEF
+        self.das.delegate.log_testpoint('T03-001S')
+        # Testpoint T02-012S Successful Completion of CEF Ingest
         self.das.delegate.log_testpoint('T02-012S')
 
         return block_nodes

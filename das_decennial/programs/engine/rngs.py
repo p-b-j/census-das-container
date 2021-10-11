@@ -38,8 +38,7 @@ class RDRandLbitInts:
         for i in range(n_int64_draws):
             s += self.bitgen.random_raw() << (64 * i)                                   # RDRAND random_raw() returns 64bit uint by default
         # XOR RDRANDs result with /dev/urandom for multiple entropy sources
-        # MH Note 20200412: Commenting out the next line to diagnose the os.urandom call as the potential cause of significant slowdown saving NMF
-        # s = s ^ int.from_bytes(os.urandom(n_int64_draws * 8), 'big')  # os.urandom takes number of bytes to generate, so *8
+        s = s ^ int.from_bytes(os.urandom(n_int64_draws * 8), 'big')  # os.urandom takes number of bytes to generate, so *8
         return s
 
     def integers(self, low=0, high=0):
@@ -70,10 +69,8 @@ class RDRandLbitInts:
 
         if rangelen == 2:
             rdrand = self.bitgen.random_raw() >> 63 # Get 1 bit (first)
-            # MH Note 20200412: Not using os.urandom to diagnose the os.urandom call as the potential cause of significant slowdown saving NMF
-            return low + rdrand
-            # devurand = os.urandom(1)[0] >> 7        # Get 1 bit (first)
-            # return low + (rdrand ^ devurand)
+            devurand = os.urandom(1)[0] >> 7        # Get 1 bit (first)
+            return low + (rdrand ^ devurand)
             # # The following is a bit slower, but keeps /dev/urandom and XOR in one place
             # return low + (self._nextint(1) >> 63)  # Get 1 bit (first)
 

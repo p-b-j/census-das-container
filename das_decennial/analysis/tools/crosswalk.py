@@ -3,10 +3,12 @@ import das_utils as du
 import constants as C
 from constants import CC
 import numpy as np
+import os
 from pyspark.sql.functions import udf
 from pyspark.sql.types import BooleanType
 
 from programs.geographic_spines.define_spines import make_aian_ranges_dict
+DAS_S3ROOT = os.getenv('DAS_S3ROOT')
 
 """
 Crosswalk Info:
@@ -92,7 +94,7 @@ def getCrosswalkDF(spark=None, columns=None, strong_mcd_states=STRONG_MCD_STATES
                2-digit STATE FIPS code and the 3-digit COUNTY FIPS code to create a 5-digit COUNTY code that
                is unique from all other 5-digit COUNTY codes.
     """
-    crosswalk = "s3://uscb-decennial-ite-das/2010/geounit_crosswalks/24vars/"
+    crosswalk = f"{DAS_S3ROOT}/2010/geounit_crosswalks/24vars/"
 
     crossdf = spark.read.option("header", "true").csv(crosswalk)
     # add "geocode" column based on GEOID (which is the 16 digit block id)
@@ -196,7 +198,7 @@ def in_aian_class(aiannhce, aian_class, aian_ranges_dict):
 
 def add_aiannhce_col(sc, df):
     cols_grfc = ['TABBLKST', 'TABBLKCOU', 'TABTRACTCE', 'TABBLK', 'AIANNHCE']
-    grfc = (sc.read.csv('s3://uscb-decennial-ite-das/2010-convert/grfc', sep='|', header=True)
+    grfc = (sc.read.csv(f'{DAS_S3ROOT}/2010-convert/grfc', sep='|', header=True)
                   .select(*cols_grfc)
                   .withColumn('BLOCK', sf.concat(sf.col('TABBLKST'), sf.col('TABBLKCOU'), sf.col('TABTRACTCE'), sf.col('TABBLK')[0:1], sf.col('TABBLK')))
                   .select('BLOCK', 'AIANNHCE'))
@@ -310,7 +312,7 @@ def getGRFC(spark, columns=None):
     =======
     a Spark DataFrame containing information from the GRFC file
     """
-    grfc_loc = "s3://uscb-decennial-ite-das/2010/cefv2/pp10_grf_tab_ikeda_100219.csv"
+    grfc_loc = f"{DAS_S3ROOT}/2010/cefv2/pp10_grf_tab_ikeda_100219.csv"
 
     grfc = spark.read.option("header", "true").csv(grfc_loc)
 

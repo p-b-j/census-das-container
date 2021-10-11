@@ -5,7 +5,7 @@ cspark --- tools for running Spark more easily from Python
 """
 #
 __author__ = "Simson L. Garfinkel"
-__version__ = "0.0.1"
+__version__ = "0.1.0"
 
 import os
 import sys
@@ -181,7 +181,7 @@ def spark_submit(*, logLevel=None, files_to_zip=[], pyfiles=[], pydirs=[], num_e
     :param conf: - a list containing name=value Spark properties to add to the --conf
     :param properties_file: - a file to be added as a --properties_file
     :param configdict: - a dictionary of configuration parameters, designed to be taken from the [spark] section of a config.ini file.
-    :param argv: - sys.argv (args[0] is script to run; remainder are arguments)
+    :param argv: - sys.argv (args[0] is script to run; remainder are arguments; you can put additional spark parameters before your script)
     :return: Returns True if Spark was successfully run
 
     We could make this more efficient by building a zip file and send it over.

@@ -45,7 +45,10 @@ import datetime
 
 # These are hard coded for now. Sorry!
 # das_log endpoints
-DAS_LOG_ENDPOINT       = "https://dasexperimental.ite.ti.census.gov/api/daslog/send"
+# Would prefer to get from das_config.json using cluster_info, but imports and pathing makes this difficult
+DAS_DASHBOARD_BASE = "https://dasdashboard.ti.census.gov" if (os.getenv('DAS_ENVIRONMENT') == 'PROD') else "https://dasexperimental.ite.ti.census.gov"
+
+DAS_LOG_ENDPOINT       = f"{DAS_DASHBOARD_BASE}/api/daslog/send"
 DAS_LOG_ENDPOINT_DEBUG = "https://dasexperimental.ite.ti.census.gov/~garfi303adm/html/api/daslog/send"
 
 # endpoints for getting mission information

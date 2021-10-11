@@ -26,7 +26,9 @@ IGNORE=True
 ETC_DIR     = os.path.join( dirname(dirname(abspath(__file__))), "etc")
 NOUNS       = os.path.join(ETC_DIR,'nouns.txt')
 ADJECTIVES  = os.path.join(ETC_DIR,'adjectives.txt')
-CHECK_MISSION_URL = 'https://dasexperimental.ite.ti.census.gov/api/mission/{mission_name}'
+# Would prefer to get from das_config.json using cluster_info, but imports and pathing makes this difficult
+DAS_DASHBOARD_BASE = "https://dasdashboard.ti.census.gov" if (os.getenv('DAS_ENVIRONMENT') == 'PROD') else "https://dasexperimental.ite.ti.census.gov"
+CHECK_MISSION_URL = DAS_DASHBOARD_BASE+'/api/mission/{mission_name}'
 MISSION_TIMEOUT = 1.0
 
 def mission_exists(mission_name):

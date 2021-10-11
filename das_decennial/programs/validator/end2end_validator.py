@@ -192,7 +192,7 @@ class E2E:
                                    csvOptions={'header': 'true', 'inferSechema': 'true', 'delimiter': '|'})
         grfc_geocoded = grfc.select(F.concat(F.col("TABBLKST"), F.col("TABBLKCOU"), F.col("TABTRACTCE"),
                                              F.col("TABBLKGRPCE"), F.col("TABBLK")).alias("geocode"),
-                                    F.col("OIDTABBLK"))
+                                    F.col("OIDTABBLK"), F.col("TABBLKST"))
         grfc_geocoded.registerTempTable("grfc_geocoded")
 
         return grfc, grfc_geocoded
@@ -268,7 +268,7 @@ class E2EValidator(AbstractDASValidator):
         self.validate_format_only = validate_format_only
 
     def validate(self, original_data, written_data_reference, **kwargs):
-        raise NotImplemented(f"No Implemented.")
+        raise NotImplemented(f"Not Implemented.")
 
     @staticmethod
     def select(stmt):
@@ -357,27 +357,32 @@ class E2EValidatorUnit(E2EValidator):
         return self.validate_data(**kwargs)
 
     def validate_cef_unit(self):
+        print('======= Validating that all CEF units have a valid OIDTB in the GRF-C =========')
         self.cef_unit_total = self.select1(f"SELECT COUNT(*) from cef_unit")
         cef_unit_oidtb_valid = self.select1(f"SELECT COUNT(*) from cef_unit where "
                                        f"cef_unit.oidtb in (SELECT oidtabblk from grfc)")
         # oidtabblk
         self.errors += self.verify(f"Number of CEF units: {self.cef_unit_total}  number with valid oidtb: "
                                    f"{cef_unit_oidtb_valid}",self.cef_unit_total == cef_unit_oidtb_valid)
+        print('======================================')
 
     @staticmethod
     def create_temp_tables_cef_unit():
         from pyspark.sql import SparkSession
         spark = SparkSession.builder.getOrCreate()
 
-        cef_unit_geocoded = spark.sql("SELECT cef_unit.mafid AS mafid,grfc_geocoded.geocode AS geocode,ten,qgqtyp "
+        cef_unit_geocoded = spark.sql("SELECT cef_unit.mafid AS mafid,grfc_geocoded.geocode AS geocode,ten,qgqtyp,grfc_geocoded.TABBLKST AS tabblkst "
                                            "FROM cef_unit LEFT JOIN grfc_geocoded ON cef_unit.oidtb=grfc_geocoded.oidtabblk")
         cef_unit_geocoded.registerTempTable("cef_unit_geocoded")
 
+
     def validate_dhch(self):
         if self.e2e.mdf_unit is not None:
+            print('======= Validating that the total number of MDF units matches the number of CEF Units =========')
             mdf_unit_total = self.select1("SELECT COUNT(*) from mdf_unit")
             self.errors += self.verify(f"Total MDF unit: {mdf_unit_total}",
                                        self.cef_unit_total == mdf_unit_total)
+            print('======================================')
             self.occupied_checks()
             self.test_vacant_units_in_mdf_where_none_in_cef()
         else:
@@ -392,6 +397,7 @@ class E2EValidatorUnit(E2EValidator):
         the MDF you should use inner.
         :return:
         """
+        print('======= Validating that GQ Types are invariant =========')
         QGQTYPE_EDIT = F.when(
             F.col("QGQTYP").isin(['702', '704', '706', '903', '904']), "997"
         ).otherwise(F.col("QGQTYP"))
@@ -417,6 +423,7 @@ class E2EValidatorUnit(E2EValidator):
             self.errors += 1
             return
         print("Passed test_mdf_count_vs_cef_count")
+        print('======================================')
 
     def occupied_checks(self):
         """
@@ -424,12 +431,14 @@ class E2EValidatorUnit(E2EValidator):
             Six.
             :return:
         """
+        print('======= Validating that the total number of MDF units matches the number of CEF Units =========')
         occupied = self.e2e.mdf_unit.filter(self.e2e.mdf_unit.hhsize > 0)
         test_six_df = occupied.filter((occupied.rtype != 2) & (occupied.gqtype != '000') & (occupied.vacs != 0))
         if test_six_df.count() > 0:
             print(f"Found bad values for RTYPE, GQTYPE, VACS")
             test_six_df.head(10)
             self.errors += 1
+        print('==========================================')
 
     def check_household_types(self):
         """
@@ -437,6 +446,7 @@ class E2EValidatorUnit(E2EValidator):
             Seven.
             :return:
         """
+        print('======= Validating Against impossible HHSIZE and HHType combinations =========')
         occupied = self.e2e.mdf_unit.filter(self.e2e.mdf_unit.hhsize > 0)
         occupied_greater_1 = self.e2e.mdf_unit.filter(self.e2e.mdf_unit.hhsize > 1)
         occupied_equal_1 = self.e2e.mdf_unit.filter(self.e2e.mdf_unit.hhsize == 1)
@@ -454,12 +464,13 @@ class E2EValidatorUnit(E2EValidator):
         if occupied_equal_1.count() > 0:
             print(f"Found bad value for htt it equals 1, 2, 3, 5 or 7 when HHSIZE == 1")
             self.errors += 1
+        print('======================================')
 
     def test_vacant_units_in_mdf_where_none_in_cef(self):
         """
 
         """
-        print('======================================')
+        print('======= Validating that vacant units are not invariant =========')
         # Group Quarters are irrelevant, so filter out only records for housing units.
         # .groupby geocode and find types of tenures of units in that geocode
         # vacant '0' means occupied, others mean vacant, filter to only occupied, no vacant in the block,
@@ -491,22 +502,25 @@ class E2EValidatorUnit(E2EValidator):
         filter_count_units = mdf_vacant_units_in_cef_no_vacant_units.map(lambda d: d[1][0]).reduce(add)
         print(f'filter_count_geocodes:  {filter_count}')
         print(f'filter_count_units:  {filter_count_units}')
-        print('======================================')
         if filter_count == 0:
             print(f"Failed test_vacant_units_in_mdf_where_none_in_cef. With count of {filter_count}")
             self.errors += 1
+            print('======================================')
             return
         print("Passed test_vacant_units_in_mdf_where_none_in_cef")
+        print('======================================')
 
     def validate_sort(self):
         """
         Validate that the housing units are sorted.
         """
+        print('======= Validating that the Units are sorted =========')
         df = self.e2e.mdf_unit.withColumn("index", F.monotonically_increasing_id())
         sorted_df = df.orderBy(df["TABBLKST"].asc(), df["TABBLKCOU"].asc(), df["TABTRACTCE"].asc(), df["TABBLK"].asc()).select("index")
         unit_df = df.select("index")
         is_sorted = unit_df.collect() == sorted_df.collect()
         self.errors += self.verify(f"Units are{' ' if is_sorted else ' not '}sorted", is_sorted)
+        print('======================================')
 
 
 class E2EValidatorPerson(E2EValidator):
@@ -621,6 +635,7 @@ class E2EValidatorPerson(E2EValidator):
         from pyspark.sql import SparkSession
         spark = SparkSession.builder.getOrCreate()
         if self.e2e.mdf_per is not None:
+            print('======= Validating that the total number of MDF persons was held invariant =========')
             mdf_per_total = self.select1("SELECT COUNT(*) from mdf_per")
             self.errors += self.verify(f"Total MDF per: {mdf_per_total}",
                                        self.cef_per_total == mdf_per_total)
@@ -629,6 +644,7 @@ class E2EValidatorPerson(E2EValidator):
                 print(self.e2e.mdf_per.head(10))
                 print("--------")
                 print(self.e2e.cef_per.head(10))
+            print('======================================')
 
             if not self.validate_format_only:
                 self.validate_sort()
@@ -648,12 +664,16 @@ class E2EValidatorPerson(E2EValidator):
         """
             This was taken from wills pre existing tests and converted to work with the cef and mdf. It was his test number
             one.
+            Removes HUs, then filters to elements with fewer MDF persons than CEF GQ units.
+            If the result is empty, then we always had at least one person per GQ unit in each geocode:
             :return:
         """
+        print('======= Validating that the MDF has at least one person per CEF GQ Unit in each geocode =========')
+
         mdf_groupby_geocode = self.e2e.mdf_per.groupBy("geocode", self.GQTYPE_VARIABLE).agg(F.count("*").alias("mdf_per_count"))
         cef_groupby_geocode = self.e2e.cef_unit.groupBy("geocode", "QGQTYP").agg(F.count("*").alias("cef_unit_count"))
 
-        mdf_groupby_geocode = mdf_groupby_geocode.filter(mdf_groupby_geocode[self.GQTYPE_VARIABLE] != '000')
+        mdf_groupby_geocode = mdf_groupby_geocode.filter(mdf_groupby_geocode[self.GQTYPE_VARIABLE] != '0')
         cef_groupby_geocode = cef_groupby_geocode.filter(cef_groupby_geocode["QGQTYP"] != '000')
 
         join_df = mdf_groupby_geocode.join(cef_groupby_geocode,
@@ -668,6 +688,7 @@ class E2EValidatorPerson(E2EValidator):
             self.errors += 1
             return
         print("Passed validate_person_in_gq")
+        print('======================================')
 
     def test_unit_implies_no_person(self):
         """
@@ -675,6 +696,7 @@ class E2EValidatorPerson(E2EValidator):
             Two.
             :return:
         """
+        print('======= Validating that geocodes with no GQ in the CEF contain no GQ people in the MDF =========')
         # it checks whether no Units of GQTYPE in geocode in CEF implies no Persons with GQTYPE in MDF Persons:
         mdf_groupby_geocode = self.e2e.mdf_per.groupBy("geocode", self.GQTYPE_VARIABLE).agg(F.count("*").alias("mdf_per_count"))
         cef_groupby_geocode = self.e2e.cef_unit.groupBy("geocode", "QGQTYP").agg(F.count("*").alias("cef_unit_count"))
@@ -692,8 +714,10 @@ class E2EValidatorPerson(E2EValidator):
             self.errors += 1
             return
         print("Passed test_unit_implies_no_person")
+        print('======================================')
 
     def test_NIU(self):
+        print(f'======= Validating that there are fewer than {MAX_NUMBER_OF_PERSONS_IN_UNIT} persons per HU =========')
         # Filters to just HUs (NIUs / 000s). Then filters to (geocode, 000)'s that have more than MAX_NUMBER_OF_PERSONS_IN_UNIT  persons per HU.
         # Empty if there are no geocodes with too many people per HU:
         mdf_groupby_geocode = self.e2e.mdf_per\
@@ -712,8 +736,10 @@ class E2EValidatorPerson(E2EValidator):
         if filter_count != 0:
             print(f"Failed test_NIU. With count of {filter_count}")
             self.errors += 1
+            print('======================================')
             return
         print("Passed test_NIU")
+        print('======================================')
 
     def find_lb_violations(self, joined_df):
         """
@@ -721,6 +747,7 @@ class E2EValidatorPerson(E2EValidator):
         :param joined_df:
         :return:
         """
+        print('======= Validating GQ Lower Bounds =========')
         find_lb_violations = 0
 
         # We don't want to use 000 in these checks
@@ -737,6 +764,7 @@ class E2EValidatorPerson(E2EValidator):
         if find_lb_violations > 0:
             print(f"Found {find_lb_violations} violations in ub_violations")
         self.errors += find_lb_violations
+        print('======================================')
 
     def find_ub_violations(self, joined_df):
         """
@@ -744,6 +772,7 @@ class E2EValidatorPerson(E2EValidator):
         :param joined_df:
         :return:
         """
+        print('======= Validating GQ Upper Bounds =========')
         ub_violations = 0
 
         print(f"Checking if {MAX_NUMBER_OF_PERSONS_IN_UNIT} (MAX_NUMBER_OF_PERSONS_IN_UNIT) * #Housing Units >= # Ppl in Housing Units")
@@ -775,23 +804,30 @@ class E2EValidatorPerson(E2EValidator):
         if ub_violations > 0:
             print(f"Found {ub_violations} violations in ub_violations")
         self.errors += ub_violations
+        print('======================================')
 
     def check_state_total_pops(self, spark):
+        print('======= Validating that state total populations are invariant =========')
+        cef_unit_geocoded = spark.sql("SELECT cef_unit.mafid AS mafid,grfc_geocoded.geocode AS geocode,ten,qgqtyp,grfc_geocoded.TABBLKST AS tabblkst "
+                                           "FROM cef_unit LEFT JOIN grfc_geocoded ON cef_unit.oidtb=grfc_geocoded.oidtabblk")
+        cef_unit_geocoded.registerTempTable("cef_unit_geocoded")
+        cef_per = spark.sql("SELECT cef_per.mafid AS mafid,cef_unit_geocoded.geocode AS geocode,cef_unit_geocoded.tabblkst AS tabblkst "
+                                           "FROM cef_per LEFT JOIN cef_unit_geocoded ON cef_per.mafid=cef_unit_geocoded.mafid")
         mdf_per = spark.sql("SELECT * from mdf_per")
-        cef_per = spark.sql("SELECT * from cef_per")
         mdf_per_distinct_states = mdf_per.select("tabblkst").distinct().rdd.flatMap(lambda x: x).collect()
         mdf_per_distinct_states = [x for x in mdf_per_distinct_states if x.strip()]
         for fip in mdf_per_distinct_states:
             mdf_count = mdf_per.filter(mdf_per["tabblkst"] == fip).count()
-            cef_count = cef_per.filter(cef_per["bcustatefp"] == fip).count()
+            cef_count = cef_per.filter(cef_per["tabblkst"] == fip).count()
             print(f"{fip} has # ppl in MDF vs CEF: {mdf_count} vs {cef_count}")
             self.errors += 1 if mdf_count != cef_count else 0
+        print('======================================')
 
     def test_people_in_cef_vacant_hus(self):
         """
         Validate that there are at least some Housing Units which were vacant in the CEF now contain people in the output MDF
         """
-        print('======================================')
+        print('======= Validating that there are Housing Units which were vacant in the CEF are now occupied in the MDF =========')
         # Group Quarters are irrelevant, so filter out only records for housing units.
         # .groupby geocode and find types of tenures of units in that geocode
         # tenure '0' means vacant, others mean occupied, filter to only vacant, no occupied
@@ -814,19 +850,20 @@ class E2EValidatorPerson(E2EValidator):
 
         filter_count = mdf_persons_in_previously_vacant_geocodes.count()
         print(f'filter_count:  {filter_count}')
-        print('======================================')
         if filter_count == 0:
             print(f"Failed test_people_in_cef_vacant_hus. With count of {filter_count}")
             self.errors += 1
+            print('======================================')
             return
         print("Passed test_people_in_cef_vacant_hus")
+        print('======================================')
 
 
     def test_cef_people_in_mdf_vacant_hus(self):
         """
-        Validate that there are at least some Housing Units which were vacant in the CEF now contain people in the output MDF
+        Validate that there are at least some Housing Units which were occupied in the CEF now are vacant in the output MDF
         """
-        print('======================================')
+        print('======= Validating that there are some Housing Units which were occupied in the CEF are now vacant in the MDF =========')
         cef_occupied_housing_unit_blocks = (
             self.e2e.cef_unit
                 .filter(self.e2e.cef_unit.rtype == 2)
@@ -845,23 +882,25 @@ class E2EValidatorPerson(E2EValidator):
         filter_count = cef_mdf.filter(lambda d: d[1][1] is None).count()
 
         print(f'filter_count:  {filter_count}')
-        print('======================================')
         if filter_count == 0:
             print(f"Failed test_cef_people_in_mdf_vacant_hus. With count of {filter_count}")
             self.errors += 1
             return
         print("Passed test_cef_people_in_mdf_vacant_hus")
+        print('======================================')
 
     def validate_sort(self):
         """
         Validate that the persons are sorted.
         """
+        print('======= Validating that MDF Persons are sorted =========')
         df = self.e2e.mdf_per.withColumn("index", F.monotonically_increasing_id())
         sorted_df = df.orderBy(df["TABBLKST"].asc(), df["TABBLKCOU"].asc(), df["TABTRACTCE"].asc(),
                                df["TABBLK"].asc(), df["EPNUM"].asc()).select("index")
         person_df = df.select("index")
         is_sorted = person_df.collect() == sorted_df.collect()
         self.errors += self.verify(f"Persons are{' ' if is_sorted else ' not '}sorted", is_sorted)
+        print('======================================')
 
     @staticmethod
     def generate_udf(target):
@@ -939,7 +978,7 @@ def main(args):
                     delegate.log_testpoint(testpoint="T04-102S")
             else:
                 error_string = f"Failed validation for {args.type.lower()}. " \
-                    f"There where {validator.errors + validator.failed_invariants} violations"
+                    f"There were {validator.errors + validator.failed_invariants} violations"
                 delegate.log_testpoint(testpoint=f"{'T04-016F' if validator.failed_invariants else 'T04-016F'}")
                 delegate.log_testpoint(testpoint=f"{'T04-017F' if validator.errors else 'T04-017F'}")
                 logging.error(error_string)
@@ -1018,6 +1057,7 @@ class E2EValidatorH12020(E2EValidatorUnit):
         the MDF you should use inner.
         :return:
         """
+        print('======= Validating that GQ Types are invariant =========')
         mdf_groupby_geocode = self.e2e.mdf_unit.groupBy("geocode", ).agg(F.count("*").alias("mdf_unit_count"))
         cef_groupby_geocode = self.e2e.cef_unit.groupBy("geocode", ).agg(F.count("*").alias("cef_unit_count"))
 
@@ -1032,6 +1072,8 @@ class E2EValidatorH12020(E2EValidatorUnit):
             self.errors += 1
             return
         print("Passed test_mdf_count_vs_cef_count")
+        print("=======================================")
+
 
     def occupied_checks(self):
         """
@@ -1039,21 +1081,24 @@ class E2EValidatorH12020(E2EValidatorUnit):
             Six.
             :return:
         """
-        print(f"Running validation to ensure all Housing Units have HH_STATUS Occupied or Vacant")
+        print('======= Validating that all Housing Units have HH_STATUS Occupied or Vacant =========')
         housing_units = self.e2e.mdf_unit.filter(self.e2e.mdf_unit.rtype == 2) # Grab all non-group quarters
         test_six_df = housing_units.filter((housing_units.hh_status != 1) & (housing_units.hh_status != 2))
         if test_six_df.count() > 0:
             print(f"Found bad values for RTYPE and HH_STATUS")
             test_six_df.head(10)
             self.errors += 1
+        print('====================================================')
 
-        print(f"Running validation to ensure all Group Quarters have HH_STATUS = NIU")
+        print('======= Validating that all Group Quarters have HH_STATUS NIU =========')
         group_quarters = self.e2e.mdf_unit.filter(self.e2e.mdf_unit.rtype == 4) # Grab all non-group quarters
         test_six_df = group_quarters.filter(group_quarters.hh_status != 0)
         if test_six_df.count() > 0:
             print(f"Found bad values for RTYPE and HH_STATUS")
             test_six_df.head(10)
             self.errors += 1
+
+        print('====================================================')
 
 
 

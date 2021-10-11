@@ -17,7 +17,7 @@ import csv
 import requests
 import datetime
 import xml.etree.ElementTree as ET
-#import boto3
+# import boto3
 from urllib.parse import urlparse
 
 SPARK_HOME = 'SPARK_HOME'
@@ -150,6 +150,8 @@ def dashboard_heartbeat(*,config,main_thread):
         sleep_time = min(heartbeat_frequency, print_heartbeat_frequency )
         time.sleep( sleep_time )
 
+DAS_STEP_ENV_VAR = 'DAS_STEP'
+DAS_NAME_ENV_VAR = 'DAS_NAME'
 
 class DASDelegate():
     """The DASDelegate class receives messages when different parts of the das runs.
@@ -166,13 +168,20 @@ class DASDelegate():
         Automatically adds mission name
         """
         return
+        das_step = os.getenv(DAS_STEP_ENV_VAR)
+        das_name = os.getenv(DAS_NAME_ENV_VAR)
+
+        das_step = "DAS_STEP:" if das_step is None else f"DAS_STEP:{das_step}"
+        das_name = "DAS_NAME:" if das_name is None else f"DAS_NAME:{das_name}"
+        mission_name = "MISSION_NAME:" if self.mission_name is None else f"MISSION_NAME:{self.mission_name}"
+
         priority = syslog.LOG_ERR if testpoint.endswith('F') else syslog.LOG_NOTICE
         with open( get_testpoint_filename(), "r") as csvfile:
             for row in csv.reader(csvfile, delimiter=','):
                 if row and row[0]==testpoint:
                     appendage = ":"+additional if additional else ""
                     syslog.openlog(facility = DAS_FACILITY)
-                    syslog.syslog(priority, f"{row[0]} {self.mission_name} {row[1]}{appendage}")
+                    syslog.syslog(priority, f"{das_name} {das_step} {mission_name} TESTPOINT:{row[0]} {row[1]}{appendage}")
                     syslog.closelog()
                     return
         raise ValueError(f"Unknown testpoint: {testpoint}")
@@ -348,7 +357,7 @@ def produce_certificate(config, certificate_path, git_commit="*None provided*", 
     dpstring += r"\vspace{0.5cm}"
 
     if das is not None:
-        df = pd.DataFrame(list(das.engine.budget.geolevel_prop_budgets_dict.items()))
+        df = pd.DataFrame(das.engine.budget.geolevel_prop_budgets_dict.items())
         df.columns = ["Geography level", "Budget proportion"]
         dpstring += "Geographic level allocations:\n\n" + str(df.to_latex(index=False)) + "\n" + r"\vspace{0.5cm}"
     dpstring += f"Within-geolevel query PLB allocations:\n\n{str(palloc.makeDataFrame(strategy_name, levels=levels).to_latex())}\n" + r"\vspace{0.5cm}"
@@ -658,7 +667,7 @@ if __name__=="__main__":
     seconds = total_seconds % 60
 
     dashboard.das_log(mission_name + ' finished', extra={'stop': 'now()', 'exit_code':0 })
-    #dashboard.SQS_Client().flush()
+    # dashboard.SQS_Client().flush()
 
 
     if das.output_paths:
@@ -668,7 +677,7 @@ if __name__=="__main__":
         das.log_and_print("")
 
     dashboard.das_log(mission_name + ' finished', extra={'stop': 'now()', 'exit_code':0 })
-    #dashboard.SQS_Client().flush()
+    # dashboard.SQS_Client().flush()
     requestResize(CC.TAKEDOWN_SECTION)
     das.log_and_print(f"{sys.argv[0]}: Elapsed time: {total_seconds} seconds ({minutes} min, {seconds} seconds)")
     delegate.log_testpoint("T03-005S") # DAS application completed

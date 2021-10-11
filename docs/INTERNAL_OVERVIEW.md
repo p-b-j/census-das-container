@@ -95,6 +95,7 @@ Unfortunately, the DAS code needs a bit of modification to run outside of the Ce
     * `das_decennial/das2020_driver.py`
         * Comment out the `boto3` import
         * In `DASDelegate.log_testpoint` add a void `return` at the top of the function such that the function doesn't run. This removes the testpoint logging but a fix would require a larger restructuring of logging (maybe manageable if testpoint logging is needed in the future)
+        TODO
         * In `produce_certificate`, change the dataframe construction to be `df = pd.DataFrame(list(das.engine.budget.geolevel_prop_budgets_dict.items()))`
         * In `__main__` comment out the two calls to `dashboard.SQS_Client().flush()`. We aren't using the dashboard logging right now since it was pretty reliant on `AWS` and didn't seem necessary, so no need to flush the queue
     * `das_decennial/das_utils.py`
@@ -126,6 +127,7 @@ Unfortunately, the DAS code needs a bit of modification to run outside of the Ce
             return inst.parse_piped_line(line)
         ```
     * `das_decennial/programs/schema/schema.py`
+        TODO
         * In `sort_marginal_names` change the return to be the following:
         ```Python
         return sorted(CC.SCHEMA_CROSS_JOIN_DELIM.join(sorted(re.split(CC.SCHEMA_CROSS_SPLIT_DELIM, str(q)))) for q in querynames)

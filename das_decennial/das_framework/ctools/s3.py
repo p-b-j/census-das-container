@@ -10,16 +10,19 @@ import string
 from collections import defaultdict
 import queue, threading
 import random
+import logging
 
 from urllib.parse import urlparse
 
-#import boto3
-#import botocore
-#import botocore.exceptions
+# import boto3
+# import botocore
+# import botocore.exceptions
 
 # note: boto3.resource acquire is not threadsafe, so we create this mutex
 boto3_resource_mutex = threading.Lock()
 s3_resources = {}               # per thread
+
+S3_RETRIES = 10                 # if there is an error, retry this many times
 
 def s3_resource():
     """Return an s3 resource for this thread."""
@@ -489,6 +492,7 @@ class s3open:
             self.waitObjectExists()
 
     def waitObjectExists(self):
+        # s3api has wait object-exists, but it doesn't implement waiters. They appear to be implemented in the cli itself.
         if self.fsync and "w" in self.mode:
             (bucket, key) = get_bucket_key(self.path)
             aws_s3api(['wait', 'object-exists', '--bucket', bucket, '--key', key])
@@ -517,15 +521,21 @@ def s3exists(path):
     https://stackoverflow.com/questions/33842944/check-if-a-key-exists-in-a-bucket-in-s3-using-boto3
     """
     (bucket,key) = get_bucket_key(path)
-    try:
-        s3_resource().Object(bucket, key).load()
-        return True
-    except botocore.exceptions.ClientError as e:
-        if e.response['Error']['Code']=='404':
-            return False
-        else:
-            # Something else has gone wrong
-            raise
+    error = None
+    for retry in range(S3_RETRIES):
+        try:
+            s3_resource().Object(bucket, key).load()
+            return True
+        except botocore.exceptions.NoCredentialsError as e:
+            logging.warning("%s retry=%d",e,retry)
+            error = e
+        except botocore.exceptions.ClientError as e:
+            if e.response['Error']['Code']=='404':
+                return False
+            else:
+                # Something else has gone wrong
+                raise
+    raise RuntimeError(f"Retries Exceeded: {error}")
 
 
 def s3rm(path):
