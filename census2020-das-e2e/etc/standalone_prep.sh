@@ -31,9 +31,11 @@ fi
 . ~/.bashrc || exit 1
 
 #`grbgetkey [key-code]` (Get key-code from Gurobi.com)
+python3 -m pip install --upgrade pip --user || exit 1
+
 cd $GUROBI_HOME 
 sudo /usr/local/anaconda3/bin/python3 setup.py install || exit 1
 
 sudo yum -y install python-pip texlive || exit 1
-python3 -m pip install --upgrade pip --user || exit 1
 python3 -m pip install pytest pyspark --user || exit 1
+
