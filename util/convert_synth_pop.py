@@ -41,6 +41,12 @@ def get_script_args():
 
     return (grfc_path, synth_path)
 
+def gen_mafids(hh_gb):
+    group_keys = hh_gb.groups.keys()
+
+    return dict(zip(group_keys, range(len(group_keys))))
+
+
 def load_synth_df(grfc_path, synth_path):
 
     if os.path.isdir(synth_path):
@@ -78,13 +84,16 @@ def load_synth_df(grfc_path, synth_path):
         on='geoid'
     ).dropna(subset=['OIDTABBLK']).reset_index().astype(int)
 
-def build_per_df(synth_df, hh_gb):
+def build_per_df(synth_df, hh_gb, mafids):
     per_fields = ['RTYPE', 'MAFID', 'CUF_PNC', 'BCUSTATEFP', 'VERSION', 'QSEX', 'QAGE', 'QDB', 'QDOB_MONTH', 'QDOB_DAY', 'QDOB_YEAR', 'QSPAN', 'QSPANX', 'CENHISP', 'QRACE1', 'QRACE2', 'QRACE3', 'QRACE4', 'QRACE5', 'QRACE6', 'QRACE7', 'QRACE8', 'QRACEX', 'CENRACE', 'RACE2010', 'RELSHIP', 'QGQTYP', 'LIVE_ALONE']
     per_df = pd.DataFrame(index=np.arange(synth_df.shape[0]), columns=per_fields)
 
     per_df['RTYPE'] = np.where(synth_df['relationship'].isin([37, 38]), 5, 3)
     # Need to add 100000001 to make the value valid
-    per_df['MAFID'] = 100000001 + synth_df['hh_id']
+    per_df['MAFID'] = synth_df.apply(
+        lambda row: mafids[(row['geoid'], row['hh_id'])] + 100000001,
+        axis=1
+    )
     # TODO: still don't know what CUF_PNC is
     per_df['CUF_PNC'] = 12345
     per_df['BCUSTATEFP'] = synth_df['state']
@@ -141,14 +150,15 @@ def build_per_df(synth_df, hh_gb):
     
     return per_df
 
-def write_unit_df(synth_df, per_df, hh_gb):
+def write_unit_df(synth_df, per_df, hh_gb, mafids):
     with open('converted_synth_unit.cef', 'w', newline='') as unit_file:
         unit_writer = csv.writer(unit_file, delimiter='|')
 
         for (geoid, hh_id), household in hh_gb:
-            unit_writer.writerow(get_unit_row(household, hh_id))
+            mafid = mafids[(geoid, hh_id)]
+            unit_writer.writerow(get_unit_row(household, hh_id, mafid))
         
-def get_unit_row(household, hh_id):
+def get_unit_row(household, hh_id, mafid):
         head_of_household = get_head_of_household(household)
         unit_rtype = 4 if household['relationship'].isin([37, 38]).any() else 2
         # TODO: this is always free and clear - should we set it to something else?
@@ -158,7 +168,7 @@ def get_unit_row(household, hh_id):
         # Should be able to subtract 1 from person RTYPE
         return [
             unit_rtype, # RTYPE
-            100000001 + hh_id, # MAFID
+            100000001 + mafid, # MAFID
             head_of_household['state'].item(), # BCUSTATEFP
             VERSION, # VERSION
             household.shape[0], # FINAL_POP
@@ -536,11 +546,13 @@ def main():
 
     hh_gb = synth_df.groupby(['geoid', 'hh_id'])
 
+    mafids = gen_mafids(hh_gb)
+
     print("Building CEF person dataframe...")
-    per_df = build_per_df(synth_df, hh_gb)
+    per_df = build_per_df(synth_df, hh_gb, mafids)
 
     print("Writing CEF unit dataframe...")
-    write_unit_df(synth_df, per_df, hh_gb)
+    write_unit_df(synth_df, per_df, hh_gb, mafids)
 
     print("Writing CEF person dataframe...")
     per_df.to_csv('converted_synth_pop.cef', sep='|', index=False, header=False)
