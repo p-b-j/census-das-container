@@ -141,7 +141,7 @@ def build_per_df(synth_df, hh_gb, mafids):
     # RELSHIP range seems to be 20-38 but not documented anywhere
     per_df['RELSHIP'] = synth_df['relationship']
     # NIU but 000 isn't allowed?
-    per_df['QGQTYP'] = '   '
+    per_df['QGQTYP'] = np.where(synth_df['relationship'].isin([37, 38]), '101', '   ')
     # Everyone living alone (for now)
     per_df['LIVE_ALONE'] = synth_df.apply(
         lambda row: 0 if hh_gb.get_group((row['geoid'], row['hh_id'])).shape[0] > 1 else 1,
@@ -181,7 +181,7 @@ def get_unit_row(household, hh_id, mafid):
             unit_ten, # TEN_A
             unit_ten, # TEN_R
             0, # VACS - I think should be NIU since it's not vacant
-            '   ', # QGQTYP - TODO: Do we want to assign a GQ type?
+            '101' if unit_rtype == 4 else '   ', # QGQTYP - TODO: Do we want to assign a GQ type?
             ' ', # GQSEX - CEF Validator says "GQ Unit Sex Composition Flag"???
             head_of_household['OIDTABBLK'].astype(np.int64).item(), # OIDTB
             get_hht(household, unit_rtype), # HHT

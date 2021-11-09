@@ -7,6 +7,10 @@ class PL94Strategy:
     """ Parent class to define the schema attribute(s). It is only needed for unit testing impact gaps"""
     schema = CC.SCHEMA_PL94
 
+class DHCPStrategy:
+    """ Parent class to define the schema attribute(s). It is only needed for unit testing impact gaps"""
+    schema = CC.SCHEMA_DHCP
+
 class USLevelStrategy:
     """
     Generic parent class for strategies that can be used with US-level runs. It has the levels attribute, but at this point
@@ -2742,6 +2746,119 @@ class DetailedOnlyQueryOrdering:
 
         return query_ordering
 
+class TestDHCPStrategy(DHCPStrategy, USLevelStrategy):
+    @staticmethod
+    def make(levels):
+        geos_qs_props_dict = defaultdict(lambda: defaultdict(dict))
+        geos_qs_props_dict.update({
+            CC.GEODICT_GEOLEVELS: levels,
+        })
+        for level in geos_qs_props_dict[CC.GEODICT_GEOLEVELS]:
+            if level == "US": # No 'total' query
+                geos_qs_props_dict[CC.DPQUERIES][level] = ('total', 'relgq', 'votingage * hispanic * cenrace', 
+                                                           'age * sex * hispanic * cenrace', 'detailed')
+                geos_qs_props_dict[CC.QUERIESPROP][level] = (Fr(1, 10), Fr(2, 10), Fr(4, 10), Fr(2, 10), Fr(1, 10))
+            elif level == "State": # In Redistricting, separately tuned rho on 'total'
+                geos_qs_props_dict[CC.DPQUERIES][level] = ('total', 'relgq', 'votingage * hispanic * cenrace', 
+                                                           'age * sex * hispanic * cenrace', 'detailed')
+                geos_qs_props_dict[CC.QUERIESPROP][level] = (Fr(1, 10), Fr(2, 10), Fr(4, 10), Fr(2, 10), Fr(1, 10))
+            elif level == "County": # In Redistricting, separately tuned rho on 'total'
+                geos_qs_props_dict[CC.DPQUERIES][level] = ('total', 'relgq', 'votingage * hispanic * cenrace', 
+                                                           'age * sex * hispanic * cenrace', 'detailed')
+                geos_qs_props_dict[CC.QUERIESPROP][level] = (Fr(1, 10), Fr(2, 10), Fr(4, 10), Fr(2, 10), Fr(1, 10))
+            elif level == "Tract": # In Redistricting, separately tuned rho on 'total'
+                geos_qs_props_dict[CC.DPQUERIES][level] = ('total', 'relgq', 'votingage * hispanic * cenrace', 
+                                                           'age * sex * hispanic * cenrace', 'detailed')
+                geos_qs_props_dict[CC.QUERIESPROP][level] = (Fr(1, 10), Fr(2, 10), Fr(4, 10), Fr(2, 10), Fr(1, 10))
+            elif level == "Block_Group":
+                geos_qs_props_dict[CC.DPQUERIES][level] = ('total', 'relgq', 'votingage * hispanic * cenrace', 
+                                                           'age * sex * hispanic * cenrace', 'detailed')
+                geos_qs_props_dict[CC.QUERIESPROP][level] = (Fr(1, 10), Fr(2, 10), Fr(4, 10), Fr(2, 10), Fr(1, 10))
+            elif level == "Block": # In Redistricting, separately tuned rho on 'total'
+                geos_qs_props_dict[CC.DPQUERIES][level] = ('total', 'relgq', 'votingage * hispanic * cenrace', 
+                                                           'age * sex * hispanic * cenrace', 'detailed')
+                geos_qs_props_dict[CC.QUERIESPROP][level] = (Fr(1, 10), Fr(2, 10), Fr(4, 10), Fr(2, 10), Fr(1, 10))
+            else:
+                raise ValueError(f"US geolevel {level} not recognized.")
+        return geos_qs_props_dict
+
+class TestDHCPQueryOrdering:
+    """Testing DHCP Setup"""
+    @staticmethod
+    def make(levels):
+        # levels = USGeolevelsNoTractGroup.getLevels()
+        us_ordering = {
+            CC.L2_QUERY_ORDERING: {
+                0: {
+                    0: ('total', 'relgq', 'votingage * hispanic * cenrace', 'age * sex * hispanic * cenrace', 'detailed'),
+                },
+            },
+            CC.L2_CONSTRAIN_TO_QUERY_ORDERING: {
+                0: {
+                    0: ('total', 'relgq', 'votingage * hispanic * cenrace', 'age * sex * hispanic * cenrace', 'detailed'),
+                },
+            },
+            CC.ROUNDER_QUERY_ORDERING: {
+                0: {
+                    0: ('total', 'relgq', 'votingage * hispanic * cenrace', 'age * sex * hispanic * cenrace', 'detailed'),
+                },
+            },
+        }
+        st_cty_tr_bg_ordering = {
+            CC.L2_QUERY_ORDERING: {
+                 0: {
+                    0: ('total', 'relgq'),
+                    1: ('votingage * hispanic * cenrace',),
+                    2: ('age * sex * hispanic * cenrace',),
+                    3: ('detailed',),
+                },
+            },
+            CC.L2_CONSTRAIN_TO_QUERY_ORDERING: {
+                0: {
+                    0: ('total', 'relgq'),
+                    1: ('votingage * hispanic * cenrace',),
+                    2: ('age * sex * hispanic * cenrace',),
+                    3: ('detailed',),
+                },
+            },
+
+            CC.ROUNDER_QUERY_ORDERING: {
+                0: {
+                    0: ('total', 'relgq'),
+                    1: ('votingage * hispanic * cenrace',),
+                    2: ('age * sex * hispanic * cenrace',),
+                    3: ('detailed',),
+                },
+            },
+        }
+        default_ordering = {
+            CC.L2_QUERY_ORDERING: {
+                0: {
+                    0: ('total', 'relgq', 'votingage * hispanic * cenrace', 'age * sex * hispanic * cenrace', 'detailed'),
+                },
+            },
+            CC.L2_CONSTRAIN_TO_QUERY_ORDERING: {
+                0: {
+                    0: ('total', 'relgq', 'votingage * hispanic * cenrace', 'age * sex * hispanic * cenrace', 'detailed'),
+                },
+            },
+            CC.ROUNDER_QUERY_ORDERING: {
+                0: {
+                    0: ('total', 'relgq', 'votingage * hispanic * cenrace', 'age * sex * hispanic * cenrace', 'detailed'),
+                },
+            },
+        }
+
+        query_ordering = {}
+        for geolevel in levels:
+            if geolevel == "US":
+                query_ordering[geolevel] = us_ordering
+            elif geolevel in ("State", "County", "Tract", "Block_Group"):
+                query_ordering[geolevel] = st_cty_tr_bg_ordering
+            else:
+                query_ordering[geolevel] = default_ordering
+        return query_ordering
+
 class StrategySelector:
     strategies = {
         'strategy1a': Strategy1a,
@@ -2782,6 +2899,7 @@ class StrategySelector:
         'Strategy2b_St_Cty_B_optSpine_ppmfCandidate'            : Strategy2b_St_Cty_B_optSpine_ppmfCandidate,
         'Strategy2b_St_Cty_B_aianSpine_ppmfCandidate'           : Strategy2b_St_Cty_B_aianSpine_ppmfCandidate,
         'Strategy2b_St_Cty_BG_optSpine_ppmfCandidate'           : Strategy2b_St_Cty_BG_optSpine_ppmfCandidate,
+        'test_dhcp_strategy'                                    : TestDHCPStrategy,
     }
 
 class QueryOrderingSelector:
@@ -2804,4 +2922,5 @@ class QueryOrderingSelector:
         'Strategy2b_ST_CTY_BG_isoTot_Ordering'              : Strategy2b_ST_CTY_BG_isoTot_Ordering,
         'Strategy1b_ST_CTY_TR_BG_isoTot_Ordering_dsepJune3' : Strategy1b_ST_CTY_TR_BG_isoTot_Ordering_dsepJune3,
         'Strategy1b_CTY_TR_BG_isoTot_Ordering_PR_dsepJune3' : Strategy1b_CTY_TR_BG_isoTot_Ordering_PR_dsepJune3,
+        'test_dhcp_ordering'                                : TestDHCPQueryOrdering,
     }
