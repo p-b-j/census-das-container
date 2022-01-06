@@ -22,12 +22,12 @@ Singularity uses `/tmp` for temproary storage by default. Depending on how much 
 ```bash
 # Make sure we are at the top of the repo
 $ basename $PWD
-uscb-das-container-public
+census-das-container
 # Create temporary directory
 $ mkdir singularity_tmp
 # Point singularity tmp storage to new directory
 # This will need to be run each bash session, or alternatively add it to your .bashrc
-$ export SINGULARITY_TMPDIR=/path/to/uscb-das-container-public/singularity_tmp
+$ export SINGULARITY_TMPDIR=/path/to/census-das-container/singularity_tmp
 ```
 
 #### **Option 1: Building from a prebuilt Docker Hub image**
@@ -35,7 +35,7 @@ Because the current build process requires Docker, there is a pre-built image on
 ```bash
 # Make sure we are at the top of the repo
 $ basename $PWD
-uscb-das-container-public
+census-das-container
 # Build the Singularity container census_das.img from the Docker Hub image
 $ singularity build census_das.img docker://pbjay/census-das-container:latest
 ```
@@ -61,7 +61,7 @@ for the singularity container to use. Note that this new home directory unfortun
 of your home directory due to the way that singularity mounts/binds directories.
 
 For example, if I wanted my location for the DAS to be under `/scratch/pbj/`, I would do the following:
-* Clone this repository (`uscb-das-container-public`) into a subdirectory of `/scratch/pbj/`.
+* Clone this repository (`census-das-container`) into a subdirectory of `/scratch/pbj/`.
 * Setup your input files in the directory `/scratch/pbj/das_files`
 * Setup your gurobi license file to have the path `/scratch/pbj/gurobi.lic`
 * Specify your new DAS home location updating the `das_home` variable in `das_container.conf` (e.g. `das_home="/scratch/pbj"`)
