@@ -171,7 +171,7 @@ This file's purpose is solely for configuring parameters used to get the DAS run
 ## DAS Configuration
 The DAS has many parameters that can be configured for how it runs its privacy algorithms. There isn't a ton of documentation as to what each of these parameters do and what combinations of parameters are valid. `das_decennial/configs/` is a directory with some example config files for the production release of the DAS.
 
-`configs/basic_cef.ini` (note that this is a different directory than `das_decennial/configs/`) has a configuration that was working for a container run of the DAS. It mostly borrows from the given production config examples w/a few modifications needed for running outside of the AWS environment.
+`configs/pl94.ini` (note that this is a different directory than `das_decennial/configs/`) has a configuration that was working for a container run of the DAS. It mostly borrows from the given production config examples w/a few modifications needed for running outside of the AWS environment.
 
 # Synthetic Population Scripts
 `util/convert_synth_pop.py` was added to convert synthetic population files into a format that can be used with the DAS.
